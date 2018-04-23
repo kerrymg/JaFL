@@ -436,17 +436,4 @@ public class Books {
 		}
 		return canon;
 	}
-	
-	public static void main(String args[]) {
-		Books books = getCanon();
-		for (int a = 0; a < args.length; a++) {
-			Books.BookDetails book = books.getBook(args[a]);
-			if (book.hasBook()) {
-				String[] codewords = book.getOfficialCodewords();
-				System.out.println("Official codewords for book " + args[a] + ": " + codewords.length);
-				for (int c = 0; c < codewords.length; c++)
-					System.out.println((c+1) + ": " + codewords[c]);
-			}
-		}
-	}
 }

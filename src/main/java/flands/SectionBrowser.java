@@ -272,22 +272,4 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 			}
 		}
 	}
-
-	public static void main(String args[]) {
-		FLApp.getSingle().init(null);
-		FLApp.getSingle().showProfession((int)(Math.random() * Adventurer.PROF_COUNT));
-		FLApp.getSingle().setVisible(false);
-
-		SectionBrowser sb = null;
-		if (args.length > 0)
-			try {
-				sb = new SectionBrowser(null, false, Integer.parseInt(args[0]));
-			}
-			catch (NumberFormatException nfe) {}
-		if (sb == null)
-			sb = new SectionBrowser(null, true, 10);
-		JFrame jf = sb.createFrame("Section Browser");
-		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		jf.setVisible(true);
-	}
 }

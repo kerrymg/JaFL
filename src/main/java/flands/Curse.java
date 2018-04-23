@@ -119,11 +119,6 @@ public class Curse implements XMLOutput {
 
 	public String toString() { return getName(); }
 
-	public static void main(String args[]) {
-		Curse c = new Curse(CURSE_TYPE, "Curse of Donkey's Ears");
-		c.addEffect(AbilityEffect.createAbilityBonus(Adventurer.ABILITY_CHARISMA, -2));
-	}
-
 	/* *****************
 	 * XMLOutput methods
 	 ***************** */

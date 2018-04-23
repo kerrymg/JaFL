@@ -38,6 +38,7 @@ public class Effect implements Comparable<Effect>, XMLOutput {
 	protected Effect next = null;
 
 	public int getType() { return type; }
+	public void setType(int type) { this.type = type; }
 	public String getSimpleDescription() { return description; }
 	public void setStyledDescription(StyledTextList text) {
 		styledDescription = text;

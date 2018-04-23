@@ -128,7 +128,7 @@ public class Adventurer implements Loadable {
 	private boolean hardcore = false;
 	private long hardcoreTime = 0;
 	
-	Adventurer() {
+	public Adventurer() {
 		abilities = new AbilityStat[ABILITY_COUNT];
 		for (int a = 0; a < ABILITY_COUNT; a++)
 			abilities[a] = new AbilityStat(a);
@@ -431,6 +431,10 @@ public class Adventurer implements Loadable {
 					return p;
 		}
 		return -1;
+	}
+
+	public Document getHistoryDocument() {
+		return history;
 	}
 
 	public static class God {
@@ -1803,49 +1807,5 @@ public class Adventurer implements Loadable {
 	
 	public void fontChanged(Font f, int smallerFontSize) {
 		// TODO Auto-generated method stub
-		
-	}
-
-	public static void main(String args[]) {
-		Adventurer[] advs = loadStarting(Books.getCanon().getBook(args.length > 0 ? args[0] : "5"));
-		for (int a = 0; a < advs.length; a++) {
-			System.out.println("Adventurer " + (a+1) + ":");
-			System.out.println(advs[a].toDebugString());
-			if (advs[a].history != null) {
-				System.out.print("History:");
-				//if (advs[a].history instanceof AbstractDocument)
-				//	((AbstractDocument)advs[a].history).dump(System.out);
-				//else
-				System.out.println(advs[a].history.toString());
-			}
-			advs[a].codewords.addCodeword("Codeword" + a);
-		}
-
-		javax.swing.JFrame jf = new javax.swing.JFrame("Starting Adventurers");
-		final javax.swing.JTextPane textPane = new javax.swing.JTextPane(advs[0].history);
-		final javax.swing.JComboBox jcb = new javax.swing.JComboBox();
-		for (int a = 0; a < advs.length; a++)
-			jcb.addItem(advs[a]);
-		jcb.setSelectedItem(advs[0]);
-		jcb.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent e) {
-				Adventurer a = (Adventurer)jcb.getSelectedItem();
-				if (a.history != null)
-					textPane.setDocument(a.history);
-			}
-		});
-
-		jf.getContentPane().add(new javax.swing.JScrollPane(textPane));
-		jf.getContentPane().add(jcb, java.awt.BorderLayout.SOUTH);
-		jf.setSize(200, 200);
-		jf.setVisible(true);
-		jf.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
-
-		int randomAdv = new java.util.Random().nextInt(advs.length);
-		AdventurerFrame af = new AdventurerFrame();
-		advs[randomAdv].addTitle("Masked Lady");
-		af.init(advs[randomAdv]);
-		af.pack();
-		af.setVisible(true);
 	}
 }

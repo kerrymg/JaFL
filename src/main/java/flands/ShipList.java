@@ -18,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -335,64 +334,6 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		for (int s = 0; s < getShipCount(); s++)
 			getShip(s).saveTo(dout);
 		return true;
-	}
-
-	public static void main(String args[]) {
-		final ShipList sl = new ShipList();
-		String[] docks = new String[]{"Aku", "Kunrir", null};
-		for (int s = 0; s < 10; s++) {
-			Ship ship = new Ship((int)(Math.random() * (Ship.MAX_TYPE+1)), null,
-				(int)(Math.random() * (Ship.MAX_CREW+2)) - 1);
-			ship.setDocked(docks[(int)(Math.random() * docks.length)]);
-			for (int c = 0; c < ship.getCapacity(); c++) {
-				int cargoType = (int)(Math.random() * (Ship.MAX_CARGO+1));
-				if (cargoType != Ship.NO_CARGO)
-					ship.addCargo(cargoType);
-			}
-			sl.addShip(ship);
-		}
-		String dock = docks[(int)(Math.random() * docks.length)];
-		sl.setAtDock(dock);
-
-		final javax.swing.JComboBox cargoBox = new javax.swing.JComboBox();
-		for (int c = 0; c <= Ship.MAX_CARGO; c++)
-			cargoBox.addItem(Ship.getCargoName(c));
-		cargoBox.setEditable(false);
-		javax.swing.JButton buyCargoButton = new javax.swing.JButton("Buy");
-		buyCargoButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				int[] ships = sl.findShipsWithSpace();
-				if (ships.length == 0)
-					JOptionPane.showMessageDialog(cargoBox, "No ships here with space!", "No space", JOptionPane.INFORMATION_MESSAGE);
-				else if (ships.length > 1)
-					JOptionPane.showMessageDialog(cargoBox, new Object[] {"Which ship should take the cargo?", "Please select one."}, "Can't decide", JOptionPane.INFORMATION_MESSAGE);
-				else
-					sl.addCargoTo(ships[0], cargoBox.getSelectedIndex());
-			}
-		});
-		javax.swing.JButton sellCargoButton = new javax.swing.JButton("Sell");
-		sellCargoButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				int[] ships = sl.findShipsWithCargo(cargoBox.getSelectedIndex());
-				if (ships.length == 0)
-					JOptionPane.showMessageDialog(cargoBox, "No ships here with this cargo!", "No cargo", JOptionPane.INFORMATION_MESSAGE);
-				else if (ships.length > 1)
-					JOptionPane.showMessageDialog(cargoBox, new Object[] {"Multiple ships have this cargo!", "Please select one."}, "Can't decide", JOptionPane.INFORMATION_MESSAGE);
-				else
-					sl.removeCargoFrom(ships[0], cargoBox.getSelectedIndex());
-			}
-		});
-		JTable table = sl.getTable();
-		javax.swing.JFrame jf = new javax.swing.JFrame("Ship list - " + dock);
-		jf.getContentPane().add(new javax.swing.JScrollPane(table));
-		javax.swing.JPanel lowerPanel = new javax.swing.JPanel();
-		lowerPanel.add(cargoBox);
-		lowerPanel.add(buyCargoButton);
-		lowerPanel.add(sellCargoButton);
-		jf.getContentPane().add(lowerPanel, java.awt.BorderLayout.SOUTH);
-		jf.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
-		jf.pack();
-		jf.setVisible(true);
 	}
 
 	public static JMenuItem getTransferMenuItem() { return transferItem; }
