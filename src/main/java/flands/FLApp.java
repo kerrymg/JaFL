@@ -16,7 +16,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -24,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -158,7 +158,7 @@ public class FLApp extends JFrame implements MouseListener,
 		cardLayout.show(getContentPane(), StartWindow);
 	}
 	
-	void init(String section) {
+	public void init(String section) {
 		userProps = new Properties();
 		boolean firstRun = false;
 		try {
@@ -1350,14 +1350,23 @@ public class FLApp extends JFrame implements MouseListener,
 		return Pattern.compile(patternStr.toString());
 	}
 	
-	private static ByteArrayOutputStream standardOut;
+	private static OutputStream standardOut;
 	private static PrintStream defaultOut;
-	public static void blockOutput() {
+	private static void blockOutput() {
 		if (defaultOut == null)
 			defaultOut = System.out;
 		
 		if (defaultOut == System.out) {
-			standardOut = new ByteArrayOutputStream();
+			standardOut = new OutputStream() {
+				@Override
+				public void write(byte[] b, int off, int len) {
+					/* ignore all output */
+				}
+				@Override
+				public void write(int b) {
+					/* ignore all output */
+				}
+			};
 			System.setOut(new PrintStream(standardOut));
 		}
 	}
