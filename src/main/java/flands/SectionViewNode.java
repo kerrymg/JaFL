@@ -20,12 +20,13 @@ public class SectionViewNode extends ActionNode implements Executable {
 	private int random;
 	private String title;
 
-	public SectionViewNode(Node parent) {
+	SectionViewNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 		findExecutableGrouper().addExecutable(this);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		title = atts.getValue("title");
 		random = getIntValue(atts, "random", -1);
@@ -33,30 +34,36 @@ public class SectionViewNode extends ActionNode implements Executable {
 		super.init(atts);
 	}
 
+	@Override
 	protected Element createElement() { return null; }
 
+	@Override
 	public void handleContent(String text) {
 		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper caller) {
 		setEnabled(true);
 		return false;
 	}
 
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		SectionBrowser browser = new SectionBrowser("5", false, random);
 		browser.createDialog(FLApp.getSingle(), title).setVisible(true);
 		setEnabled(false);
 		findExecutableGrouper().continueExecution(this, false);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		if (random > 0)
 			return "Randomly view other sections";

@@ -11,9 +11,9 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class AbilityEffect extends Effect {
-	public static final int ADJUST_ABILITY = 0;
-	public static final int DIVIDE_ABILITY = 1;
-	public static final int TARGET_ABILITY = 2;
+	static final int ADJUST_ABILITY = 0;
+	private static final int DIVIDE_ABILITY = 1;
+	private static final int TARGET_ABILITY = 2;
 
 	private int ability;
 	private int modifyType;
@@ -28,7 +28,7 @@ public class AbilityEffect extends Effect {
 		System.out.println("AbilityEffect: ability=" + ability + ",bonus=" + bonus);
 		return e;
 	}
-	public static AbilityEffect createAbilityDivider(int ability, int divideBy) {
+	static AbilityEffect createAbilityDivider(int ability, int divideBy) {
 		AbilityEffect e = new AbilityEffect();
 		e.ability = ability;
 		e.modifyType = DIVIDE_ABILITY;
@@ -36,7 +36,7 @@ public class AbilityEffect extends Effect {
 		System.out.println("AbilityEffect: ability=" + ability + ",divideBy=" + divideBy);
 		return e;
 	}
-	public static AbilityEffect createAbilityTarget(int ability, int target) {
+	static AbilityEffect createAbilityTarget(int ability, int target) {
 		AbilityEffect e = new AbilityEffect();
 		e.ability = ability;
 		e.modifyType = TARGET_ABILITY;
@@ -45,17 +45,17 @@ public class AbilityEffect extends Effect {
 	}
 
 	public int getAbility() { return ability; }
-	public int getModifyType() { return modifyType; }
+	int getModifyType() { return modifyType; }
 	public int getValue() { return modifier; }
 	/**
 	 * Adjust the ability modifier. It is assumed that this will only be
 	 * done on an adjust-ability effect.
 	 */
-	public void adjustValue(int delta) {
+	void adjustValue(int delta) {
 		modifier += delta;
 	}
 
-	public int adjustAbility(int value) {
+	int adjustAbility(int value) {
 		switch (modifyType) {
 			case ADJUST_ABILITY:
 				return value + modifier*multiplier;
@@ -87,7 +87,7 @@ public class AbilityEffect extends Effect {
 		super.addEffect(e, cumulative);
 	}
 
-	protected String getModStr() {
+	String getModStr() {
 		switch (modifyType) {
 		case ADJUST_ABILITY:
 			if (modifier < 0)
@@ -136,9 +136,10 @@ public class AbilityEffect extends Effect {
 					return true;
 				}
 				return false;
-		}
+			}
 	}
 
+	@Override
 	public int compareTo(Effect e) {
 		if (e instanceof AbilityEffect) {
 			AbilityEffect ae = (AbilityEffect)e;
@@ -167,7 +168,7 @@ public class AbilityEffect extends Effect {
 		super.init(atts);
 		multiplier = Node.getIntValue(atts, "multiplier", 1);
 	}
-	
+
 	protected void saveProperties(Properties atts) {
 		super.saveProperties(atts);
 		
@@ -186,15 +187,15 @@ public class AbilityEffect extends Effect {
 			break;
 		}
 	}
-	
-	public String toLoadableString() {
+
+	String toLoadableString() {
 		String str = "AE(" + Adventurer.getAbilityName(ability) + "," + modifyType + "," + modifier;
 		if (description != null)
 			str += "," + description;
 		return str + ")";
 	}
-	
-	public static AbilityEffect createFrom(String loadable) {
+
+	static AbilityEffect createFrom(String loadable) {
 		if (loadable.startsWith("AE(") && loadable.endsWith(")")) {
 			String[] params = loadable.substring(3, loadable.length() - 1).split(",");
 			if (params.length >= 3) {
@@ -231,7 +232,7 @@ public class AbilityEffect extends Effect {
 		System.err.println("Couldn't parse AbilityEffect: " + loadable);
 		return null;
 	}
-	
+
 	protected Effect createCopy() {
 		return new AbilityEffect();
 	}

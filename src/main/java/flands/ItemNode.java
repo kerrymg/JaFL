@@ -15,7 +15,7 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class ItemNode extends ActionNode implements Executable, ChangeListener, Flag.Listener {
-	public static ItemNode createItemNode(String name, Node parent) {
+	static ItemNode createItemNode(String name, Node parent) {
 		Item item = Item.createItem(name);
 		return (item == null ? null : new ItemNode(item, parent));
 	}
@@ -28,13 +28,14 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 	private int quantity;
 	private boolean forced;
 
-	public ItemNode(Item item, Node parent) {
+	private ItemNode(Item item, Node parent) {
 		super(item.getTypeName(), parent);
 		this.item = item;
 		setEnabled(false);
 		findExecutableGrouper().addExecutable(this);
 	}
-	
+
+	@Override
 	public void init(Attributes xmlAtts) {
 		item.init(xmlAtts);
 		if (item.getGroup() != null) {
@@ -56,7 +57,8 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 	}
 
 	public Item getItem() { return item; }
-	
+
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
 		if (name.equals(EffectNode.ElementName))
@@ -79,6 +81,7 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 	}
 
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
 		
@@ -87,7 +90,8 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 		addHighlightElements(leaves);
 		addEnableElements(leaves);
 	}
-	
+
+	@Override
 	public boolean handleEndTag() {
 		if (!hadContent && !hidden && !getParent().hideChildContent()) {
 			Element[] leaves = item.addTo(getDocument(), getElement(), createStandardAttributes(), getDocument().isNewSentence());
@@ -98,6 +102,7 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 	}
 
 	private boolean callContinue = false;
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (quantityStr != null) {
 			quantity = getAttributeValue(quantityStr);
@@ -138,10 +143,12 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 		return true;
 	}
 
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		boolean taken = false;
 		if (replace != null) {
@@ -179,6 +186,7 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 		}
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource() == itemGroup) {
 			if (itemGroup.getLimit() == 0)
@@ -186,6 +194,7 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 		}
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (flag != null && flag.equals(name)) {
 			System.out.println("ItemNode: flag '" + name + "' = " + state);
@@ -195,7 +204,8 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 				setEnabled(false);
 		}
 	}
-	
+
+	@Override
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		quantity = getIntValue(atts, "quantity", -1);
@@ -203,20 +213,22 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 			setEnabled(false);
 		callContinue = getBooleanValue(atts, "continue", false);
 	}
+	@Override
 	public void saveProperties(Properties props) {
 		super.saveProperties(props);
 		saveProperty(props, "quantity", quantity);
 		saveProperty(props, "continue", callContinue);
 	}
 	
-	public void dispose() {
+	@Override
+    public void dispose() {
 		if (flag != null)
 			getFlags().removeListener(flag, this);
 	}
 	
 	protected String getTipText() {
 		StyledTextList itemText = item.createItemText(null, false);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		if (replace != null) {
 			Item match = new Item(replace);
 			StyledTextList replacesText = match.createItemText(null, false);

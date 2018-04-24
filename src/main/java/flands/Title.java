@@ -31,7 +31,7 @@ public class Title {
 	}
 
 	public int getValue() { return value; }
-	public void adjustValue(int delta) {
+	void adjustValue(int delta) {
 		value += delta;
 	}
 	public void setValue(int value) {
@@ -42,17 +42,17 @@ public class Title {
 		if (pattern == null)
 			return title;
 		else
-			return MessageFormat.format(pattern, Integer.valueOf(value));
+			return MessageFormat.format(pattern, value);
 	}
-	
-	public String toLoadableString() {
+
+	String toLoadableString() {
 		if (pattern == null)
 			return title;
 		else
 			return title + "," + value + "," + pattern;
 	}
-	
-	public static Title createFromLoadableString(String str) {
+
+	static Title createFromLoadableString(String str) {
 		int comma1 = str.indexOf(',');
 		if (comma1 >= 0) {
 			int comma2 = str.indexOf(',', comma1+1);

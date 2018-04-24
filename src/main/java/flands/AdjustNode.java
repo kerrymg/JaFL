@@ -29,11 +29,12 @@ public class AdjustNode extends Node {
 	private int abilityModifier;
 	private String greaterThan, lessThan;
 	private int titleDefault = 0;
-	
-	public AdjustNode(Node parent) {
+
+	AdjustNode(Node parent) {
 		super(ElementName, parent);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		valueStr = atts.getValue("value");
 		if (valueStr == null)
@@ -73,6 +74,7 @@ public class AdjustNode extends Node {
 		super.init(atts);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		
@@ -95,10 +97,11 @@ public class AdjustNode extends Node {
 		if (greaterThan != null) props.setProperty("greaterThan", greaterThan);
 		if (lessThan != null) props.setProperty("lessThan", lessThan);
 	}
-	
+
+	@Override
 	protected Element createElement() { return null; }
 
-	public int getAdjustment() {
+	int getAdjustment() {
 		if (meetsConditions()) {
 			if (valueStr != null)
 				return getAttributeValue(valueStr);
@@ -109,7 +112,6 @@ public class AdjustNode extends Node {
 	}
 
 	private boolean checkComparisons(int val) {
-		boolean result = false;
 		if (greaterThan != null) {
 			try {
 				int i = Integer.parseInt(greaterThan);
@@ -126,10 +128,10 @@ public class AdjustNode extends Node {
 			}
 			catch (NumberFormatException nfe) { System.out.println("lessthan attribute should have an integer value: " + nfe); }
 		}
-		return result;
+		return false;
 	}
 
-	protected boolean meetsConditions() {
+	private boolean meetsConditions() {
 		if (god != null && getAdventurer().hasGod(god))
 			return true;
 		if (profession >= 0 && getAdventurer().getProfession() == profession)
@@ -177,9 +179,6 @@ public class AdjustNode extends Node {
 			else if (checkComparisons(nameValue))
 				return true;
 		}
-		if (automatic)
-			return true;
-
-		return false;
+		return automatic;
 	}
 }

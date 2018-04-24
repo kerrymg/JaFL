@@ -29,10 +29,10 @@ implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectio
 	private Books.BookListModel bookModel;
 	private JList bookList;
 	private JButton newButton, hardcoreButton, loadButton, quitButton;
-	
-	public StartPanel(FLApp parent) {
+
+	StartPanel(FLApp parent) {
 		this.parent = parent;
-		
+
 		newButton = new JButton("New Game");
 		newButton.setEnabled(false);
 		newButton.addActionListener(this);
@@ -44,7 +44,7 @@ implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectio
 		loadButton.addActionListener(this);
 		quitButton = new JButton("Quit");
 		quitButton.addActionListener(this);
-		
+
 		bookModel = new Books.BookListModel();
 		bookList = new JList(bookModel);
 		bookList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -53,7 +53,7 @@ implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectio
 		Font f = SectionDocument.getPreferredFont();
 		bookList.setFont(new Font(f.getFontName(), f.getStyle() | Font.ITALIC, f.getSize()));
 		SectionDocument.addFontUser(this);
-		
+
 		GridBagLayout gbl = new GridBagLayout();
 		setLayout(gbl);
 		new GBC(0, 0)
@@ -89,12 +89,13 @@ implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectio
 			.setInsets(0, 0, 11, 11)
 			.addComp(this, quitButton, gbl);
 	}
-	
+
 	private void newGame(int listIndex, boolean hardcore) {
 		Books.BookDetails book = bookModel.getBook(listIndex);
 		parent.doBeginBook(book.getKey(), hardcore);
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object src = e.getSource();
 		if (src == newButton || src == hardcoreButton) {
@@ -112,6 +113,7 @@ implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectio
 		}
 	}
 
+	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (e.getClickCount() != 2) return;
 		int listIndex = bookList.locationToIndex(e.getPoint());
@@ -119,15 +121,21 @@ implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectio
 			newGame(listIndex, false);
 	}
 
+	@Override
 	public void mousePressed(MouseEvent e) {}
+	@Override
 	public void mouseReleased(MouseEvent e) {}
+	@Override
 	public void mouseEntered(MouseEvent e) {}
+	@Override
 	public void mouseExited(MouseEvent e) {}
 
+	@Override
 	public void fontChanged(Font f, int smallerFontSize) {
 		bookList.setFont(new Font(f.getFontName(), f.getStyle() | Font.ITALIC, f.getSize()));
 	}
 
+	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		boolean bookSelected = bookList.getSelectedIndices().length == 1;
 		newButton.setEnabled(bookSelected);

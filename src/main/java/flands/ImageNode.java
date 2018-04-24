@@ -18,12 +18,13 @@ public class ImageNode extends ActionNode {
 	private String title;
 	private String book;
 	private String filename;
-	
-	public ImageNode(Node parent) {
+
+	ImageNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(true);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		filename = atts.getValue("file");
 		book = atts.getValue("book");
@@ -31,7 +32,8 @@ public class ImageNode extends ActionNode {
 		
 		super.init(atts);
 	}
-	
+
+	@Override
 	public void outit(Properties props) {
 		super.outit(props);
 		if (filename != null)
@@ -41,8 +43,9 @@ public class ImageNode extends ActionNode {
 		if (title != null)
 			props.setProperty("title", title);
 	}
-	
+
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String text) {
 		if (!hadContent && text.trim().length() == 0) return;
 		
@@ -51,7 +54,8 @@ public class ImageNode extends ActionNode {
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}
-	
+
+	@Override
 	public boolean handleEndTag() {
 		if (!hadContent && !getParent().hideChildContent()) {
 			MutableAttributeSet atts = createStandardAttributes();
@@ -62,22 +66,23 @@ public class ImageNode extends ActionNode {
 		}
 		return super.handleEndTag();
 	}
-	
+
 	private ImageWindow imageWindow = null;
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (filename == null) {
 			System.err.println("No filename attribute for ImageNode");
 			return;
 		}
-		
+
 		if (imageWindow == null) {
 			Books.BookDetails bookInfo;
 			if (book == null)
 				bookInfo = Address.getCurrentBook();
 			else
 				bookInfo = Books.getCanon().getBook(book);
-			
-			
+
+
 			imageWindow = FLApp.getSingle()
 				.createImageWindow(bookInfo.getInputStream(filename),
 								   (title == null ? "Illustration" : title),
@@ -85,11 +90,13 @@ public class ImageNode extends ActionNode {
 		}
 		imageWindow.setVisible(true);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		return "Shows an illustration in a separate window [" + (book == null ? "" : book + "/") + filename + "]";
 	}
-	
+
+	@Override
 	public void dispose() {
 		if (imageWindow != null) {
 			imageWindow.setVisible(false);

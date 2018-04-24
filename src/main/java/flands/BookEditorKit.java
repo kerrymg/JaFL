@@ -12,6 +12,7 @@ import javax.swing.text.ViewFactory;
  * @author Jonathan Mann
  */
 public class BookEditorKit extends StyledEditorKit {
+	@Override
 	public String getContentType() { return "text/xml"; }
 
 	/**
@@ -23,10 +24,11 @@ public class BookEditorKit extends StyledEditorKit {
 	 */
 	private static class BookViewFactory implements ViewFactory {
 		private ViewFactory innerFactory;
-		public BookViewFactory(ViewFactory inner) {
+		BookViewFactory(ViewFactory inner) {
 			innerFactory = inner;
 		}
 
+		@Override
 		public View create(Element e) {
 			View nodeView = Node.createViewFor(e);
 			if (nodeView != null)
@@ -44,6 +46,7 @@ public class BookEditorKit extends StyledEditorKit {
 		}
 	}
 
+	@Override
 	public ViewFactory getViewFactory() {
 		ViewFactory usualFactory = super.getViewFactory();
 		return new BookViewFactory(usualFactory);

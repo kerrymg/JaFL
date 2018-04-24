@@ -32,7 +32,7 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public abstract class Node implements XMLOutput, Expression.Resolver {
-	protected String nodeName;
+	private String nodeName;
 	private Node parent;
 	private List<Node> children;
 	private boolean noElement = false;
@@ -45,7 +45,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	public Node(String name, Node parent) {
 		this.nodeName = name;
 		this.parent = parent;
-		this.children = new ArrayList<Node>();
+		this.children = new ArrayList<>();
 	}
 
 	public Node getParent() { return parent; }
@@ -63,7 +63,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	public String getSectionName() { return parent.getSectionName(); }
 	public Iterator<Node> getChildren() { return children.iterator(); }
 	public int getChildCount() { return children.size(); }
-	public Node getChild(int index) { return children.get(index); }
+	Node getChild(int index) { return children.get(index); }
 
 	protected void insertChild(int index, Node n) { children.add(index, n); }
 
@@ -93,11 +93,11 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 
 	protected void addEnableElements(Element[] es) {
 		if (enableElements == null)
-			enableElements = new LinkedList<Element>();
-		for (int i = 0; i < es.length; i++) {
+			enableElements = new LinkedList<>();
+		for (Element e : es) {
 			if (!enabled)
-				makeEnabled(es[i], false);
-			enableElements.add(es[i]);
+				makeEnabled(e, false);
+			enableElements.add(e);
 		}
 	}
 
@@ -117,14 +117,14 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 			return;
 		
 		getDocument().grabWriteLock();
-		for (int i = 0; i < es.length; i++)
-			makeEnabled(es[i], enabled);
+		for (Element e : es)
+			makeEnabled(e, enabled);
 		getDocument().releaseWriteLock();
 
 		getDocument().fireChangeEvents(es);
 	}
 
-	protected void makeEnabled(Element e, boolean b) {
+	private void makeEnabled(Element e, boolean b) {
 		if (e instanceof AbstractElement) {
 			if (b)
 				((AbstractElement)e).removeAttribute(StyleConstants.Foreground);
@@ -286,16 +286,20 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	 * Creates an appropriate child Node given the name and attributes.
 	 * This node is then added as a child, for most types of node (notably not StyleNodes).
 	 */
-	public static Node createNode(String name, Node parent) {
+	static Node createNode(String name, Node parent) {
 		Node n;
 		if (parent == null) {
-			if (name.equals(SectionNode.ElementName))
+			switch (name) {
+			case SectionNode.ElementName:
 				n = new SectionNode();
-			else if (name.equals(LoadableNode.ElementName))
+				break;
+			case LoadableNode.ElementName:
 				n = new LoadableNode();
-			else {
+				break;
+			default:
 				System.out.println("createNode() called when parent=null, " + name + " is not a valid root element");
 				n = null;
+				break;
 			}
 		}
 		else
@@ -305,7 +309,8 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	}
 
 	private static class UnrecognisedNode extends Node {
-		public UnrecognisedNode(String name, Node parent) { super(name, parent); }
+		UnrecognisedNode(String name, Node parent) { super(name, parent); }
+		@Override
 		protected Element createElement() { return null; }
 	}
 
@@ -328,7 +333,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 				try {
 					return Integer.parseInt(val);
 				}
-				catch (NumberFormatException nfe) {}
+				catch (NumberFormatException ignored) {}
 		}
 		return defaultVal;
 	}
@@ -354,7 +359,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	 * If <code>true</code>, it was an AND;
 	 * if <code>false</code>, an OR.
 	 */
-	protected static boolean andSplitter;
+	static boolean andSplitter;
 	/**
 	 * Split a set of strings passed in an attribute value.
 	 * These will be separated by a '|' or a '&', to indicate logical OR or AND.
@@ -382,8 +387,8 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 		return results;
 	}
 
-	protected static String concatenate(String[] strs, boolean andSplitter) {
-		StringBuffer sb = new StringBuffer(strs[0]);
+	static String concatenate(String[] strs, boolean andSplitter) {
+		StringBuilder sb = new StringBuilder(strs[0]);
 		for (int i = 1; i < strs.length; i++) {
 			sb.append(andSplitter ? '&' : '|');
 			sb.append(strs[i]);
@@ -403,15 +408,14 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	 * where Nodes are grouped with one overall description (given elsewhere).
 	 */
 	public boolean hideChildContent() { return false; }
-	
+
 	/**
 	 * Handle the 'end tag' of this node.
 	 * @return <code>true</code> if any content was added to the document by this node;
 	 * <code>false</code> otherwise.
 	 */
 	public boolean handleEndTag() {
-		if (enableElements != null && enableElements.size() > 0) return true;
-		return false;
+		return enableElements != null && enableElements.size() > 0;
 	}
 
 	/**
@@ -433,7 +437,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	}
 
 	/** Trim whitespace from the beginning of the String only. */
-	public static String trimStart(String str) {
+	static String trimStart(String str) {
 		int len = str.length();
 		int i = 0;
 		for (; i < len; i++)
@@ -443,7 +447,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	}
 
 	/** Trim whitespace from the end of the String only. */
-	public static String trimEnd(String str) {
+	static String trimEnd(String str) {
 		int len = str.length() - 1;
 		for (; len >= 0; len--)
 			if (str.charAt(len) > ' ')
@@ -457,18 +461,18 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	public static final String CapsAttribute = "caps";
 
 	public SectionDocument getDocument() { return getParent().getDocument(); }
-	public static final String ViewTypeAttribute = "view";
-	public static final String BoxYViewType = "boxy";
-	public static final String BoxXViewType = "boxx";
-	public static final String TableViewType = "table";
+	static final String ViewTypeAttribute = "view";
+	static final String BoxYViewType = "boxy";
+	static final String BoxXViewType = "boxx";
+	static final String TableViewType = "table";
 	public static final String ParagraphViewType = "p";
-	public static final String ComponentViewType = "comp";
-	public static final String RowViewType = "row";
-	public static final String ImageViewType = "image";
-	public static final String NoViewType = "null";
+	static final String ComponentViewType = "comp";
+	static final String RowViewType = "row";
+	static final String ImageViewType = "image";
+	private static final String NoViewType = "null";
 	protected String getElementViewType() { return null; }
 
-	public static String getViewType(Element e) {
+	static String getViewType(Element e) {
 		AttributeSet atts = e.getAttributes();
 		if (atts.isDefined(ViewTypeAttribute))
 			return atts.getAttribute(ViewTypeAttribute).toString();
@@ -480,51 +484,47 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 		atts.addAttribute(ViewTypeAttribute, viewType);
 	}
 
-	public static View createViewFor(Element e) {
+	static View createViewFor(Element e) {
 		String viewType = getViewType(e);
 		if (viewType != null) {
-			if (viewType.equals(ParagraphViewType)) {
+			switch (viewType) {
+			case ParagraphViewType:
 				/*System.out.println("Node creating AdvancedParagraphView for " + e);*/
 				return new AdvancedParagraphView(e);
-			}
-			else if (viewType.equals(BoxYViewType)) {
+			case BoxYViewType:
 				/*System.out.println("Node creating BoxYView for " + e);*/
-				return new flands.BoxView(e, View.Y_AXIS);
-			}
-			else if (viewType.equals(BoxXViewType)) {
-				return new flands.BoxView(e, View.X_AXIS);
-			}
-			else if (viewType.equals(TableViewType)) {
+				return new BoxView(e, View.Y_AXIS);
+			case BoxXViewType:
+				return new BoxView(e, View.X_AXIS);
+			case TableViewType:
 				/*System.out.println("Node creating TableView for " + e);*/
 				return new TableView(e);
-			}
-			else if (viewType.equals(ComponentViewType)) {
+			case ComponentViewType:
 				/*System.out.println("Node creating ComponentView for " + e);*/
 				return new ComponentView(e) {
+					@Override
 					public float getMaximumSpan(int axis) {
 						return super.getPreferredSpan(axis);
 					}
 				};
-			}
-			else if (viewType.equals(NoViewType)) {
+			case NoViewType:
 				/*System.out.println("Node deliberately not creating a View for " + e);*/
 				return null;
-			}
-			else if (viewType.equals(ImageViewType)) {
+			case ImageViewType:
 				return new ImageView(e);
 			}
 		}
 		return null;
 	}
-	
-	public static final Object ImageAttribute = "image";
-	public static Image getImage(AttributeSet a) {
+
+	private static final Object ImageAttribute = "image";
+	static Image getImage(AttributeSet a) {
 		return (Image)a.getAttribute(ImageAttribute);
 	}
-	public static void setImage(MutableAttributeSet a, Image i) {
+	static void setImage(MutableAttributeSet a, Image i) {
 		a.addAttribute(ImageAttribute, i);
 	}
-	
+
 	public Element getElement() {
 		if (element == null && !noElement) {
 			element = createElement();
@@ -588,6 +588,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	public void setVariableValue(String name, int value) { getRoot().setVariableValue(name, value); }
 	public void adjustVariableValue(String name, int delta) { getRoot().adjustVariableValue(name, delta); }
 	public void removeVariable(String name) { getRoot().removeVariable(name); }
+	@Override
 	public int resolveIdentifier(String ident) { return getVariableValue(ident); }
 
 	/**
@@ -613,7 +614,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	}
 
 	/* Convenience methods */
-	static Adventurer dummyAdventurer = null;
+	private static Adventurer dummyAdventurer = null;
 	static Adventurer getAdventurer() {
 		Adventurer adv = FLApp.getSingle().getAdventurer();
 		if (adv != null) return adv;
@@ -629,7 +630,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	static ShipList getShips() { return getAdventurer().getShips(); }
 	static Flag.Set getFlags() { return getAdventurer().getFlags(); }
 
-	public IndexSet findItemMatches() {
+	IndexSet findItemMatches() {
 		IndexSet result = modifyItemMatches(null);
 		if (result == null) {
 			result = new IndexSet();
@@ -637,8 +638,8 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 		}
 		return result;
 	}
-	
-	public IndexSet modifyItemMatches(int[] matches) {
+
+	private IndexSet modifyItemMatches(int[] matches) {
 		IndexSet matchSet = null;
 		if (matches != null)
 			matchSet = new IndexSet(matches);
@@ -658,7 +659,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 
 		return matchSet;
 	}
-	
+
 	/* ****************************************************
 	 * Loading/saving dynamic properties (for saved games).
 	 **************************************************** */
@@ -696,8 +697,8 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	 * the name memorable.
 	 */
 	protected void outit(Properties props) {}
-	
-	protected void saveVarProperty(Properties props, String propName, String varStr) {
+
+	void saveVarProperty(Properties props, String propName, String varStr) {
 		if (varStr != null) {
 			// Property is defined
 			props.setProperty(propName, varStr); // fall-through case - overwritten if incorrect
@@ -721,30 +722,33 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 			}
 		}
 	}
-	
+
+	@Override
 	public void outputTo(PrintStream out, String indent, int flags) throws IOException {
 		output(this, out, indent, flags);
 	}
-	
+
 	public void outputStaticNode(PrintStream out, String indent) throws IOException {
 		outputTo(out, indent, XMLOutput.OUTPUT_PROPS_STATIC | XMLOutput.OUTPUT_PROPS_DYNAMIC);
 	}
-	
+
 	/* ************************
 	 * XMLOutput implementation
 	 ************************ */
+	@Override
 	public String getXMLTag() { return nodeName; }
+	@Override
 	public Iterator<XMLOutput> getOutputChildren() {
 		return XMLCast(getChildren());
 	}
-	
+
 	/**
 	 * Create an Iterator<XMLOutput> from an Iterator<Node>.
 	 */
-	protected static Iterator<XMLOutput> XMLCast(Iterator<Node> i) {
+	private static Iterator<XMLOutput> XMLCast(Iterator<Node> i) {
 		return new XMLCasterIterator(i);
 	}
-	
+
 	/**
 	 * I can't cast an Iterator<Node> to an Iterator<XMLOutput>, even though they
 	 * Node implements XMLOutput. I can't see a way around this, so I've created
@@ -753,14 +757,17 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	private static final class XMLCasterIterator implements Iterator<XMLOutput> {
 		private Iterator<Node> i;
 		private XMLCasterIterator(Iterator<Node> i) { this.i = i; }
+		@Override
 		public boolean hasNext() { return i.hasNext(); }
+		@Override
 		public XMLOutput next() {
-			Node n = i.next();
-			return n;
+			return i.next();
 		}
+		@Override
 		public void remove() { i.remove(); }
 	}
-	
+
+	@Override
 	public void storeAttributes(Properties atts, int flags) {
 		if ((flags & XMLOutput.OUTPUT_PROPS_STATIC) != 0)
 			outit(atts);
@@ -794,14 +801,13 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 			out.println("/>");
 	}
 
-	public static void outputAttributes(PrintStream out, Properties atts) throws IOException {
-		for (Iterator<Map.Entry<Object,Object>> i = atts.entrySet().iterator(); i.hasNext(); ) {
-			Map.Entry e = i.next();
+	private static void outputAttributes(PrintStream out, Properties atts) {
+		for (Map.Entry<Object, Object> e : atts.entrySet()) {
 			out.print(" ");
 			out.print(e.getKey());
 			out.print("=\"");
 			out.print(e.getValue());
 			out.print('"');
 		}
-	}	
+	}
 }

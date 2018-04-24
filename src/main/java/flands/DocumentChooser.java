@@ -24,7 +24,7 @@ public class DocumentChooser extends JDialog implements java.awt.event.ActionLis
 	private JList list;
 	private int[] selectedIndices = null;
 
-	public static int[] showChooser(Window w, String title, StyledDocument[] documents, boolean multipleSelection) {
+	static int[] showChooser(Window w, String title, StyledDocument[] documents, boolean multipleSelection) {
 		DocumentChooser chooser;
 		if (w instanceof Frame)
 			chooser = new DocumentChooser((Frame)w, title, documents, multipleSelection);
@@ -34,7 +34,7 @@ public class DocumentChooser extends JDialog implements java.awt.event.ActionLis
 		chooser.setVisible(true);
 		return chooser.getSelectedIndices();
 	}
-	
+
 	public DocumentChooser(Frame f, String title, StyledDocument[] documents, boolean multipleSelection) {
 		super(f, title, true);
 		init(f, documents, multipleSelection);
@@ -43,7 +43,7 @@ public class DocumentChooser extends JDialog implements java.awt.event.ActionLis
 		super(d, title, true);
 		init(d, documents, multipleSelection);
 	}
-	
+
 	private void init(Window parent, StyledDocument[] documents, boolean multipleSelection) {
 		list = new JList(documents);
 		list.setSelectionMode(multipleSelection ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION : ListSelectionModel.SINGLE_SELECTION);
@@ -68,7 +68,7 @@ public class DocumentChooser extends JDialog implements java.awt.event.ActionLis
 			.addComp(content, new JScrollPane(list), gbl);
 
 		CommandButtons buttons = CommandButtons.createRow(CommandButtons.OK_CANCEL, this);
-		new GBC(0, row++)
+		new GBC(0, row)
 			.setWeight(1, 0)
 			.setBothFill()
 			.addComp(content, buttons, gbl);
@@ -89,6 +89,7 @@ public class DocumentChooser extends JDialog implements java.awt.event.ActionLis
 		dispose();
 	}
 
+	@Override
 	public void actionPerformed(java.awt.event.ActionEvent evt) {
 		String command = evt.getActionCommand();
 		if (command.equals(CommandButtons.okCommand)) {

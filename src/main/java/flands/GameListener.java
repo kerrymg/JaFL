@@ -10,5 +10,5 @@ package flands;
  * @author Jonathan Mann
  */
 public interface GameListener {
-	public void eventOccurred(GameEvent evt);
+	void eventOccurred(GameEvent evt);
 }

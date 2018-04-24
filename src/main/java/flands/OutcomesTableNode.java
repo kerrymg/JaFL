@@ -16,10 +16,11 @@ public class OutcomesTableNode extends TableNode implements Executable {
 	public static final String ElementName = "outcomes";
 	private String var;
 
-	public OutcomesTableNode(Node parent) {
+	OutcomesTableNode(Node parent) {
 		super(ElementName, parent);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		var = atts.getValue("var");
 		findExecutableGrouper().addExecutable(this);
@@ -47,7 +48,8 @@ public class OutcomesTableNode extends TableNode implements Executable {
 
 		return false;
 	}
-	
+
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		System.out.println("Executing Outcomes node");
 		// Make sure all child OutcomeNodes are in initial state
@@ -61,5 +63,6 @@ public class OutcomesTableNode extends TableNode implements Executable {
 		return true;
 	}
 
+	@Override
 	public void resetExecute() {}
 }

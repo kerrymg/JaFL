@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -114,12 +113,13 @@ public class FLApp extends JFrame implements MouseListener,
 
 	private String currentSection;
 
-	private List<GameListener> gameListeners = new LinkedList<GameListener>();
+	private List<GameListener> gameListeners = new LinkedList<>();
 
 	private FLApp() {
 		super(Resources.GuiText("AppTitle"));
 
 		textPane = new JTextPane() {
+			@Override
 			public void setDocument(Document doc) {
 				// Remove any components in place
 				while (getComponentCount() > 0)
@@ -135,7 +135,7 @@ public class FLApp extends JFrame implements MouseListener,
 		textPane.addMouseListener(this);
 		textPane.addMouseMotionListener(this);
 		SectionDocument.addComponentFontUser(textPane);
-		
+
 		startPanel = new StartPanel(this);
 		cardLayout = new CardLayout();
 		getContentPane().setLayout(cardLayout);
@@ -143,7 +143,7 @@ public class FLApp extends JFrame implements MouseListener,
 		getContentPane().add(new JScrollPane(textPane), TextWindow);
 
 		setIconImage(loadImage("icon.jpg"));
-		
+
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent evt) {
 				FLApp.this.quitGame();
@@ -157,7 +157,7 @@ public class FLApp extends JFrame implements MouseListener,
 	private void showStartWindow() {
 		cardLayout.show(getContentPane(), StartWindow);
 	}
-	
+
 	public void init(String section) {
 		userProps = new Properties();
 		boolean firstRun = false;
@@ -184,7 +184,7 @@ public class FLApp extends JFrame implements MouseListener,
 			 * When testing a particular section, I'll usually mess around with
 			 * the character's setup here
 			 */
-			
+
 			//adventurer = advs[Adventurer.PROF_MAGE];
 			adventurer = advs[(int)(Math.random() * Adventurer.PROF_COUNT)];
 			//adventurer.adjustAbility(Adventurer.ABILITY_COMBAT, 3);
@@ -257,11 +257,11 @@ public class FLApp extends JFrame implements MouseListener,
 			adventurer.getExtraChoices().setMenu(extraChoiceMenu);
 			//adventurer.getCodewords().addCodeword("Evade");
 			adventurer.getCodewords().addCodeword("Barnacle");
-			
+
 			saveItem.setEnabled(true);
 			quicksaveItem.setEnabled(true);
 		}
-		
+
 		if (Address.getCurrentBookKey() == null)
 			showStartWindow();
 		else {
@@ -271,7 +271,7 @@ public class FLApp extends JFrame implements MouseListener,
 		}
 
 		windowProps = new WindowProperties("MainWindow", userProps);
-		if (firstRun || adventurer == null || windowProps == null)
+		if (firstRun || adventurer == null)
 			pack();
 		else {
 			windowProps.applyTo(this);
@@ -290,15 +290,15 @@ public class FLApp extends JFrame implements MouseListener,
 		requestFocus();
 	}
 
-	public boolean hasPickedAdventurer() {
+	private boolean hasPickedAdventurer() {
 		return (adventurer != null && adventureSheet != null && !adventureSheet.isEditable());
 	}
-	public void refreshAdventureSheet() {
+	void refreshAdventureSheet() {
 		if (adventureSheet != null)
 			adventureSheet.reset();
 	}
 
-	public void setNameEditable(boolean b, boolean setHardcore) {
+	void setNameEditable(boolean b, boolean setHardcore) {
 		if (adventureSheet != null) {
 			adventureSheet.setEditable(b);
 			saveItem.setEnabled(hasPickedAdventurer());
@@ -311,31 +311,31 @@ public class FLApp extends JFrame implements MouseListener,
 		}
 	}
 
-	public boolean isRuleActive(String rule) {
+	boolean isRuleActive(String rule) {
 		return rules.hasRule(rule);
 	}
-	public void updateActiveRules(String bookRules) {
+	private void updateActiveRules(String bookRules) {
 		rules.clearTempRules();
 		rules.addTempRules(bookRules);
 		// TODO: Any other rules may affect more than Defence
 		if (getAdventurer() != null)
 			getAdventurer().updatedActiveRules();
 	}
-	
+
 	private void centerWindow(boolean pack) {
 		boolean wasVisible = false;
 		if (isVisible()) {
 			wasVisible = true;
 			setVisible(false);
 		}
-		
+
 		if (pack)
 			pack();
-		
+
 		Dimension screenSize = getActualScreenSize();
 		setLocation((screenSize.width - getWidth()) / 2,
 				(screenSize.height - getHeight()) / 2);
-		
+
 		if (wasVisible)
 			setVisible(true);
 	}
@@ -352,14 +352,14 @@ public class FLApp extends JFrame implements MouseListener,
 				adventureSheet = new AdventurerFrame();
 				adventureSheet.init(adventurer);
 				adventureSheet.pack();
-				
+
 				WindowProperties props = WindowProperties.create("AdventureSheet", userProps);
 				if (props == null) {
 					Dimension screenSize = getActualScreenSize();
 					if (adventureSheet.getWidth() > screenSize.width / 2)
 						adventureSheet.setSize(screenSize.width / 2, adventureSheet
 								.getHeight());
-	
+
 					// Resize the main window as well
 					int appWidth = screenSize.width - adventureSheet.getWidth();
 					setBounds(0, 0, appWidth, 500);
@@ -392,8 +392,8 @@ public class FLApp extends JFrame implements MouseListener,
 		}
 		return false;
 	}
-	
-	public void showMapWindow() {
+
+	void showMapWindow() {
 		if (mapWindow == null) {
 			Books.BookDetails book = Address.getCurrentBook();
 			String mapFile = book.getMapFilename();
@@ -419,7 +419,7 @@ public class FLApp extends JFrame implements MouseListener,
 			mapWindow.setVisible(true);
 	}
 
-	public ShipFrame showShipWindow() {
+	ShipFrame showShipWindow() {
 		if (shipWindow == null) {
 			if (adventurer == null)
 				return null;
@@ -440,9 +440,9 @@ public class FLApp extends JFrame implements MouseListener,
 		return shipWindow;
 	}
 
-	public void showCodewordWindow() {
+	private void showCodewordWindow() {
 		if (adventurer == null) return;
-		
+
 		if (codewordWindow == null)
 			codewordWindow = new CodewordWindow(this);
 		else
@@ -452,10 +452,10 @@ public class FLApp extends JFrame implements MouseListener,
 		if (!codewordWindow.isVisible())
 			codewordWindow.setVisible(true);
 	}
-	
-	public void showNotesWindow() {
+
+	private void showNotesWindow() {
 		if (adventurer == null) return;
-		
+
 		if (codewordWindow == null)
 			codewordWindow = new CodewordWindow(this);
 		else
@@ -465,8 +465,8 @@ public class FLApp extends JFrame implements MouseListener,
 		if (!codewordWindow.isVisible())
 			codewordWindow.setVisible(true);
 	}
-	
-	public String getCurrentSection() {
+
+	String getCurrentSection() {
 		return currentSection;
 	}
 
@@ -501,7 +501,7 @@ public class FLApp extends JFrame implements MouseListener,
 		return adventurer;
 	}
 
-	public Node getRootNode() {
+	Node getRootNode() {
 		return rootNode;
 	}
 
@@ -514,12 +514,12 @@ public class FLApp extends JFrame implements MouseListener,
 	 * @see #getMouseAtX
 	 * @see #getMouseAtY
 	 */
-	public JComponent getToolTipContext() { return toolTipContext; }
+	JComponent getToolTipContext() { return toolTipContext; }
 	void setToolTipContext(JComponent context) {
 		toolTipContext = context;
 	}
 
-	public boolean gotoSection(String section) {
+	private boolean gotoSection(String section) {
 		if (gotoFile(Address.getCurrentBook().getInputStream(section + ".xml"),
 				     Address.getCurrentBookKey())) {
 			currentSection = section;
@@ -531,14 +531,14 @@ public class FLApp extends JFrame implements MouseListener,
 		else
 			return false;
 	}
-	
-	public boolean gotoAddress(Address address) {
+
+	boolean gotoAddress(Address address) {
 		if (address.getBook().equals(Address.getCurrentBookKey()) &&
 			address.section.equals(currentSection))
 			// Same section!
 			// If we allow this, a <return> might break - so ignore.
 			return true;
-		
+
 		if (gotoFile(address.getStream(), address.getBook())) {
 			if (Address.setCurrentBookKey(address.getBook())) {
 				updateLocalMap();
@@ -549,9 +549,8 @@ public class FLApp extends JFrame implements MouseListener,
 			if (adventurer != null)
 				adventurer.getExtraChoices().checkMenu();
 			else if (starting == null) {
-				Adventurer[] advs = Adventurer.loadStarting(Address.getCurrentBook());
-				starting = advs;
-				
+				starting = Adventurer.loadStarting(Address.getCurrentBook());
+
 				// Resize and center the window again
 				//centerWindow(true);
 			}
@@ -560,7 +559,7 @@ public class FLApp extends JFrame implements MouseListener,
 		else
 			return false;
 	}
-	
+
 	private void updateLocalMap() {
 		Books.BookDetails book = Address.getCurrentBook();
 		if (mapWindow != null) {
@@ -570,9 +569,9 @@ public class FLApp extends JFrame implements MouseListener,
 		}
 		String iconFilename = book.getIconFilename();
 		if (iconFilename != null)
-			setIconImage(loadImage(iconFilename));		
+			setIconImage(loadImage(iconFilename));
 	}
-	
+
 	private boolean gotoFile(InputStream in, String book)  {
 		try {
 			ParserHandler handler = getHandler();
@@ -603,9 +602,9 @@ public class FLApp extends JFrame implements MouseListener,
 		return false;
 	}
 
-	public SectionDocument getCurrentDocument() { return document; }
-	
-	public void returnFromSection() {
+	SectionDocument getCurrentDocument() { return document; }
+
+	void returnFromSection() {
 		if (lastDocument != null) {
 			closeSectionWindows();
 			unhighlight();
@@ -634,7 +633,7 @@ public class FLApp extends JFrame implements MouseListener,
 	 * In practice, more events are sent than are listened for.
 	 * @param l
 	 */
-	public void addGameListener(GameListener l) {
+	void addGameListener(GameListener l) {
 		if (!gameListeners.contains(l))
 			gameListeners.add(l);
 	}
@@ -647,38 +646,39 @@ public class FLApp extends JFrame implements MouseListener,
 	 * Send a game event.
 	 * @param id one of the codes defined in {@link GameEvent}.
 	 */
-	public void fireGameEvent(int id) {
+	void fireGameEvent(int id) {
 		if (gameListeners.size() > 0) {
 			GameEvent evt = new GameEvent(id);
-			for (Iterator<GameListener> i = gameListeners.iterator(); i
-					.hasNext();)
-				i.next().eventOccurred(evt);
+			for (GameListener gameListener : gameListeners)
+				gameListener.eventOccurred(evt);
 		}
-		
+
 		if (id == GameEvent.NEW_SECTION)
-			reportedBadLocation = false;	
+			reportedBadLocation = false;
 	}
 
 	private int mouseAtX;
 
 	private int mouseAtY;
 
-	public int getMouseAtX() { return mouseAtX; }
-	public int getMouseAtY() { return mouseAtY; }
+	int getMouseAtX() { return mouseAtX; }
+	int getMouseAtY() { return mouseAtY; }
 	void setMouseAtX(int x) { mouseAtX = x; }
 	void setMouseAtY(int y) { mouseAtY = y; }
 
 	private boolean popupEvent;
+	@Override
 	public void mousePressed(MouseEvent evt) {
-		popupEvent = false;
-		if (evt.isPopupTrigger())
-			popupEvent = true;
+		popupEvent = evt.isPopupTrigger();
 	}
+	@Override
 	public void mouseReleased(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			popupEvent = true;
 	}
+	@Override
 	public void mouseEntered(MouseEvent evt) {}
+	@Override
 	public void mouseDragged(MouseEvent evt) {}
 
 	private ActionNode actionNode = null;
@@ -696,6 +696,7 @@ public class FLApp extends JFrame implements MouseListener,
 	}
 
 	private boolean reportedBadLocation = false;
+	@Override
 	public void mouseMoved(MouseEvent evt) {
 		Point pt = evt.getPoint();
 		mouseAtX = pt.x;
@@ -748,11 +749,13 @@ public class FLApp extends JFrame implements MouseListener,
 		}
 	}
 
+	@Override
 	public void mouseExited(MouseEvent evt) {
 		mouseMoved(evt);
 	}
 
 	private Popup toolTipPopup = null;
+	@Override
 	public void mouseClicked(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			popupEvent = true;
@@ -760,7 +763,7 @@ public class FLApp extends JFrame implements MouseListener,
 			toolTipPopup.hide();
 			toolTipPopup = null;
 		}
-		
+
 		Point pt = evt.getPoint();
 		int pos = textPane.viewToModel(pt);
 		if (pos < 0)
@@ -789,7 +792,7 @@ public class FLApp extends JFrame implements MouseListener,
 						x += contextLoc.x;
 						y += contextLoc.y;
 					}
-					catch (java.awt.IllegalComponentStateException e) {}
+					catch (java.awt.IllegalComponentStateException ignored) {}
 					/*
 					if (y > 20)
 						y -= (tipSize.height + 10);
@@ -804,8 +807,8 @@ public class FLApp extends JFrame implements MouseListener,
 			}
 		}
 	}
-	
-	public Dimension getActualScreenSize() {
+
+	private Dimension getActualScreenSize() {
 		Dimension screenSize = getToolkit().getScreenSize();
 		Insets screenInsets = getToolkit().getScreenInsets(
 				getGraphicsConfiguration());
@@ -822,18 +825,18 @@ public class FLApp extends JFrame implements MouseListener,
 		return createImageWindow(i, title, sectionOnly);
 	}
 
-	public ImageWindow createImageWindow(InputStream in, String title, boolean sectionOnly) {
+	ImageWindow createImageWindow(InputStream in, String title, boolean sectionOnly) {
 		Image i = loadImage(in);
 		return createImageWindow(i, title, sectionOnly);
 	}
-	
+
 	private ImageWindow createImageWindow(Image i, String title, boolean sectionOnly) {
 		if (i == null) return null;
 		ImageWindow iw = new ImageWindow(this, i, title);
 		
 		if (sectionOnly) {
 			if (sectionWindows == null)
-				sectionWindows = new LinkedList<ImageWindow>();
+				sectionWindows = new LinkedList<>();
 			sectionWindows.add(iw);
 		}
 		return iw;
@@ -847,7 +850,7 @@ public class FLApp extends JFrame implements MouseListener,
 			}
 		}
 	}
-	
+
 	/* Currently unused
 	public ImageWindow showImage(String imageFilename, String title,
 			boolean sectionOnly) {
@@ -857,16 +860,16 @@ public class FLApp extends JFrame implements MouseListener,
 	}
 	*/
 
-	public void updateImage(ImageWindow iw, Image i, String title) {
+	private void updateImage(ImageWindow iw, Image i, String title) {
 		iw.setImage(i, title);
 	}
-	
+
 	// Notification that an action has taken place - something affecting the game state.
 	// This flag results in the user being asked for save confirmation before exiting.
 	void actionTaken() { actionTaken = true; }
-	
-	boolean actionTaken = true;
-	
+
+	private boolean actionTaken = true;
+
 	void quitGame() {
 		if (actionTaken || (hasPickedAdventurer() && adventurer.isHardcore())) {
 			if (!endGame(Resources.GuiText().getString("SaveBeforeQuitQuery")))
@@ -878,7 +881,7 @@ public class FLApp extends JFrame implements MouseListener,
 		dispose();
 		System.exit(0);
 	}
-	
+
 	/**
 	 * End the game, allowing the player to save, not save, or cancel.
 	 * @param messageSecondLine the second line of a dialog to be displayed to the user
@@ -910,7 +913,7 @@ public class FLApp extends JFrame implements MouseListener,
 		}
 		return true;
 	}
-	
+
 	private static final String showRulesCommand = "rules",
 			showQuickRulesCommand = "quick",
 			showShipListCommand = "ships",
@@ -925,7 +928,7 @@ public class FLApp extends JFrame implements MouseListener,
 			HardcoreSaveItemKey = "HardcoreSaveItem",
 			NormalQuicksaveItemKey = "NormalQuicksaveItem",
 			HardcoreQuicksaveItemKey = "HardcoreQuicksaveItem";
-	
+
 	private JMenuItem saveItem = null, quicksaveItem = null;
 	private JMenu extraChoiceMenu = null;
 
@@ -951,7 +954,7 @@ public class FLApp extends JFrame implements MouseListener,
 		fileMenu.addSeparator();
 		fileMenu.add(createMenuItem("ExitItem", exitCommand));
 		bar.add(fileMenu);
-		
+
 		JMenu windowMenu = new JMenu(Resources.GuiText("WindowsMenu"));
 		windowMenu.add(createMenuItem("AdventureSheetItem",
 				showAdventureSheetCommand));
@@ -968,7 +971,7 @@ public class FLApp extends JFrame implements MouseListener,
 			windowMenu.add(createMenuItem("NodeDumpItem", nodeDumpCommand));
 		}
 		bar.add(windowMenu);
-		
+
 		extraChoiceMenu = new JMenu(Resources.GuiText("ExtraChoiceMenu"));
 		extraChoiceMenu.setVisible(false); // made visible when an adventurer has been chosen
 		bar.add(extraChoiceMenu);
@@ -984,94 +987,101 @@ public class FLApp extends JFrame implements MouseListener,
 
 	private Window globalMapWindow = null;
 
-	static final String saveFilename = "savegame.dat";
+	private static final String saveFilename = "savegame.dat";
 	public void actionPerformed(ActionEvent evt) {
 		String command = evt.getActionCommand();
-		if (command.equals(showRulesCommand)) {
+		switch (command) {
+		case showRulesCommand: {
 			SectionBrowser rulesPanel = new SectionBrowser("Rules.xml");
 			rulesPanel.createFrame(Resources.GuiText("FullRulesTitle")).setVisible(true);
+			break;
 		}
-		else if (command.equals(showQuickRulesCommand)) {
+		case showQuickRulesCommand: {
 			SectionBrowser rulesPanel = new SectionBrowser("QuickRules.xml");
 			rulesPanel.createFrame(Resources.GuiText("QuickRulesTitle")).setVisible(true);
+			break;
 		}
-		else if (command.equals(aboutCommand)) {
+		case aboutCommand:
 			new AboutDialog(this).setVisible(true);
-		}
-		else if (command.equals(localMapCommand)) {
+			break;
+		case localMapCommand:
 			showMapWindow();
-		}
-		else if (command.equals(globalMapCommand)) {
+			break;
+		case globalMapCommand:
 			if (globalMapWindow == null)
 				globalMapWindow = createImageWindow("global.jpg",
 						Resources.GuiText("GlobalMapTitle"), false);
 			globalMapWindow.setVisible(true);
-		}
-		else if (command.equals(showShipListCommand)) {
+			break;
+		case showShipListCommand:
 			showShipWindow();
-		}
-		else if (command.equals(showAdventureSheetCommand)) {
+			break;
+		case showAdventureSheetCommand:
 			if (adventurer != null)
 				showProfession(-1);
-		}
-		else if (command.equals(codewordCommand)) {
+			break;
+		case codewordCommand:
 			showCodewordWindow();
-		}
-		else if (command.equals(notesCommand)) {
+			break;
+		case notesCommand:
 			showNotesWindow();
-		}
-		else if (command.equals(newCommand)) {
+			break;
+		case newCommand:
 			if (!endGame(Resources.GuiText("SaveBeforeNewGameQuery")))
 				return;
-			
+
 			closeCurrentGame();
-		}
-		else if (command.equals(loadCommand)) {
+			break;
+		case loadCommand: {
 			String file = chooseSavedGame(true);
 			if (file != null)
 				doLoadSave(true, file);
+			break;
 		}
-		else if (command.equals(saveCommand)) {
+		case saveCommand: {
 			String file = chooseSavedGame(false);
 			if (file != null) {
 				doLoadSave(false, file);
 				if (adventurer.isHardcore())
 					closeCurrentGame();
 			}
+			break;
 		}
-		else if (command.equals(quickloadCommand)) {
+		case quickloadCommand:
 			doLoadSave(true, null);
-		}
-		else if (command.equals(quicksaveCommand)) {
+			break;
+		case quicksaveCommand:
 			doLoadSave(false, null);
 			if (adventurer.isHardcore())
 				closeCurrentGame();
-		}
-		else if (command.equals(exitCommand)) {
+			break;
+		case exitCommand:
 			quitGame();
-		}
-		else if (command.equals(fontCommand)) {
+			break;
+		case fontCommand:
 			FontChooser chooser = new FontChooser(this,
 					SectionDocument.getPreferredFont(),
 					SectionDocument.getSmallerCapsFontSize());
 			chooser.setVisible(true);
-			
+
 			if (chooser.getChosenFont() != null)
 				SectionDocument.setPreferredFont(chooser.getChosenFont(),
 						chooser.getSmallerCapsFontSize());
-		}
-		else if (command.equals(docViewerCommand)) {
+			break;
+		case docViewerCommand:
 			new SectionDocumentViewer(this);
-		}
-		else if (command.equals(nodeDumpCommand)) {
+			break;
+		case nodeDumpCommand:
 			try {
-				((SectionNode)this.rootNode).outputTo(System.out, "", XMLOutput.OUTPUT_PROPS_DYNAMIC);
+				this.rootNode.outputTo(System.out, "", XMLOutput.OUTPUT_PROPS_DYNAMIC);
 			}
-			catch (IOException ioe) {}
+			catch (IOException ignored) {
+			}
+			break;
 		}
 	}
 
-	void closeCurrentGame() {
+	private void closeCurrentGame() {
 		saveUserProperties();
 		boolean recenter = (adventurer != null);
 		if (adventureSheet != null) {
@@ -1090,7 +1100,7 @@ public class FLApp extends JFrame implements MouseListener,
 			mapWindow = null;
 		}
 		CacheNode.clearCaches();
-		
+
 		showStartWindow();
 		if (recenter)
 			gotoSection("New");
@@ -1098,9 +1108,9 @@ public class FLApp extends JFrame implements MouseListener,
 		starting = null;
 		Address.setCurrentBookKey(null);
 		if (recenter)
-			centerWindow(true);		
+			centerWindow(true);
 	}
-	
+
 	void doBeginBook(String book, boolean hardcore) {
 		if (gotoAddress(new Address(book, "New"))) {
 			newHardcore = hardcore;
@@ -1109,7 +1119,7 @@ public class FLApp extends JFrame implements MouseListener,
 			showTextWindow();
 		}
 	}
-	
+
 	String chooseSavedGame(boolean load) {
 		JFileChooser chooser;
 		try {
@@ -1119,10 +1129,12 @@ public class FLApp extends JFrame implements MouseListener,
 			chooser = new JFileChooser(new RestrictedFileSystemView());
 		}
 		chooser.setFileFilter(new FileFilter() {
+			@Override
 			public boolean accept(File f) {
 				return f.isDirectory() || f.getName().toLowerCase().endsWith(".dat");
 			}
 
+			@Override
 			public String getDescription() {
 				return Resources.GuiText("SaveGameFileDescription");
 			}
@@ -1138,7 +1150,7 @@ public class FLApp extends JFrame implements MouseListener,
 			result = chooser.showOpenDialog(this);
 		else
 			result = chooser.showSaveDialog(this);
-		
+
 		if (result == JFileChooser.APPROVE_OPTION) {
 			File file = chooser.getSelectedFile();
 			userProps.setProperty("SaveDir", file.getParent());
@@ -1151,7 +1163,7 @@ public class FLApp extends JFrame implements MouseListener,
 		else
 			return null;
 	}
-	
+
 	void doLoadSave(boolean load, String filename) {
 		/*
 		if (debugging) {
@@ -1159,7 +1171,7 @@ public class FLApp extends JFrame implements MouseListener,
 			return;
 		}
 		*/
-		
+
 		Adventurer oldAdv = adventurer;
 		if (filename == null)
 			filename = saveFilename;
@@ -1172,15 +1184,15 @@ public class FLApp extends JFrame implements MouseListener,
 			
 			if (!endGame(Resources.GuiText("SaveBeforeLoadGameQuery")))
 				return;
-			
+
 			adventurer = new Adventurer();
 		}
 		else if (!hasPickedAdventurer())
 			return; // can't save before we've started
-		
+
 		if (!load && codewordWindow != null)
 			codewordWindow.applyNotes();
-		
+
 		LoadableHandler handler = new LoadableHandler(filename);
 		handler.add(adventurer);
 		handler.add(adventurer.getCodewords());
@@ -1193,7 +1205,7 @@ public class FLApp extends JFrame implements MouseListener,
 			handler.add(previous);
 		LoadableSection current = new LoadableSection("current", (SectionNode)rootNode);
 		handler.add(current);
-		
+
 		if (load) {
 			if (handler.load()) {
 				if (oldAdv == null)
@@ -1209,7 +1221,7 @@ public class FLApp extends JFrame implements MouseListener,
 						if (adventureSheet.getWidth() > screenSize.width / 2)
 							adventureSheet.setSize(screenSize.width / 2, adventureSheet
 									.getHeight());
-	
+
 						// Resize the main window as well
 						int appWidth = screenSize.width - adventureSheet.getWidth();
 						setBounds(0, 0, appWidth, 500);
@@ -1238,7 +1250,7 @@ public class FLApp extends JFrame implements MouseListener,
 				lastRootNode = previous.getNode();
 				lastDocument = previous.getDocument();
 				showTextWindow();
-				
+
 				if (adventurer.getShips().getShipCount() > 0) {
 					if (shipWindow != null)
 						shipWindow.show(adventurer.getShips());
@@ -1247,7 +1259,7 @@ public class FLApp extends JFrame implements MouseListener,
 				}
 				else if (shipWindow != null)
 					shipWindow.show(adventurer.getShips());
-				
+
 				if (Address.setCurrentBookKey(current.getBook())) {
 					updateLocalMap();
 					updateActiveRules(Address.getCurrentBook().getRequiredRules());
@@ -1258,16 +1270,16 @@ public class FLApp extends JFrame implements MouseListener,
 					codewordWindow.refresh();
 					codewordWindow.resetNotes();
 				}
-				
+
 				currentSection = rootNode.getSectionName();
 				//fireGameEvent(GameEvent.NEW_SECTION);
-				
+
 				adventurer.getExtraChoices().setMenu(extraChoiceMenu);
 				adventurer.getExtraChoices().checkMenu();
-				
+
 				if (!adventurer.validateHardcore(loadFile.lastModified()))
 					JOptionPane.showMessageDialog(this, new String[] { Resources.GuiText("HardcoreFailValidateMessage1"), Resources.GuiText("HardcoreFailValidateMessage2") }, Resources.GuiText("HardcoreFailTitle"), JOptionPane.ERROR_MESSAGE);
-				
+
 				if (adventurer.isHardcore()) {
 					// Remove the file now
 					if (!loadFile.delete()) {
@@ -1275,12 +1287,12 @@ public class FLApp extends JFrame implements MouseListener,
 						JOptionPane.showMessageDialog(this, new String[] { Resources.GuiText("HardcoreFailDeleteMessage1"), Resources.GuiText("HardcoreFailDeleteMessage2") }, Resources.GuiText("HardcoreFailTitle"), JOptionPane.ERROR_MESSAGE);
 					}
 				}
-				
+
 				saveItem.setText(Resources.GuiText(adventurer.isHardcore() ? HardcoreSaveItemKey : NormalSaveItemKey));
 				saveItem.setEnabled(true);
 				quicksaveItem.setText(Resources.GuiText(adventurer.isHardcore() ? HardcoreQuicksaveItemKey : NormalQuicksaveItemKey));
 				quicksaveItem.setEnabled(true);
-				
+
 				actionTaken = false;
 			}
 			else {
@@ -1295,16 +1307,16 @@ public class FLApp extends JFrame implements MouseListener,
 			}
 			else
 				JOptionPane.showMessageDialog(this, Resources.GuiText("SaveGameFailMessage"), Resources.GuiText("SaveGameFailTitle"), JOptionPane.ERROR_MESSAGE);
-		}		
+		}
 	}
-	
+
 	/**
 	 * Load an image from a file.
 	 */
 	private Image loadImage(String filename) {
 		return getToolkit().createImage(filename);
 	}
-	
+
 	/**
 	 * Load an image from an InputStream.
 	 */
@@ -1335,8 +1347,8 @@ public class FLApp extends JFrame implements MouseListener,
 	 * Convert a simple wildcarded string (that uses ? or * marks)
 	 * into a regex pattern for pattern-matching.
 	 */
-	public static Pattern createNamePattern(String name) {
-		StringBuffer patternStr = new StringBuffer("^");
+	static Pattern createNamePattern(String name) {
+		StringBuilder patternStr = new StringBuilder("^");
 		for (int i = 0; i < name.length(); i++) {
 			char ch = name.charAt(i);
 			if (ch == '*')
@@ -1349,7 +1361,7 @@ public class FLApp extends JFrame implements MouseListener,
 		patternStr.append('$');
 		return Pattern.compile(patternStr.toString());
 	}
-	
+
 	private static OutputStream standardOut;
 	private static PrintStream defaultOut;
 	private static void blockOutput() {
@@ -1370,12 +1382,12 @@ public class FLApp extends JFrame implements MouseListener,
 			System.setOut(new PrintStream(standardOut));
 		}
 	}
-	
+
 	public static void unblockOutput() {
 		if (defaultOut != System.out)
 			System.setOut(defaultOut);
 	}
-	
+
 	public static void main(String args[]) {
 		/*
 		// Trace the character encoding being used

@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,16 +35,16 @@ import javax.swing.text.DefaultStyledDocument;
  * @author Jonathan Mann
  */
 public class ShipList extends AbstractTableModel implements Loadable, MouseListener, ActionListener {
-	private List<Ship> ships = new ArrayList<Ship>();
+	private List<Ship> ships = new ArrayList<>();
 	private static JMenuItem transferItem;
 	static {
 		transferItem = new JMenuItem("Ship Transfer...");
 		transferItem.addActionListener(new TransferListener());
 		transferItem.setEnabled(false);
 	}
-	
-	public int getShipCount() { return ships.size(); }
-	public Ship getShip(int i) { return ships.get(i); }
+
+	int getShipCount() { return ships.size(); }
+	Ship getShip(int i) { return ships.get(i); }
 
 	public void addShip(Ship s) {
 		ships.add(s);
@@ -58,7 +57,7 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 			FLApp.getSingle().showShipWindow();
 		checkTransferItem(this);
 	}
-	public void removeShip(int index) {
+	void removeShip(int index) {
 		ships.remove(index);
 		fireTableRowsDeleted(index, index);
 		notifyShipListeners();
@@ -78,10 +77,10 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		notifyShipListeners();
 		checkTransferItem(this);
 	}
-	public void setOnLand() {
+	void setOnLand() {
 		setAtDock("*land*");
 	}
-	public void setAtSea() {
+	void setAtSea() {
 		setAtDock(null);
 	}
 	public boolean isOnLand() { return dock.equals("*land*"); }
@@ -91,45 +90,42 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		checkTransferItem(this);
 	}
 
-	public boolean isHere(Ship s) {
+	private boolean isHere(Ship s) {
 		String shipDock = s.getDocked();
-		if (dock == shipDock ||
-			(dock != null && shipDock != null && dock.equalsIgnoreCase(shipDock)))
-			return true;
-		else
-			return false;
+		return dock == shipDock ||
+				(dock != null && dock.equalsIgnoreCase(shipDock));
 	}
 
 	private int[] listToArray(List<Integer> l) {
 		if (l.size() > 1)
 			// If the user has selected one of these possible ships, return only that one
-			if (table != null && l.contains(Integer.valueOf(table.getSelectedRow())))
+			if (table != null && l.contains(table.getSelectedRow()))
 				return new int[] { table.getSelectedRow() };
-		
+
 		int[] result = new int[l.size()];
 		for (int i = 0; i < l.size(); i++)
-			result[i] = l.get(i).intValue();
+			result[i] = l.get(i);
 		return result;		
 	}
-	
-	public int[] findShipsOfType(int shipType) {
-		List<Integer> l = new ArrayList<Integer>();
+
+	int[] findShipsOfType(int shipType) {
+		List<Integer> l = new ArrayList<>();
 		for (int s = 0; s < ships.size(); s++) {
 			Ship ship = getShip(s);
 			if (isHere(ship) && ship.getType() == shipType)
-				l.add(Integer.valueOf(s));
+				l.add(s);
 		}
-		
+
 		return listToArray(l);
 	}
-	
+
 	public int[] findShipsWithSpace() { return findShipsWithCargo(Ship.NO_CARGO); }
 	public int[] findShipsWithCargo(int cargoType) {
-		List<Integer> l = new ArrayList<Integer>();
+		List<Integer> l = new ArrayList<>();
 		for (int s = 0; s < ships.size(); s++) {
 			Ship ship = getShip(s);
 			if (isHere(ship) && ship.hasCargo(cargoType))
-				l.add(Integer.valueOf(s));
+				l.add(s);
 		}
 
 		return listToArray(l);
@@ -174,18 +170,18 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 			return false;
 	}
 */
-	public int[] findShipsWithCrew(int crewType) {
-		List<Integer> l = new ArrayList<Integer>();
+	int[] findShipsWithCrew(int crewType) {
+		List<Integer> l = new ArrayList<>();
 		for (int s = 0; s < ships.size(); s++) {
 			Ship ship = getShip(s);
 			if (isHere(ship) && ship.getCrew() == crewType)
-				l.add(Integer.valueOf(s));
+				l.add(s);
 		}
 
 		return listToArray(l);
 	}
 
-	public void setCrew(int shipIndex, int toCrewType) {
+	void setCrew(int shipIndex, int toCrewType) {
 		Ship s = getShip(shipIndex);
 		s.setCrew(toCrewType);
 		fireTableCellUpdated(shipIndex, Ship.CREW_COLUMN);
@@ -196,7 +192,7 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 	 * Return the index of the only ship that is here, or the one that is selected.
 	 * @return <code>-1</code> if no single ship could be picked.
 	 */
-	public int getSingleShip() {
+	int getSingleShip() {
 		int singleIndex = -1;
 		for (int i = 0; i < ships.size(); i++) {
 			if (isHere(getShip(i))) {
@@ -218,12 +214,12 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		return singleIndex;
 	}
 
-	public int[] findShipsHere() {
-		List<Integer> l = new ArrayList<Integer>();
+	int[] findShipsHere() {
+		List<Integer> l = new ArrayList<>();
 		for (int s = 0; s < ships.size(); s++) {
 			Ship ship = getShip(s);
 			if (isHere(ship))
-				l.add(Integer.valueOf(s));
+				l.add(s);
 		}
 
 		return listToArray(l);
@@ -231,7 +227,7 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 
 	private static List<ChangeListener> addListenerTo(List<ChangeListener> listeners, ChangeListener l) {
 		if (listeners == null)
-			listeners = new LinkedList<ChangeListener>();
+			listeners = new LinkedList<>();
 		listeners.add(l);
 		return listeners;
 	}
@@ -246,8 +242,8 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 	private void notifyListeners(List<ChangeListener> listeners) {
 		if (listeners != null && listeners.size() > 0) {
 			ChangeEvent evt = new ChangeEvent(this);
-			for (Iterator<ChangeListener> i = listeners.iterator(); i.hasNext(); )
-				i.next().stateChanged(evt);
+			for (ChangeListener listener : listeners)
+				listener.stateChanged(evt);
 		}
 	}
 
@@ -255,31 +251,38 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 	private List<ChangeListener> crewListeners = null;
 	private List<ChangeListener> cargoListeners = null;
 	private List<ChangeListener> shipListeners = null;
-	public void addShipListener(ChangeListener l) { shipListeners = addListenerTo(shipListeners, l); }
-	public void removeShipListener(ChangeListener l) { removeListenerFrom(shipListeners, l); }
+	void addShipListener(ChangeListener l) { shipListeners = addListenerTo(shipListeners, l); }
+	void removeShipListener(ChangeListener l) { removeListenerFrom(shipListeners, l); }
 	private void notifyShipListeners() {
 		notifyListeners(shipListeners);
 		notifyListeners(crewListeners);
 		notifyListeners(cargoListeners);
 	}
-	public void addCrewListener(ChangeListener l) { crewListeners = addListenerTo(crewListeners, l); }
-	public void removeCrewListener(ChangeListener l) { removeListenerFrom(crewListeners, l); }
+	void addCrewListener(ChangeListener l) { crewListeners = addListenerTo(crewListeners, l); }
+	void removeCrewListener(ChangeListener l) { removeListenerFrom(crewListeners, l); }
 	private void notifyCrewListeners() { notifyListeners(crewListeners); }
-	public void addCargoListener(ChangeListener l) { cargoListeners = addListenerTo(cargoListeners, l); }
-	public void removeCargoListener(ChangeListener l) { removeListenerFrom(cargoListeners, l); }
+	void addCargoListener(ChangeListener l) { cargoListeners = addListenerTo(cargoListeners, l); }
+	void removeCargoListener(ChangeListener l) { removeListenerFrom(cargoListeners, l); }
 	private void notifyCargoListeners() { notifyListeners(cargoListeners); }
 
 	/******** TableModel ********/
+	@Override
 	public int getRowCount() { return getShipCount(); }
+	@Override
 	public int getColumnCount() { return Ship.getColumnCount(); }
+	@Override
 	public String getColumnName(int col) { return Ship.getColumnName(col); }
+	@Override
 	public Class<?> getColumnClass(int col) { return Ship.getColumnClass(col); }
+	@Override
 	public boolean isCellEditable(int row, int col) {
 		return Ship.isCellEditable(col) && isHere(getShip(row));
 	}
+	@Override
 	public Object getValueAt(int row, int col) {
 		return getShip(row).getValueAt(col);
 	}
+	@Override
 	public void setValueAt(Object val, int row, int col) {
 		if (getShip(row).setValueAt(val, col))
 			fireTableCellUpdated(row, col);
@@ -290,6 +293,7 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 	public JTable getTable() {
 		if (table == null) {
 			table = new JTable(this) {
+				@Override
 				public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
 					Component c = super.prepareRenderer(renderer, row, col);
 					c.setEnabled(isHere(getShip(row)));
@@ -312,7 +316,9 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 	}
 
 	/******** Loadable methods ********/
+	@Override
 	public String getFilename() { return "ships.dat"; }
+	@Override
 	public boolean loadFrom(InputStream in) throws IOException {
 		DataInputStream din = new DataInputStream(in);
 		dock = din.readUTF();
@@ -327,6 +333,7 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		return true;
 	}
 
+	@Override
 	public boolean saveTo(OutputStream out) throws IOException {
 		DataOutputStream dout = new DataOutputStream(out);
 		dout.writeUTF(dock == null ? "" : dock);
@@ -336,13 +343,14 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		return true;
 	}
 
-	public static JMenuItem getTransferMenuItem() { return transferItem; }
-	
+	static JMenuItem getTransferMenuItem() { return transferItem; }
+
 	private static void checkTransferItem(ShipList ships) {
 		transferItem.setEnabled(ships != null && ships.findShipsHere().length > 1);
 	}
-	
+
 	private static class TransferListener implements ActionListener {
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			ShipFrame window = FLApp.getSingle().showShipWindow();
 			new ShipSwapDialog(window, FLApp.getSingle().getAdventurer().getShips()).setVisible(true);
@@ -364,7 +372,8 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		popup.add(dumpItem);
 		popup.show(table, evt.getX(), evt.getY());
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		// Dump Cargo selected
 		if (selectedShip >= 0) {
@@ -383,7 +392,7 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 				try {
 					cargoDocs[i].insertString(0, Ship.getCargoName(cargoTypes[i]), null);
 				}
-				catch (BadLocationException ble) {}
+				catch (BadLocationException ignored) {}
 			}
 			
 			int[] selected = DocumentChooser.showChooser(SwingUtilities.getWindowAncestor(table), "Dump Cargo", cargoDocs, true);
@@ -394,23 +403,28 @@ public class ShipList extends AbstractTableModel implements Loadable, MouseListe
 		}
 		selectedShip = -1;
 	}
-	
+
+	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
 		if (e.isPopupTrigger())
 			handlePopup(e);
 	}
-	
+
+	@Override
 	public void mousePressed(MouseEvent e) {
 		if (e.isPopupTrigger())
-			handlePopup(e);		
+			handlePopup(e);
 	}
-	
+
+	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (e.isPopupTrigger())
 			handlePopup(e);
 	}
-	
+
+	@Override
 	public void mouseEntered(MouseEvent e) {}
+	@Override
 	public void mouseExited(MouseEvent e) {}
 }

@@ -1,7 +1,6 @@
 package flands;
 
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.Map.Entry;
 
@@ -27,13 +26,14 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 	private String shards;
 	private String price;
 	private boolean forced;
-	
-	public TransferNode(Node parent) {
+
+	TransferNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
 	private static final String ExcludePrefix = "x";
+	@Override
 	public void init(Attributes atts) {
 		from = atts.getValue("from");
 		to = atts.getValue("to");
@@ -65,13 +65,14 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 		if (price != null) {
 			getFlags().addListener(price, this);
 		}
-		
+
 		hidden = getBooleanValue(atts, "hidden", false);
 		forced = getBooleanValue(atts, "force", true);
 		
 		super.init(atts);
 	}
-	
+
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (from != null) props.setProperty("from", from);
@@ -81,8 +82,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 		if (exclude != null) {
 			Properties excludeProps = new Properties();
 			exclude.saveProperties(excludeProps);
-			for (Iterator<Entry<Object,Object>> i = excludeProps.entrySet().iterator(); i.hasNext(); ) {
-				Entry<Object,Object> e = i.next();
+			for (Entry<Object, Object> e : excludeProps.entrySet()) {
 				props.put(ExcludePrefix + e.getKey(), e.getValue());
 			}
 		}
@@ -91,38 +91,40 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 		if (hidden) saveProperty(props, "hidden", true);
 		if (!forced) saveProperty(props, "force", false);
 	}
-	
+
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String content) {
 		if (!hadContent && content.trim().length() == 0)
 			return;
 		hadContent = true;
-		
+
 		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] {
 			new StyledText(content, createStandardAttributes()) });
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}
-	
+
+	@Override
 	public boolean handleEndTag() {
 		findExecutableGrouper().addExecutable(this);
 		return super.handleEndTag();
 	}
-	
+
 	private ItemList getItems(String cache) {
 		if (cache == null)
 			return getAdventurer().getItems();
 		else
 			return CacheNode.getItemCache(cache);
 	}
-	
+
 	private ItemList getFromItems() { return getItems(from); }
 	private ItemList getToItems() { return getItems(to); }
-	
+
 	private int[] getItemIndices() {
 		if (include == null && !includeAll)
 			return new int[0];
-		
+
 		ItemList items = getFromItems();
 		int[] indices;
 		int count = 0;
@@ -136,20 +138,20 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 			indices = items.findMatches(include);
 			count = indices.length;
 		}
-		
+
 		if (exclude != null) {
 			for (int i = count - 1; i >= 0; i--) {
 				if (exclude.matches(items.getItem(indices[i])))
 					System.arraycopy(indices, i+1, indices, i, --count - i);
 			}
 		}
-		
+
 		if (count < indices.length) {
 			int[] temp = indices;
 			indices = new int[count];
 			System.arraycopy(temp, 0, indices, 0, count);
 		}
-		
+
 		return indices;
 	}
 
@@ -162,8 +164,9 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 			return (index < 0 ? 0 : items.getItem(index).getMoney());
 		}
 	}
-	
+
 	private boolean callContinue = false;
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (price != null) {
 			flagChanged(price, getFlags().getState(price));
@@ -193,16 +196,18 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 		int[] items = getItemIndices();
 		return (items.length > 0 || (shards != null && getFromShards() > 0));
 	}
-	
+
 	private boolean canPayInFull() {
 		int[] items = getItemIndices();
 		return (items.length > 0 &&
 				(limit == null || items.length >= getAttributeValue(limit)) &&
 				(shards == null || getFromShards() >= getAttributeValue(shards)));
 	}
-	
+
+	@Override
 	public void resetExecute() { setEnabled(false); }
-	
+
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		int[] indices = getItemIndices();
 		ItemList fromItems = getFromItems();
@@ -214,7 +219,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 				StyledDocument[] itemDocs = new StyledDocument[indices.length];
 				for (int i = 0; i < itemDocs.length; i++)
 					itemDocs[i] = fromItems.getItem(indices[i]).getDocument();
-				
+
 				String chooserTitle = (itemCount == 1 ? "Choose an item to lose" : "Choose " + itemCount + " items to lose");
 				DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), chooserTitle, itemDocs, itemCount > 1);
 				chooser.setVisible(true);
@@ -225,20 +230,20 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 					setEnabled(true);
 					return;
 				}
-				
+
 				for (int i = 0; i < selections.length; i++)
 					selections[i] = indices[selections[i]];
 				indices = selections;
 			}
 		}
-		
+
 		for (int i = indices.length - 1; i >= 0; i--) {
 			System.out.println("Transferring item " + indices[i]);
 			Item item = fromItems.getItem(indices[i]);
 			fromItems.removeItem(indices[i]);
 			toItems.addItem(item);
 		}
-		
+
 		if (shards != null) {
 			int money = getFromShards();
 			if (!shards.equals("*"))
@@ -249,7 +254,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 				Item deductionItem = Item.createMoneyItem(-money);
 				fromItems.addItem(deductionItem);
 			}
-			
+
 			if (to == null)
 				getAdventurer().adjustMoney(money);
 			else {
@@ -257,12 +262,12 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 				toItems.addItem(additionItem);
 			}
 		}
-		
+
 		setEnabled(false);
-		
+
 		if (price != null)
 			getFlags().setState(price, true);
-		
+
 		if (callContinue) {
 			callContinue = false;
 			findExecutableGrouper().continueExecution(this, false);
@@ -271,21 +276,25 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 			callsContinue = false;
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (price != null && price.equals(name))
 			setEnabled(!state && canPayInFull());
 	}
-	
+
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		callContinue = getBooleanValue(atts, "continue", false);
 	}
-	
+
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		saveProperty(props, "continue", callContinue);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		String text = null;
 		if (include != null || exclude != null) {
@@ -294,7 +303,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 				text += "at least " + getAttributeValue(limit);
 			text += "items";
 		}
-		
+
 		if (shards != null) {
 			if (text == null)
 				text = "Transfer ";
@@ -306,7 +315,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 				text += getAttributeValue(shards);
 			text += " Shards";
 		}
-		
+
 		if (from == null)
 			text += " from your possession";
 		else
@@ -316,10 +325,11 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 			text += " to your possession";
 		else
 			text += " to the cache [" + to + "]";
-		
+
 		return text;
 	}
-	
+
+	@Override
 	public void dispose() {
 		if (price != null) {
 			getFlags().removeListener(price, this);

@@ -8,18 +8,18 @@ import java.io.InputStream;
  * @author Jonathan Mann
  */
 public class Address {
-	protected static String currentBookKey;
+	private static String currentBookKey;
 
 	public final String book;
 
 	public final String section;
 
-	public static Books.BookDetails getCurrentBook() {
+	static Books.BookDetails getCurrentBook() {
 		return Books.getCanon().getBook(getCurrentBookKey());
 	}
 
 	/** Returns the key of the current book. */
-	public static String getCurrentBookKey() {
+	static String getCurrentBookKey() {
 		return currentBookKey;
 	}
 
@@ -29,7 +29,7 @@ public class Address {
 	 * 
 	 * @return <code>true</code> if the book has changed.
 	 */
-	public static boolean setCurrentBookKey(String book) {
+	static boolean setCurrentBookKey(String book) {
 		if (currentBookKey == null || !currentBookKey.equals(book)) {
 			currentBookKey = book;
 			return true;

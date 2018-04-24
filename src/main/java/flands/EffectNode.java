@@ -19,23 +19,24 @@ public class EffectNode extends Node {
 	private Effect effect;
 	private TextNode textNode = null;
 
-	public EffectNode(Node parent) {
+	EffectNode(Node parent) {
 		super(ElementName, parent);
 	}
-	
-	public EffectNode(Node parent, Item item) {
+
+	EffectNode(Node parent, Item item) {
 		super(ElementName, parent);
 		this.item = item;
 	}
 
-	public EffectNode(Node parent, Curse curse) {
+	EffectNode(Node parent, Curse curse) {
 		super(ElementName, parent);
 		this.curse = curse;
 	}
 
 	public Effect getEffect() { return effect; }
-	
+
 	private ExecutableRunner runner = null;
+	@Override
 	public ExecutableGrouper getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner();
@@ -43,6 +44,7 @@ public class EffectNode extends Node {
 		// This is here to catch UseEffects, because they're not meant to be executed _now_
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		effect = Effect.createEffect(atts);
 		if (item != null)
@@ -53,38 +55,42 @@ public class EffectNode extends Node {
 			System.out.println("EffectNode: didn't have item or curse to add effect to!");
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = super.createChild(name);
-		if (n != null && n instanceof ActionNode) {
-			if (effect != null && effect instanceof UseEffect)
+		if (n instanceof ActionNode) {
+			if (effect instanceof UseEffect)
 				((UseEffect)effect).addActionNode((ActionNode)n);
 		}
 		return n;
 	}
 
+	@Override
 	protected void addChild(Node child) {
 		if (child instanceof TextNode)
 			textNode = (TextNode)child;
 
 		super.addChild(child);
 	}
-	
+
+	@Override
 	public boolean hideChildContent() { return true; }
-	
+
 	protected Element createElement() { return null; }
-	
+
 	public boolean handleEndTag() {
 		if (textNode != null)
 			effect.setStyledDescription(textNode.getText());
 		return false;
 	}
-	
+
 	public void saveProperties(Properties props) {
 		super.saveProperties(props);
 		if (runner != null && runner.willCallContinue())
 			saveProperty(props, "continue", true);
 	}
-	
+
+	@Override
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))

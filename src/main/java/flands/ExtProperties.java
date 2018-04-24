@@ -16,11 +16,11 @@ public final class ExtProperties extends Properties implements Loadable {
 
 	private String filename;
 
-	public ExtProperties() {
+	ExtProperties() {
 		this(defaultFilename);
 	}
 
-	public ExtProperties(String filename) {
+	private ExtProperties(String filename) {
 		super();
 		this.filename = filename;
 	}
@@ -34,7 +34,7 @@ public final class ExtProperties extends Properties implements Loadable {
 		this.filename = filename;
 	}
 
-	public int getInt(String name, int defaultVal) {
+	int getInt(String name, int defaultVal) {
 		String val = getProperty(name);
 		if (val != null) {
 			try {
@@ -47,7 +47,7 @@ public final class ExtProperties extends Properties implements Loadable {
 		return defaultVal;
 	}
 
-	public boolean getBoolean(String name, boolean defaultVal) {
+	private boolean getBoolean(String name, boolean defaultVal) {
 		String val = getProperty(name);
 		if (val != null) {
 			char c = val.charAt(0);
@@ -90,13 +90,14 @@ public final class ExtProperties extends Properties implements Loadable {
 	}
 
 	/** Overridden to call remove instead of setProperty if the value is <code>null</code>. */
+	@Override
 	public Object setProperty(String key, String value) {
 		if (value == null)
 			return remove(key);
 		else
 			return super.setProperty(key, value);
 	}
-	
+
 	public void set(String name, int val) {
 		setProperty(name, Integer.toString(val));
 	}
@@ -138,11 +139,13 @@ public final class ExtProperties extends Properties implements Loadable {
 	/* ****************
 	 * Loadable methods
 	 **************** */
+	@Override
 	public String getFilename() {
 		return filename;
 	}
 
-	public boolean loadFrom(InputStream in) throws IOException {
+	@Override
+	public boolean loadFrom(InputStream in) {
 		try {
 			load(in);
 			return true;
@@ -152,7 +155,8 @@ public final class ExtProperties extends Properties implements Loadable {
 		}
 	}
 
-	public boolean saveTo(OutputStream out) throws IOException {
+	@Override
+	public boolean saveTo(OutputStream out) {
 		try {
 			store(out, null);
 			return true;

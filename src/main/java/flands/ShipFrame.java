@@ -18,7 +18,7 @@ public class ShipFrame extends JDialog {
 	private JTable shipTable;
 	private JScrollPane tablePane;
 
-	public ShipFrame(ShipList ships) {
+	ShipFrame(ShipList ships) {
 		super(FLApp.getSingle(), "Ship's Manifest", false);
 		shipTable = ships.getTable();
 		tablePane = new JScrollPane(shipTable);

@@ -17,12 +17,12 @@ import org.xml.sax.Attributes;
 public class CurseNode extends ActionNode implements Executable {
 	private Curse curse;
 
-	public static CurseNode createCurseNode(String name, Node parent) {
+	static CurseNode createCurseNode(String name, Node parent) {
 		Curse curse = Curse.createCurse(name);
 		return (curse == null ? null : new CurseNode(curse, parent));
 	}
 
-	public CurseNode(Curse c, Node parent) {
+	private CurseNode(Curse c, Node parent) {
 		super(Curse.getTypeName(c.getType()), parent);
 		this.curse = c;
 		setEnabled(false);
@@ -30,11 +30,13 @@ public class CurseNode extends ActionNode implements Executable {
 
 	public Curse getCurse() { return curse; }
 
+	@Override
 	public void init(Attributes atts) {
 		curse.init(atts);
 		super.init(atts);
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
 		if (name.equals(EffectNode.ElementName))
@@ -55,6 +57,7 @@ public class CurseNode extends ActionNode implements Executable {
 		setHighlightElements(leaves);
 	}
 
+	@Override
 	public void handleContent(String text) {
 		text = text.trim();
 		if (text.length() == 0) return;
@@ -63,6 +66,7 @@ public class CurseNode extends ActionNode implements Executable {
 		addContent(text);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (!(getParent() instanceof ItemNode)) {
 			findExecutableGrouper().addExecutable(this);
@@ -74,6 +78,7 @@ public class CurseNode extends ActionNode implements Executable {
 	}
 
 	private boolean callContinue = false;
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (!curse.isCumulative() && getCurses().findMatches(curse).length > 0)
 			return true;
@@ -83,6 +88,7 @@ public class CurseNode extends ActionNode implements Executable {
 		return false;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		setEnabled(false);
 		getCurses().addCurse(curse);
@@ -92,20 +98,24 @@ public class CurseNode extends ActionNode implements Executable {
 		}
 	}
 
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
-	
+
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		callContinue = getBooleanValue(atts, "continue", false);
 	}
-	
+
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		saveProperty(props, "continue", true);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		return "Add " + curse.getName() + "[" + Curse.getTypeName(curse.getType()) + "]";
 	}

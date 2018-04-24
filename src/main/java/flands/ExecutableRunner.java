@@ -19,12 +19,14 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 
 		private NodeExecutable(Node n) { this.node = n; }
 
+		@Override
 		public boolean execute(ExecutableGrouper eg) {
 			wasEnabled = node.isEnabled();
 			node.setEnabled(true);
 			return true;
 		}
 
+		@Override
 		public void resetExecute() {
 			if (!wasEnabled)
 				node.setEnabled(false);
@@ -53,6 +55,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	 * Add an Executable to be run later.  This is not thread-safe with the other methods;
 	 * add all the Executables first, then run this later!
 	 */
+	@Override
 	public void addExecutable(Executable e) {
 		add(e);
 	}
@@ -61,6 +64,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	 * Add an intermediate Node to the list of Executables.
 	 * When it is reached, it will be enabled.
 	 */
+	@Override
 	public void addIntermediateNode(Node n) {
 		addExecutable(new NodeExecutable(n));
 	}
@@ -68,6 +72,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	/**
 	 * Callback from an Executable child.  Continue execution from the next child.
 	 */
+	@Override
 	public void continueExecution(Executable eDone, boolean inSeparateThread) {
 		System.out.println("continueExecution callback from child " + eDone);
 		int startAtIndex = 0;
@@ -94,6 +99,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	/**
 	 * Execute by running each sub-method.  Called by <code>grouper</code>.
 	 */
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		this.grouper = grouper;
 		if (grouper.isSeparateThread())
@@ -103,21 +109,20 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 		boolean finished = startExecution(0);
 		thread = null;
 		if (finished) {
-			grouper = null;
 			UndoManager.getCurrent().ignoreCalls(false);
 		}
 		return finished;
 	}
 
-	public boolean willCallContinue() { return (grouper != null); }
-	public void setCallback(ExecutableGrouper grouper) { this.grouper = grouper; }
+	boolean willCallContinue() { return (grouper != null); }
+	void setCallback(ExecutableGrouper grouper) { this.grouper = grouper; }
 	
 	/**
 	 * Step through the list of Executables, executing each in turn.
 	 * @return <code>true</code> if each one returns <code>true</code>;
 	 * <code>false</code> when one is blocked.
 	 */
-	protected boolean startExecution(int eIndex) {
+	private boolean startExecution(int eIndex) {
 		for (int e = eIndex; e < size(); e++) {
 			//System.out.println("Will execute child " + e + ": " + get(e));
 			UndoManager.getCurrent().add(get(e));
@@ -134,6 +139,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	}
 
 	/** Return whether this is running on a separate thread. */
+	@Override
 	public boolean isSeparateThread() {
 		return Thread.currentThread() == thread;
 	}
@@ -143,7 +149,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	 * This can be called on the root to start the whole process.
 	 * @param separateThread whether a separate thread should be created to do it.
 	 */
-	public void startExecution(boolean separateThread) {
+	void startExecution(boolean separateThread) {
 		if (separateThread) {
 			thread = new Thread(this);
 			thread.start();
@@ -153,17 +159,19 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	}
 
 	/** Runnable method. */
+	@Override
 	public void run() {
 		UndoManager.getCurrent().ignoreCalls(true);
 		if (startExecution(0))
 			UndoManager.getCurrent().ignoreCalls(false);
 	}
 
-	public void resetChildren() {
+	private void resetChildren() {
 		for (int e = 0; e < size(); e++)
 			get(e).resetExecute();
 	}
 
+	@Override
 	public void resetExecute() {
 		resetChildren();
 	}

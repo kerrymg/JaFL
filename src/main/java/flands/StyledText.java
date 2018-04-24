@@ -46,7 +46,7 @@ public class StyledText {
 		StyleConstants.setFontSize(capsAtts, smallerFontSize);
 		appendStyledText(textList, result, offset++, new StyledText(capsWord.substring(1), capsAtts));
 		if (thirdSegment)
-			appendStyledText(textList, result, offset++, new StyledText(text.substring(index + capsWord.length()), textAtts));
+			appendStyledText(textList, result, offset, new StyledText(text.substring(index + capsWord.length()), textAtts));
 		return result;
 	}
 

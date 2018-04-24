@@ -7,14 +7,14 @@ package flands;
  */
 public class DiceExpression {
 	public int dice;
-	public int adjustment;
+	int adjustment;
 
 	/**
 	 * Handle an expression of the form 'xD+y',
 	 * where x is the number of dice and
 	 * y is the adjustment.
 	 */
-	public DiceExpression(String exp) {
+	DiceExpression(String exp) {
 		exp = exp.toUpperCase();
 		dice = 0;
 		adjustment = 0;
@@ -45,16 +45,16 @@ public class DiceExpression {
 		}
 	}
 
-	public DiceExpression(DiceExpression exp) {
+	DiceExpression(DiceExpression exp) {
 		dice = exp.dice;
 		adjustment = exp.adjustment;
 	}
 	
-	public void addAdjustment(int delta) {
+	void addAdjustment(int delta) {
 		adjustment += delta;
 	}
 
-	public Roller createRoller() {
+	Roller createRoller() {
 		return (dice == 0 ? null : new Roller(dice, adjustment));
 	}
 

@@ -19,9 +19,9 @@ public class LoadableHandler {
 
 	private String filename;
 
-	public LoadableHandler(String filename) {
+	LoadableHandler(String filename) {
 		this.filename = filename;
-		elements = new ArrayList<Loadable>();
+		elements = new ArrayList<>();
 	}
 
 	public void add(Loadable l) {
@@ -39,8 +39,7 @@ public class LoadableHandler {
 		}
 
 		boolean success = true;
-		for (int i = 0; i < elements.size(); i++) {
-			Loadable l = elements.get(i);
+		for (Loadable l : elements) {
 			String entryFilename = l.getFilename();
 			System.err.println("Looking for zip entry " + entryFilename);
 			if (entryFilename == null || entryFilename.length() == 0)

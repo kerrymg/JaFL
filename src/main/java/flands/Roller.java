@@ -3,7 +3,6 @@ package flands;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -20,8 +19,8 @@ import javax.swing.PopupFactory;
  * @author Jonathan Mann
  */
 public class Roller implements Runnable {
-	public static interface Listener {
-		public void rollerFinished(Roller r);
+	public interface Listener {
+		void rollerFinished(Roller r);
 	}
 
 	private static Random randomGen = new Random();
@@ -35,7 +34,7 @@ public class Roller implements Runnable {
 	private JToolTip toolTip;
 	private Popup toolTipPopup;
 	private int popupX, popupY;
-	private List<Listener> listeners = new LinkedList<Listener>();
+	private List<Listener> listeners = new LinkedList<>();
 
 	public Roller(int dice, int adjustment) {
 		this.dice = dice;
@@ -56,7 +55,7 @@ public class Roller implements Runnable {
 		listeners.add(l);
 	}
 
-	public void startRolling() {
+	void startRolling() {
 		if (running) return;
 
 		JComponent toolTipContext = FLApp.getSingle().getToolTipContext();
@@ -81,7 +80,7 @@ public class Roller implements Runnable {
 			x += contextLoc.x;
 			y += contextLoc.y;
 		}
-		catch (java.awt.IllegalComponentStateException e) {}
+		catch (java.awt.IllegalComponentStateException ignored) {}
 		if (y > 20)
 			y -= (tipSize.height + 10);
 		else
@@ -104,8 +103,8 @@ public class Roller implements Runnable {
 		for (int i = 0; i < resultCount.length; i++)
 			System.out.println((i+1) + ": " + resultCount[i]);
 	}
-	
-	protected void doRoll() {
+
+	private void doRoll() {
 		int min = 0, max = 0;
 		boolean exceptionPrinted = false;
 		for (int i = 0; i < 20; i++) {
@@ -113,7 +112,7 @@ public class Roller implements Runnable {
 				try {
 					Thread.sleep(50);
 				}
-				catch (InterruptedException ie) {}
+				catch (InterruptedException ignored) {}
 			}
 
 			int sum = dice + adjustment; // minimum = number of dice * [1]
@@ -159,6 +158,7 @@ public class Roller implements Runnable {
 	private boolean running = false;
 	private boolean linger = false;
 	private long lingerTill = -1;
+	@Override
 	public void run() {
 		if (!linger) {
 			running = true;
@@ -170,8 +170,8 @@ public class Roller implements Runnable {
 				new Thread(this).start();
 			}
 
-			for (Iterator<Listener> i = listeners.iterator(); i.hasNext(); )
-				i.next().rollerFinished(this);
+			for (Listener listener : listeners)
+				listener.rollerFinished(this);
 		}
 		else {
 			long timeNow = System.currentTimeMillis();
@@ -181,7 +181,7 @@ public class Roller implements Runnable {
 				try {
 					Thread.sleep(lingerTill - timeNow);
 				}
-				catch (InterruptedException ie) {}
+				catch (InterruptedException ignored) {}
 				timeNow = System.currentTimeMillis();
 			}
 			linger = false;
@@ -198,13 +198,13 @@ public class Roller implements Runnable {
 	/**
 	 * Get the current tooltip text.
 	 */
-	public String getTooltipText() {
+	private String getTooltipText() {
 		return (toolTip == null ? null : toolTip.getTipText());
 	}
 	/**
 	 * Set the tooltip text. This will make the tooltip hang around for at least another second.
 	 */
-	public void setTooltipText(String text) {
+	private void setTooltipText(String text) {
 		synchronized (this) {
 			if (toolTip != null) {
 				lingerTill = System.currentTimeMillis() + 1000;
@@ -223,7 +223,7 @@ public class Roller implements Runnable {
 			}
 		}
 	}
-	public void appendTooltipText(String text) {
+	void appendTooltipText(String text) {
 		setTooltipText(getTooltipText() + text);
 	}
 }

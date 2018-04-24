@@ -2,7 +2,6 @@ package flands;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
-import org.xml.sax.SAXException;
 
 import java.util.LinkedList;
 
@@ -15,16 +14,16 @@ public class ParserHandler implements ContentHandler {
 	private boolean startExecution;
 	private String book;
 
-	public ParserHandler() {
+	ParserHandler() {
 		this(false);
 	}
 	
-	public ParserHandler(boolean startExecution) {
+	ParserHandler(boolean startExecution) {
 		this.startExecution = startExecution;
 	}
 	
 	public SectionDocument getDocument() { return rootNode.getDocument(); }
-	public Node getRootNode() { return rootNode; }
+	Node getRootNode() { return rootNode; }
 	/**
 	 * Set the book of the section being loaded. This will be passed to the
 	 * SectionNode at creation.
@@ -34,10 +33,12 @@ public class ParserHandler implements ContentHandler {
 	/* **************
 	 * ContentHandler
 	 ************** */
+	@Override
 	public void setDocumentLocator(org.xml.sax.Locator l) {
 		//System.out.println("setDocumentLocator(" + l + ")");
 	}
-	public void startDocument() throws SAXException {
+	@Override
+	public void startDocument() {
 		System.out.println("startDocument()");
 		
 		// Reset any variables - if there was an error in the last parse,
@@ -45,13 +46,16 @@ public class ParserHandler implements ContentHandler {
 		rootNode = null;
 		nodeStack.clear();
 	}
-	public void endDocument() throws SAXException {
+	@Override
+	public void endDocument() {
 		//System.out.println("endDocument()");
 	}
-	public void startPrefixMapping(String prefix, String uri) throws SAXException {
+	@Override
+	public void startPrefixMapping(String prefix, String uri) {
 		//System.out.println("startPrefixMapping(" + prefix + "," + uri + ")");
 	}
-	public void endPrefixMapping(String prefix) throws SAXException {
+	@Override
+	public void endPrefixMapping(String prefix) {
 		//System.out.println("endPrefixMapping(" + prefix + ")");
 	}
 
@@ -60,7 +64,7 @@ public class ParserHandler implements ContentHandler {
 	// Node is guaranteed to get a call to handleContent() (where it can create default content).
 	private boolean emptyTag;
 	private boolean trimContentStart = true;
-	private LinkedList<Node> nodeStack = new LinkedList<Node>();
+	private LinkedList<Node> nodeStack = new LinkedList<>();
 	private StringBuffer accumulatedContent = new StringBuffer();
 
 	private Node getCurrentNode() { return (nodeStack.isEmpty()) ? null : nodeStack.getFirst(); }
@@ -76,8 +80,8 @@ public class ParserHandler implements ContentHandler {
 	public static String simplifyQuotes(String text) {
 		if (text.indexOf(OpenQuote) < 0 && text.indexOf(CloseQuote) < 0)
 			return text;
-		
-		StringBuffer sb = new StringBuffer(text);
+
+		StringBuilder sb = new StringBuilder(text);
 		for (int i = 0; i < sb.length(); i++) {
 			char ch = sb.charAt(i);
 			if (ch == OpenQuote || ch == CloseQuote)
@@ -85,8 +89,9 @@ public class ParserHandler implements ContentHandler {
 		}
 		return sb.toString();
 	}
-	
-	public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
+
+	@Override
+	public void startElement(String uri, String localName, String qName, Attributes atts) {
 		condenseContent(accumulatedContent);
 		String contentStr = accumulatedContent.toString();
 		if (contentStr.length() > 0) {
@@ -109,14 +114,14 @@ public class ParserHandler implements ContentHandler {
 					SectionNode root = (SectionNode)newNode;
 					root.setBook(book);
 				}
-				catch (ClassCastException cce) {}
+				catch (ClassCastException ignored) {}
 			}
 			
 			pushNode(newNode);
 			newNode.init(atts);
 		}
 
-		StringBuffer sb = new StringBuffer("startElement(");
+		StringBuilder sb = new StringBuilder("startElement(");
 		sb.append(uri);
 		sb.append(',');
 		sb.append(localName);
@@ -135,7 +140,8 @@ public class ParserHandler implements ContentHandler {
 		System.out.println(sb.toString());
 	}
 
-	public void endElement(String uri, String localName, String qName) throws SAXException {
+	@Override
+	public void endElement(String uri, String localName, String qName) {
 		condenseContent(accumulatedContent);
 		String contentStr = Node.trimEnd(accumulatedContent.toString());
 		if (contentStr.length() > 0 || emptyTag)
@@ -161,7 +167,8 @@ public class ParserHandler implements ContentHandler {
 		System.out.println("endElement(" + uri + "," + localName + "," + qName + ")");
 	}
 
-	public void characters(char[] ch, int start, int length) throws SAXException {
+	@Override
+	public void characters(char[] ch, int start, int length) {
 		if (length > 0) {
 			// Not sure why this would get called otherwise, but just in case
 			if (trimContentStart)
@@ -186,13 +193,16 @@ public class ParserHandler implements ContentHandler {
 		return str;
 	}
 	*/
-	public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
+	@Override
+	public void ignorableWhitespace(char[] ch, int start, int length) {
 		System.out.println("ignorableWhitespace('" + new String(ch) + "'," + start + "," + length + ")");
 	}
-	public void processingInstruction(String target, String data) throws SAXException {
+	@Override
+	public void processingInstruction(String target, String data) {
 		System.out.println("processingInstruction(" + target + "," + data + ")");
 	}
-	public void skippedEntity(String name) throws SAXException {
+	@Override
+	public void skippedEntity(String name) {
 		System.out.println("skippedEntity(" + name + ")");
 	}
 
@@ -200,7 +210,7 @@ public class ParserHandler implements ContentHandler {
 	 * Removes excess whitespace, converts multiple dashes into a single mdash,
 	 * and replaces triple periods with an ellipsis.
 	 */
-	public static void condenseContent(StringBuffer text) {
+	private static void condenseContent(StringBuffer text) {
 		for (int i = 0; i < text.length(); i++) {
 			if (Character.isWhitespace(text.charAt(i))) {
 				while (i+1 < text.length() && Character.isWhitespace(text.charAt(i+1)))

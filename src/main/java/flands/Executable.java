@@ -19,11 +19,11 @@ public interface Executable {
 	 * @return <code>true</code> when or if this object has finished its job;
 	 * <code>false</code> if it has blocked, waiting for user input.
 	 */
-	public boolean execute(ExecutableGrouper grouper);
+	boolean execute(ExecutableGrouper grouper);
 	/**
 	 * Reset, so that we're back to the state we were in before being executed.
 	 * This will get called before execute is called again.
 	 * The context is a while loop, or if the player undo-es the most recent action.
 	 */
-	public void resetExecute();
+	void resetExecute();
 }

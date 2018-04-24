@@ -19,8 +19,8 @@ import java.util.Arrays;
  * @author Jonathan Mann
  */
 public class Expression {
-	public static interface Resolver {
-		public int resolveIdentifier(String name);
+	public interface Resolver {
+		int resolveIdentifier(String name);
 	}
 
 	public static abstract class ExpNode {
@@ -31,20 +31,20 @@ public class Expression {
 	private String text;
 	private int off;
 	private ExpNode root;
-	
+
 	public Expression(String text) {
 		this.text = format(text);
 		off = 0;
 		root = expr1();
 	}
-	
+
 	public ExpNode getRoot() {
 		return root;
 	}
-	
+
 	private static char endch = '$';
 	private String format(String text) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < text.length(); i++)
 			if (!Character.isWhitespace(text.charAt(i)))
 				sb.append(text.charAt(i));
@@ -54,14 +54,14 @@ public class Expression {
 		
 		return sb.toString();
 	}
-	
+
 	private void printError(String message, int index) {
 		System.err.println(message + text.substring(0, text.length()-1));
 		char[] spaces = new char[message.length() + index];
 		Arrays.fill(spaces, ' ');
 		System.err.println(new String(spaces) + "^");
 	}
-	
+
 	private ExpNode expr1() {
 		ExpNode n1 = expr2();
 		if (text.charAt(off) == '+') {
@@ -75,7 +75,7 @@ public class Expression {
 		else
 			return n1;
 	}
-	
+
 	private ExpNode expr2() {
 		ExpNode n1 = expr3();
 		if (text.charAt(off) == '*') {
@@ -89,7 +89,7 @@ public class Expression {
 		else
 			return n1;
 	}
-	
+
 	private ExpNode expr3() {
 		int lead;
 		if (text.charAt(off) == '-') {
@@ -124,7 +124,7 @@ public class Expression {
 		
 		return new Expr3(n, lead);
 	}
-	
+
 	private ExpNode num() {
 		int end = off;
 		int val = 0;
@@ -139,7 +139,7 @@ public class Expression {
 		off = end;
 		return new Num(val);
 	}
-	
+
 	private ExpNode ident() {
 		int end = off;
 		while (true) {
@@ -154,19 +154,20 @@ public class Expression {
 		off = end;
 		return new Ident(id);
 	}
-	
+
 	private static class Expr1 extends ExpNode {
-		private ExpNode n1, n2 = null;
+		private ExpNode n1, n2;
 		static final int PLUS_OP = 1;
 		static final int MINUS_OP = 2;
 		private int op;
-		
+
 		Expr1(ExpNode n1, ExpNode n2, int op) {
 			this.n1 = n1;
 			this.n2 = n2;
 			this.op = op;
 		}
-		
+
+		@Override
 		public int evaluate(Resolver r) {
 			switch (op) {
 			case NO_OP:
@@ -178,7 +179,7 @@ public class Expression {
 			}
 			return 0;
 		}
-		
+
 		public String toString() {
 			String s1 = n1.toString();
 			switch (op) {
@@ -192,19 +193,20 @@ public class Expression {
 			return "err";
 		}
 	}
-	
+
 	private static class Expr2 extends ExpNode {
-		private ExpNode n1, n2 = null;
+		private ExpNode n1, n2;
 		static final int MULT_OP = 1;
 		static final int DIVIDE_OP = 2;
 		private int op;
-		
+
 		Expr2(ExpNode n1, ExpNode n2, int op) {
 			this.n1 = n1;
 			this.n2 = n2;
 			this.op = op;
 		}
-		
+
+		@Override
 		public int evaluate(Resolver r) {
 			switch (op) {
 			case NO_OP:
@@ -216,7 +218,7 @@ public class Expression {
 			}
 			return 0;
 		}
-		
+
 		public String toString() {
 			String s1 = n1.toString();
 			switch (op) {
@@ -230,7 +232,7 @@ public class Expression {
 			return "err";
 		}
 	}
-	
+
 	private static class Expr3 extends ExpNode {
 		private ExpNode n;
 		
@@ -238,11 +240,12 @@ public class Expression {
 		static final int MINUS_LEAD = 1;
 		private int lead;
 
-		public Expr3(ExpNode n, int lead) {
+		Expr3(ExpNode n, int lead) {
 			this.n = n;
 			this.lead = lead;
 		}
-		
+
+		@Override
 		public int evaluate(Resolver r) {
 			switch (lead) {
 			case PLUS_LEAD:
@@ -252,40 +255,42 @@ public class Expression {
 			}
 			return 0;
 		}
-		
+
 		public String toString() {
 			String s = n.toString();
 			return (lead == MINUS_LEAD ? "-" + s : s);
 		}
 	}
-	
+
 	private static class Num extends ExpNode {
 		private int val;
-		
+
 		Num(int val) {
 			this.val = val;
 		}
-		
+
+		@Override
 		public int evaluate(Resolver r) {
 			return val;
 		}
-		
+
 		public String toString() {
 			return Integer.toString(val);
 		}
 	}
-	
+
 	private static class Ident extends ExpNode {
 		private String ident;
-		
+
 		Ident(String ident) {
 			this.ident = ident;
 		}
-		
+
+		@Override
 		public int evaluate(Resolver r) {
 			return r.resolveIdentifier(ident);
 		}
-		
+
 		public String toString() {
 			return ident;
 		}

@@ -17,12 +17,12 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class IfNode extends Node implements Executable, ChangeListener {
-	public static final int IF_TYPE = 0;
-	public static final int ELSEIF_TYPE = 1;
-	public static final int ELSE_TYPE = 2;
-	public static final String IfElementName = "if";
-	public static final String ElseIfElementName = "elseif";
-	public static final String ElseElementName = "else";
+	private static final int IF_TYPE = 0;
+	private static final int ELSEIF_TYPE = 1;
+	private static final int ELSE_TYPE = 2;
+	private static final String IfElementName = "if";
+	static final String ElseIfElementName = "elseif";
+	static final String ElseElementName = "else";
 	public static final String ElementName = IfElementName;
 	private int type;
 
@@ -62,7 +62,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		this(IfElementName, parent);
 	}
 
-	public IfNode(String name, Node parent) {
+	IfNode(String name, Node parent) {
 		super(name, parent);
 		setEnabled(false);
 		type = IF_TYPE;
@@ -72,6 +72,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 			type = ELSE_TYPE;
 	}
 
+	@Override
 	public ExecutableGrouper getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner("if", this);
@@ -83,6 +84,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 	private static final String TitleAttribute = "title";
 	private static final String TicksAttribute = "ticks";
 	private static final String ShardsAttribute = "shards";
+	@Override
 	public void init(Attributes xmlAtts) {
 		ifElseVarName = getRoot().getIfElseVarName(type == IF_TYPE);
 		not = getBooleanValue(xmlAtts, "not", false);
@@ -112,7 +114,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		curse = Curse.createCurse(xmlAtts);
 		resurrection = getBooleanValue(xmlAtts, "resurrection", false);
 		if (xmlAtts.getValue("dead") != null)
-			dead = Boolean.valueOf(getBooleanValue(xmlAtts, "dead", false));
+			dead = getBooleanValue(xmlAtts, "dead", false);
 		val = xmlAtts.getValue("ship");
 		if (val != null)
 			ship = Ship.getType(val);
@@ -130,6 +132,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		super.init(xmlAtts);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (not) saveProperty(props, "not", true);
@@ -156,14 +159,15 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		if (blessing != null) blessing.saveTo(props);
 		if (curse != null) curse.storeAttributes(props, XMLOutput.OUTPUT_PROPS_STATIC);
 		if (resurrection) saveProperty(props, "resurrection", true);
-		if (dead != null) saveProperty(props, "dead", dead.booleanValue());
+		if (dead != null) saveProperty(props, "dead", dead);
 		if (ship >= 0) props.setProperty("ship", Ship.getTypeName(ship));
 		if (crew >= 0) props.setProperty("crew", Ship.getCrewName(crew));
 		if (cargo >= 0) props.setProperty("cargo", Ship.getCargoName(cargo));
 		if (docked != null) props.setProperty("docked", docked);
 		if (profession >= 0) props.setProperty("profession", Adventurer.getProfessionName(profession));
 	}
-	
+
+	@Override
 	public void handleContent(String text) {
 		if (codewords != null) {
 			// Look for one or more codewords in this content
@@ -202,6 +206,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		addEnableElements(getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, StyleNode.createActiveAttributes()) }));
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		System.out.println("IfNode adding itself as Executable child");
 		findExecutableGrouper().addExecutable(this);
@@ -211,6 +216,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		return super.handleEndTag();
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		boolean executeBlock = true;
 		if (type == IF_TYPE)
@@ -240,14 +246,12 @@ public class IfNode extends Node implements Executable, ChangeListener {
 			return true;
 
 		// We have children that we can start executing
-		if (runner.execute(grouper))
-			// All children finished
-			return true;
-		else
-			// Temporary halt
-			return false;
+		// All children finished
+		// Temporary halt
+		return runner.execute(grouper);
 	}
 
+	@Override
 	public void resetExecute() {
 		if (isEnabled()) {
 			if (runner != null)
@@ -256,19 +260,18 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		}
 	}
 
-	public boolean meetsConditions() {
+	private boolean meetsConditions() {
 		Adventurer adv = getAdventurer();
 
 		if (codewords != null) {
 			//System.out.println("Testing for codewords, and=" + andCodewords);
 			Codewords words = adv.getCodewords();
-			for (int c = 0; c < codewords.length; c++) {
-				boolean hasWord = words.hasCodeword(codewords[c]);
+			for (String codeword : codewords) {
+				boolean hasWord = words.hasCodeword(codeword);
 				//System.out.println("Do you have codeword " + codewords[c] + (hasWord ? "? Yes!" : "? No."));
 				if (andCodewords && !hasWord) {
 					return false;
-				}
-				else if (!andCodewords && hasWord) {
+				} else if (!andCodewords && hasWord) {
 					return true;
 				}
 			}
@@ -280,19 +283,18 @@ public class IfNode extends Node implements Executable, ChangeListener {
 			if (adv.hasGod(god))
 				return true;
 		}
-		
+
 		if (safeAddGod != null)
 			return adv.safeToAddGod(safeAddGod);
 
 		if (titles != null) {
 			//System.out.println("Testing for titles, and=" + andTitles);
-			for (int t = 0; t < titles.length; t++) {
-				boolean hasTitle = adv.hasTitle(titles[t]);
+			for (String title : titles) {
+				boolean hasTitle = adv.hasTitle(title);
 				//System.out.println("Do you have title " + titles[t] + (hasTitle ? "? Yes!" : "? No."));
 				if (andTitles && !hasTitle) {
 					return false;
-				}
-				else if (!andTitles && hasTitle) {
+				} else if (!andTitles && hasTitle) {
 					return true;
 				}
 			}
@@ -410,7 +412,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 		}
 		
 		if (dead != null) {
-			if (getAdventurer().isDead() == dead.booleanValue())
+			if (getAdventurer().isDead() == dead)
 				return true;
 		}
 		
@@ -428,6 +430,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 	}
 
 	private boolean ignoreChangeEvents = true;
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		if (ignoreChangeEvents) return;
 
@@ -446,23 +449,22 @@ public class IfNode extends Node implements Executable, ChangeListener {
 	}
 
 	private boolean checkComparisons(int val) {
-		boolean result = false;
 		if (equals != null && val == getAttributeValue(equals))
 			return true;
 		if (greaterThan != null && val > getAttributeValue(greaterThan))
 			return true;
-		if (lessThan != null && val < getAttributeValue(lessThan))
-			return true;
-		return result;
+		return lessThan != null && val < getAttributeValue(lessThan);
 	}
 
+	@Override
 	public boolean isEnabled() {
 		return super.isEnabled();
 		//if (!super.isEnabled()) return false;
 		//return meetsConditions();
 	}
 
-	public void dispose() {
+	@Override
+    public void dispose() {
 		// Might be present as listener at these two points, or might not
 		System.out.println("Disposing of IfNode listeners");
 		if (item != null)
@@ -471,6 +473,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 			getAdventurer().removeMoneyListener(this);
 	}
 
+	@Override
 	protected Element createElement() {
 		Node parent = getParent();
 		while (parent != null & !(parent instanceof ParagraphNode))
@@ -482,13 +485,15 @@ public class IfNode extends Node implements Executable, ChangeListener {
 			// We need a paragraph as our parent element
 			return super.createElement();
 	}
-	
+
+	@Override
 	public void saveProperties(Properties props) {
 		super.saveProperties(props);
 		if (runner != null && runner.willCallContinue())
 			saveProperty(props, "continue", true);
 	}
-	
+
+	@Override
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))

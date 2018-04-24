@@ -31,10 +31,11 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 
 	public static final String ElementName = "outcome";
 
-	public OutcomeNode(Node parent) {
+	OutcomeNode(Node parent) {
 		super(ElementName, parent);
 	}
 
+	@Override
 	public ExecutableGrouper getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner("outcome", this);
@@ -44,7 +45,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 	public void setRange(int min) {
 		setRange(min, Integer.MAX_VALUE);
 	}
-	public void setRange(int min, int max) {
+	private void setRange(int min, int max) {
 		if (min > max)
 			System.out.println("Error: " + min + " > " + max + "!");
 		else {
@@ -61,8 +62,8 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 				return (val == rangeMin || val == rangeMax);
 		}
 		else if (codewords != null && codewords.length > 0) {
-			for (int c = 0; c < codewords.length; c++) {
-				boolean hasCodeword = getCodewords().hasCodeword(codewords[c]);
+			for (String codeword : codewords) {
+				boolean hasCodeword = getCodewords().hasCodeword(codeword);
 				if (!hasCodeword && andCodewords)
 					return false;
 				else if (hasCodeword && !andCodewords)
@@ -74,7 +75,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		return true; // default outcome
 	}
 
-	public boolean hasRange() {
+	private boolean hasRange() {
 		return (orRange || rangeMin <= rangeMax);
 	}
 
@@ -91,6 +92,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		return "<parsing error>";
 	}
 
+	@Override
 	public void init(Attributes xmlAtts) {
 		String range = xmlAtts.getValue("range");
 		varName = xmlAtts.getValue("var");
@@ -155,6 +157,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		}
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (rangeMin < rangeMax)
@@ -165,7 +168,8 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		if (blessing != null) blessing.saveTo(props);
 		if (gotoNode != null) gotoNode.outit(props);
 	}
-	
+
+	@Override
 	protected Node createChild(String name) {
 		if (descriptionBox == null) {
 			descriptionBox = new BoxNode(this, BoxNode.Y_AXIS);
@@ -190,6 +194,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 			return descriptionNode.createChild(name);
 		}
 	}
+	@Override
 	protected void addChild(Node child) {
 		if (descriptionNode == null) {
 			//super.addChild(child);
@@ -199,6 +204,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 			descriptionNode.addChild(child);
 	}
 
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
 
@@ -223,6 +229,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 	}
 
 
+	@Override
 	public boolean handleEndTag() {
 		if (descriptionBox == null) {
 			// No description here - maybe add one now
@@ -275,6 +282,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		return (descriptionNode != null || gotoNode != null);
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		System.out.println("Executing OutcomeNode, range " + getRange());
 
@@ -283,7 +291,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 
 	private boolean activated = false;
 	private ExecutableGrouper grouper = null;
-	public boolean activate(ExecutableGrouper grouper) {
+	private boolean activate(ExecutableGrouper grouper) {
 		this.grouper = grouper;
 		if (flag != null && !getFlags().getState(flag)) {
 			// This OutcomeNode is dependent on an earlier price being paid,
@@ -308,7 +316,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 						gotoNode.setEnabled(true);
 				}
 			}
-			
+
 			if (flag != null) {
 				//System.out.println("OutcomeNode, range " + getRange() + ", matches - setting flag to false");
 				//getFlags().setState(flag, false);
@@ -322,14 +330,14 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 
 			if (runner != null) {
 				System.out.println("OutcomeNode will run executable children");
-				if (!runner.execute(grouper))
-					return false;
+				return runner.execute(grouper);
 			}
 		}
 
 		return true;
 	}
 
+	@Override
 	public void resetExecute() {
 		//if (isEnabled()) {
 		if (activated) {
@@ -352,23 +360,28 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		//}
 	}
 
+	@Override
 	protected String getElementViewType() { return RowViewType; }
 
+	@Override
 	public void setEnabled(boolean b) {
 		super.setEnabled(b);
 		//if (gotoNode != null)
 		//	gotoNode.setEnabled(b);
 	}
 
+	@Override
 	public void actionPerformed(java.awt.event.ActionEvent evt) {
 		System.out.println("Something triggered this Outcome: huh?");
 	}
 
+	@Override
 	public void dispose() {
 		if (flag != null)
 			getFlags().removeListener(flag, this);
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (flag.equals(name)) {
 			if (state) {
@@ -379,13 +392,15 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 			}
 		}
 	}
-	
+
+	@Override
 	public void saveProperties(Properties props) {
 		super.saveProperties(props);
 		if (runner != null && runner.willCallContinue())
 			saveProperty(props, "continue", true);
 	}
-	
+
+	@Override
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))

@@ -13,24 +13,28 @@ import javax.swing.text.StyleConstants;
 public class RowNode extends Node {
 	public static final String ElementName = "tr";
 
-	public RowNode(Node parent) {
+	RowNode(Node parent) {
 		super(ElementName, parent);
 	}
 
+	@Override
 	protected String getElementViewType() { return RowViewType; }
 
 	public static class CellNode extends Node {
 		public static final String ElementName = "td";
-		public CellNode(Node parent) {
+		CellNode(Node parent) {
 			super(ElementName, parent);
 		}
 
+		@Override
 		protected String getElementViewType() { return ParagraphViewType; }
 
+		@Override
 		public void handleContent(String text) {
 			getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, StyleNode.createActiveAttributes()) });
 		}
 
+		@Override
 		protected MutableAttributeSet getElementStyle() {
 			SimpleAttributeSet atts = new SimpleAttributeSet();
 			StyleConstants.setAlignment(atts, StyleConstants.ALIGN_LEFT);

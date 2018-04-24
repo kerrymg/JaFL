@@ -2,7 +2,6 @@ package flands;
 
 
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -32,15 +31,16 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 	private String type;
 	private List<AdjustNode> adjustments = null;
 
-	public RandomNode(Node parent) {
+	RandomNode(Node parent) {
 		this(ElementName, parent);
 	}
 
-	public RandomNode(String name, Node parent) {
+	private RandomNode(String name, Node parent) {
 		super(name, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes xmlAtts) {
 		dice = getIntValue(xmlAtts, "dice", 2);
 		var = xmlAtts.getValue("var");
@@ -55,6 +55,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		super.init(xmlAtts);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (dice != 2) saveProperty(props, "dice", dice);
@@ -65,8 +66,9 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 	}
 	
 	public boolean isTravel() { return (type != null && type.equalsIgnoreCase("travel")); }
-	
-	protected boolean addedContent = false;
+
+	private boolean addedContent = false;
+	@Override
 	public void handleContent(String content) {
 		if (content.trim().length() == 0)
 			return;
@@ -77,6 +79,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		addHighlightElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (!addedContent && !hidden && !getParent().hideChildContent()) {
 			String content;
@@ -98,12 +101,13 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		return super.handleEndTag();
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
 		if (name.equals(AdjustNode.ElementName)) {
 			AdjustNode an = new AdjustNode(this);
 			if (adjustments == null)
-				adjustments = new LinkedList<AdjustNode>();
+				adjustments = new LinkedList<>();
 			adjustments.add(an);
 			n = an;
 		}
@@ -116,6 +120,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		}
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (flag != null) {
 			if (!getFlags().getState(flag))
@@ -135,6 +140,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		}
 	}
 
+	@Override
 	public void resetExecute() {
 		removeVariable(var);
 		result = -1;
@@ -142,6 +148,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 	}
 
 	private Roller roller = null;
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (roller != null) return;
 
@@ -155,16 +162,17 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		roller.startRolling();
 	}
 
-	protected int getAdjustment() {
+	private int getAdjustment() {
 		int delta = 0;
 		if (adjustments != null) {
-			for (Iterator<AdjustNode> i = adjustments.iterator(); i.hasNext(); )
-				delta += i.next().getAdjustment();
+			for (AdjustNode adjustment : adjustments)
+				delta += adjustment.getAdjustment();
 			System.out.println("Adjustment for random=" + delta);
 		}
 		return delta;
 	}
-	
+
+	@Override
 	public void rollerFinished(Roller r) {
 		if (roller == r) {
 			setVariableValue(var, r.getResult());
@@ -178,6 +186,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		}
 	}
 
+	@Override
 	public void undoOccurred(UndoManager undo) {
 		// Re-enable, ready to roll again
 		removeVariable(var);
@@ -185,6 +194,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		setEnabled(true);
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (flag.equals(name)) {
 			if (state) {
@@ -196,6 +206,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 	}
 
 	// TODO: Why the hell is RandomNode returning paragraph-style attributes?
+	@Override
 	protected MutableAttributeSet getElementStyle() {
 		SimpleAttributeSet atts = new SimpleAttributeSet();
 		StyleConstants.setAlignment(atts, StyleConstants.ALIGN_JUSTIFIED);
@@ -203,11 +214,12 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 		return atts;
 	}
 
+	@Override
 	public void dispose() {
 		if (flag != null)
 			getFlags().removeListener(flag, this);
 	}
-	
+
 	protected String getTipText() {
 		String text = "Roll " + getDiceText(dice);
 		int delta = getAdjustment();

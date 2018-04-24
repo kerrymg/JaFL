@@ -24,15 +24,14 @@ import javax.swing.text.View;
  */
 public class ComponentView extends View {
     private Component c;
-    
-	public ComponentView(Element e) {
+
+    ComponentView(Element e) {
 		super(e);
 	}
-	
-    protected Component createComponent() {
+
+    private Component createComponent() {
     	AttributeSet attr = getElement().getAttributes();
-    	Component comp = StyleConstants.getComponent(attr);
-    	return comp;
+		return StyleConstants.getComponent(attr);
     }
     
     public final Component getComponent() {
@@ -41,7 +40,8 @@ public class ComponentView extends View {
     	return c;
     }
 
-    public void paint(Graphics g, Shape a) {
+    @Override
+	public void paint(Graphics g, Shape a) {
     	if (c != null) {
     	    Rectangle alloc = (a instanceof Rectangle) ?
     	    		(Rectangle) a : a.getBounds();
@@ -49,7 +49,8 @@ public class ComponentView extends View {
     	}
     }
     
-    public float getPreferredSpan(int axis) {
+    @Override
+	public float getPreferredSpan(int axis) {
     	if ((axis != X_AXIS) && (axis != Y_AXIS)) {
     	    throw new IllegalArgumentException("Invalid axis: " + axis);
     	}
@@ -64,7 +65,8 @@ public class ComponentView extends View {
     	return 0;
     }
     
-    public float getMinimumSpan(int axis) {
+    @Override
+	public float getMinimumSpan(int axis) {
     	if ((axis != X_AXIS) && (axis != Y_AXIS)) {
     	    throw new IllegalArgumentException("Invalid axis: " + axis);
     	}
@@ -79,11 +81,13 @@ public class ComponentView extends View {
     	return 0;
     }
     
-    public float getMaximumSpan(int axis) {
+    @Override
+	public float getMaximumSpan(int axis) {
     	return getPreferredSpan(axis);
     }
     
-    public float getAlignment(int axis) {
+    @Override
+	public float getAlignment(int axis) {
     	if (c != null) {
     	    switch (axis) {
     	    case View.X_AXIS:
@@ -95,7 +99,8 @@ public class ComponentView extends View {
     	return super.getAlignment(axis);
     }
     
-    public void setParent(View p) {
+    @Override
+	public void setParent(View p) {
     	if (p == null)
     		System.out.println("ComponentView(null) called");
     	super.setParent(p);
@@ -129,7 +134,7 @@ public class ComponentView extends View {
         */
     }
     
-    void setComponentParent() {
+    private void setComponentParent() {
     	View p = getParent();
     	if (p != null) {
     	    Container parent = getContainer();
@@ -156,7 +161,8 @@ public class ComponentView extends View {
         }
     }
     
-    public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
+    @Override
+	public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
     	int p0 = getStartOffset();
     	int p1 = getEndOffset();
     	if ((pos >= p0) && (pos <= p1)) {
@@ -170,7 +176,8 @@ public class ComponentView extends View {
     	throw new BadLocationException(pos + " not in range " + p0 + "," + p1, pos);
     }
     
-    public int viewToModel(float x, float y, Shape a, Position.Bias[] bias) {
+    @Override
+	public int viewToModel(float x, float y, Shape a, Position.Bias[] bias) {
     	Rectangle alloc = (Rectangle) a;
     	if (x < alloc.x + (alloc.width / 2)) {
     	    bias[0] = Position.Bias.Forward;

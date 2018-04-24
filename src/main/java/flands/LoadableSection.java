@@ -27,12 +27,13 @@ public class LoadableSection implements Loadable {
 	public LoadableSection(String filename) {
 		this(filename, null);
 	}
-	
-	public LoadableSection(String filename, SectionNode node) {
+
+	LoadableSection(String filename, SectionNode node) {
 		this.filename = filename;
 		this.node = node;
 	}
-	
+
+	@Override
 	public String getFilename() {
 		return filename;
 	}
@@ -50,14 +51,15 @@ public class LoadableSection implements Loadable {
 		}
 		return handler;
 	}
-	
+
+	@Override
 	public boolean loadFrom(InputStream in) throws IOException {
 		// First, load the static details of the required section
 		DataInputStream din = new DataInputStream(in);
 		book = din.readUTF();
 		section = din.readUTF();
 		Address address = new Address(book, section);
-		
+
 		InputStream sectionStream = address.getStream();
 		try {
 			ParserHandler handler = getHandler();
@@ -70,22 +72,23 @@ public class LoadableSection implements Loadable {
 			e.printStackTrace();
 			throw new IOException("Couldn't load section " + filename);
 		}
-		
+
 		node = (SectionNode)getHandler().getRootNode();
-		((SectionNode)node).setSection(section);
+		node.setSection(section);
 		document = getHandler().getDocument();
 
 		// Then load the dynamic details
 		return node.loadFrom(in);
 	}
 
+	@Override
 	public boolean saveTo(OutputStream out) throws IOException {
 		DataOutputStream dout = new DataOutputStream(out);
 		dout.writeUTF(node.getBook());
 		dout.writeUTF(node.getSection());
 		return node.saveTo(out);
 	}
-	
+
 	public SectionNode getNode() { return node; }
 	public SectionDocument getDocument() { return document; }
 }

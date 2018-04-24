@@ -18,8 +18,8 @@ import org.xml.sax.Attributes;
  */
 public class Curse implements XMLOutput {
 	public static final int CURSE_TYPE = 0;
-	public static final int DISEASE_TYPE = 1;
-	public static final int POISON_TYPE = 2;
+	static final int DISEASE_TYPE = 1;
+	static final int POISON_TYPE = 2;
 	private static final String[] TypeNames = {"curse", "disease", "poison"};
 	public static String getTypeName(int type) { return TypeNames[type]; }
 
@@ -35,14 +35,14 @@ public class Curse implements XMLOutput {
 		this.name = name;
 	}
 
-	public static final Curse createCurse(String elementName) {
+	static Curse createCurse(String elementName) {
 		for (int t = 0; t < TypeNames.length; t++)
 			if (elementName.equals(TypeNames[t]))
 				return new Curse(t, null);
 		return null;
 	}
 
-	public static Curse createCurse(Attributes atts) {
+	static Curse createCurse(Attributes atts) {
 		for (int t = 0; t < TypeNames.length; t++) {
 			String name = atts.getValue(TypeNames[t]);
 			if (name != null) {
@@ -66,7 +66,7 @@ public class Curse implements XMLOutput {
 	public boolean isDisease() { return type == DISEASE_TYPE; }
 	public boolean isPoison() { return type == POISON_TYPE; }
 	public boolean isCumulative() { return cumulative; }
-	public String getLiftQuestion() { return liftQuestion; }
+	String getLiftQuestion() { return liftQuestion; }
 
 	public String getName() { return name; }
 	public Effect getEffects() { return effect; }
@@ -76,7 +76,7 @@ public class Curse implements XMLOutput {
 		else
 			effect.addEffect(e);
 	}
-	public void addCurse(Curse c) {
+	void addCurse(Curse c) {
 		if (cumulative) {
 			// Add any adjust effects together
 			for (Effect e = c.effect; e != null; e = e.nextEffect()) {
@@ -105,8 +105,7 @@ public class Curse implements XMLOutput {
 				if (c.type != DISEASE_TYPE && c.type != POISON_TYPE)
 					return false;
 		}
-		if (name != null && !name.equals("?") && !name.equals("*") && !name.equalsIgnoreCase(c.name)) return false;
-		return true;
+		return name == null || name.equals("?") || name.equals("*") || name.equalsIgnoreCase(c.name);
 	}
 
 	public boolean equals(Object o) {
@@ -122,8 +121,10 @@ public class Curse implements XMLOutput {
 	/* *****************
 	 * XMLOutput methods
 	 ***************** */
+	@Override
 	public String getXMLTag() { return getTypeName(type); }
 
+	@Override
 	public void storeAttributes(Properties atts, int flags) {
 		if (name != null)
 			atts.setProperty("name", name);
@@ -133,8 +134,9 @@ public class Curse implements XMLOutput {
 			atts.setProperty("lift", liftQuestion);
 	}
 
+	@Override
 	public Iterator<XMLOutput> getOutputChildren() {
-		LinkedList<XMLOutput> l = new LinkedList<XMLOutput>();
+		LinkedList<XMLOutput> l = new LinkedList<>();
 		Effect eff = getEffects();
 		while (eff != null) {
 			l.add(eff);
@@ -143,6 +145,7 @@ public class Curse implements XMLOutput {
 		return l.iterator();
 	}
 
+	@Override
 	public void outputTo(PrintStream out, String indent, int flags) throws IOException {
 		Node.output(this, out, indent, flags);
 	}

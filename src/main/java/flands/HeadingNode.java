@@ -14,13 +14,13 @@ import javax.swing.text.StyleConstants;
  */
 public class HeadingNode extends Node {
 	private static float sizeMultipliers[] = { 2, 1.5f, 1.25f, 1 };
-	public static boolean isElementName(String elementName) {
+	static boolean isElementName(String elementName) {
 		if (elementName.length() != 2 || !elementName.startsWith("h")) return false;
 		char level = elementName.charAt(1);
 		return (level > '0' && level < '5');
 	}
 
-	public static HeadingNode createHeadingNode(String elementName, Node parent) {
+	static HeadingNode createHeadingNode(String elementName, Node parent) {
 		if (isElementName(elementName)) {
 			try {
 				int level = Integer.parseInt(elementName.substring(1));
@@ -35,16 +35,18 @@ public class HeadingNode extends Node {
 	}
 
 	private int level;
-	public HeadingNode(String name, Node parent, int level) {
+	private HeadingNode(String name, Node parent, int level) {
 		super(name, parent);
 		this.level = level;
 	}
 
+	@Override
 	public void handleContent(String text) {
 		MutableAttributeSet atts = StyleNode.createActiveAttributes();
 		getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, atts) });
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		Element e = getElement();
 		if (e.getElementCount() > 0) {
@@ -55,13 +57,14 @@ public class HeadingNode extends Node {
 		return true;
 	}
 
-	protected MutableAttributeSet getElementStyle() {
+	@Override
+    protected MutableAttributeSet getElementStyle() {
 		SimpleAttributeSet atts = new SimpleAttributeSet();
 		StyleConstants.setBold(atts, true);
 		float multiplier = sizeMultipliers[level-1];
 		int size = SectionDocument.getPreferredFont().getSize();
 		if (multiplier != 1) {
-			size = (int)Math.round(size * multiplier);
+			size = Math.round(size * multiplier);
 			StyleConstants.setFontSize(atts, size);
 		}
 		if (level > 2)

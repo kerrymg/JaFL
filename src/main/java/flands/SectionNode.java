@@ -65,6 +65,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		runner = new ExecutableRunner("root", null);
 	}
 
+	@Override
 	public SectionDocument getDocument() { return doc; }
 
 	private ParagraphNode getParagraphChild() {
@@ -93,7 +94,8 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 				name.equals(CacheNode.MoneyElementName) ||
 				HeadingNode.isElementName(name));
 	}
-	
+
+	@Override
 	protected Node createChild(String name) {
 		if (isTopLevelNode(name)) {
 			// ie. a valid top-level element (paragraph or table)
@@ -107,15 +109,16 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		}
 	}
 
+	@Override
 	public ExecutableGrouper getExecutableGrouper() { return runner; }
-	public void startExecution() {
+	void startExecution() {
 		// Moved a whole bunch of these out of init(), where  - they shouldn't be
 		// executed when the section is loaded from a saved game
 		if (dock != null)
 			getShips().setAtDock(dock);
 		if (profession >= 0) {
 			FLApp.getSingle().showProfession(profession);
-			FLApp.getSingle().setNameEditable(true, true);			
+			FLApp.getSingle().setNameEditable(true, true);
 		}
 		if (isStart) {
 			FLApp.getSingle().setNameEditable(false, true);
@@ -125,6 +128,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		runner.startExecution(false); // on the same thread
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		name = atts.getValue("name"); // we need the section name before we can create the element
 		boxes = getIntValue(atts, "boxes", 0);
@@ -141,11 +145,13 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		super.init(atts);
 	}
 
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
 		getParagraphChild().handleContent(text);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		closeParagraphChild();
 
@@ -194,18 +200,21 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		// Start stepping through the Executables
 		// This is now called by ParserHandler
 		//startExecution();
-		
+
 		return true;
 	}
 
+	@Override
 	public String getSectionName() { return name; }
 	public String getBook() { return book; }
 	public void setBook(String book) { this.book = book; }
 	public String getSection() { return section; }
 	public void setSection(String section) { this.section = section; }
-	
+
+	@Override
 	protected String getElementViewType() { return BoxYViewType; }
 
+	@Override
 	protected Element createElement() {
 		SectionDocument.RootElement root = doc.createRootElement();
 
@@ -246,15 +255,15 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 	}
 
 	public void addTick() { addTicks(1); }
-	public void addTicks(int ticks) {
+	void addTicks(int ticks) {
 		if (tickBoxes != null) {
 			// Tick the first <ticks> number of unselected boxes we come across
 			int ticked = 0;
-			for (int t = 0; t < tickBoxes.length; t++) {
-				if (!tickBoxes[t].isSelected()) {
-					tickBoxes[t].removeItemListener(this); // so we won't respond to the following event
-					tickBoxes[t].setEnabled(false);
-					tickBoxes[t].setSelected(true);
+			for (JCheckBox tickBox : tickBoxes) {
+				if (!tickBox.isSelected()) {
+					tickBox.removeItemListener(this); // so we won't respond to the following event
+					tickBox.setEnabled(false);
+					tickBox.setSelected(true);
 					if (++ticked == ticks)
 						break;
 				}
@@ -262,50 +271,50 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 			getCodewords().addTicks(name, ticks);
 		}
 	}
-	public void enableTicks(int ticks, ItemListener l) {
+	void enableTicks(int ticks, ItemListener l) {
 		if (tickBoxes != null) {
 			// Enable the first <ticks> number of unselected boxes we come across,
 			// and add an item listener to them
-			for (int t = 0; t < tickBoxes.length; t++) {
-				if (!tickBoxes[t].isSelected()) {
-					tickBoxes[t].setEnabled(true);
-					tickBoxes[t].addItemListener(l);
-					tickBoxes[t].addItemListener(this);
+			for (JCheckBox tickBox : tickBoxes) {
+				if (!tickBox.isSelected()) {
+					tickBox.setEnabled(true);
+					tickBox.addItemListener(l);
+					tickBox.addItemListener(this);
 					if (--ticks == 0)
 						break;
 				}
 			}
 		}
 	}
+	@Override
 	public void itemStateChanged(ItemEvent evt) {
-		for (int t = 0; t < tickBoxes.length; t++) {
-			if (tickBoxes[t] == evt.getSource()) {
-				tickBoxes[t].setEnabled(false);
+		for (JCheckBox tickBox : tickBoxes) {
+			if (tickBox == evt.getSource()) {
+				tickBox.setEnabled(false);
 				getCodewords().addTicks(name, 1);
 				break;
 			}
 		}
 	}
 
-	public boolean hasTag(String t) {
+	boolean hasTag(String t) {
 		if (tag != null) {
 			if (!tag.startsWith(","))
 				tag = "," + tag;
 			if (!tag.endsWith(","))
 				tag += ",";
-			if (tag.indexOf("," + t.toLowerCase() + ",") >= 0)
-				return true;
+			return tag.contains("," + t.toLowerCase() + ",");
 		}
 		return false;
 	}
-	
-	public boolean isSellingMarket() {
+
+	boolean isSellingMarket() {
 		return (market != null && market.isSellingMarket());
 	}
-	public void setMarketNode(MarketNode market) {
+	void setMarketNode(MarketNode market) {
 		this.market = market;
 	}
-	public String getMarketCurrency() {
+	String getMarketCurrency() {
 		return (market == null || market.isDefaultCurrency() ? "Shard" : market.getCurrency());
 	}
 
@@ -314,37 +323,39 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		itemCache = b;
 	}
 
-	public ChoiceNode getFleeChoice() { return fleeChoice; }
-	public void setFleeChoice(ChoiceNode node) {
+	ChoiceNode getFleeChoice() { return fleeChoice; }
+	void setFleeChoice(ChoiceNode node) {
 		fleeChoice = node;
 	}
-	public GotoNode getFleeGoto() { return fleeGoto; }
-	public void setFleeGoto(GotoNode node) {
+	GotoNode getFleeGoto() { return fleeGoto; }
+	void setFleeGoto(GotoNode node) {
 		fleeGoto = node;
 	}
-	
+
 	/* ************************
 	 * Variable-keeping methods
 	 ************************ */
 	/**
 	 * The name used for the 'anonymous' variable (mostly only one variable is necessary).
 	 */
-	public static final String AnonymousVariableName = "'anon'";
-	protected Map<String,Integer> variables = new java.util.HashMap<String,Integer>();
+	private static final String AnonymousVariableName = "'anon'";
+	private Map<String,Integer> variables = new java.util.HashMap<>();
 
 	/** Returns the variable name, converting nulls to an actual (anonymous) name. */
-	protected final String checkVariableName(String name) { return (name == null ? AnonymousVariableName : name); }
+	private String checkVariableName(String name) { return (name == null ? AnonymousVariableName : name); }
 
 	/**
 	 * Check whether this variable is defined.
 	 * @param name the name of the variable; may be <code>null</code>.
 	 */
+	@Override
 	public boolean isVariableDefined(String name) { return variables.get(checkVariableName(name)) != null; }
 
 	/**
 	 * Get the current value of a variable.
 	 * @param name the name of the variable; may be <code>null</code>.
 	 */
+	@Override
 	public int getVariableValue(String name) {
 		Integer val = variables.get(checkVariableName(name));
 		if (val == null) {
@@ -352,42 +363,46 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 			return Integer.MIN_VALUE;
 		}
 		else
-			return val.intValue();
+			return val;
 	}
 
 	/**
 	 * Set the value of a variable.
 	 * @param name the name of the variable; may be <code>null</code>.
 	 */
+	@Override
 	public void setVariableValue(String name, int value) {
-		variables.put(checkVariableName(name), Integer.valueOf(value));
+		variables.put(checkVariableName(name), value);
 	}
 
 	/**
 	 * Adjust the value of a variable.
 	 * @param name the name of the variable; may be <code>null</code>.
 	 */
+	@Override
 	public void adjustVariableValue(String name, int delta) {
 		name = checkVariableName(name);
 		Integer val = variables.get(name);
 		if (val == null)
 			System.err.println("Variable '" + name + "' is not defined; can't adjust");
 		else
-			variables.put(name, Integer.valueOf(val.intValue() + delta));
+			variables.put(name, val + delta);
 	}
 
 	/**
 	 * Remove a variable and its value.
 	 */
+	@Override
 	public void removeVariable(String name) {
 		variables.remove(name);
 	}
 
+	@Override
 	public String getDockLocation() { return dock; }
-	public String getToDockLocation() { return todock; }
+	String getToDockLocation() { return todock; }
 
 	private int ifElseCounter = 0;
-	public String getIfElseVarName(boolean newVar) {
+	String getIfElseVarName(boolean newVar) {
 		if (newVar)
 			// An <if> node - give it a new, unique variable name
 			return "*if" + ifElseCounter++;
@@ -397,10 +412,10 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 			return elseVarName;
 	}
 	private String elseVarName = null;
-	public void setElseVarName(String varName) {
+	void setElseVarName(String varName) {
 		elseVarName = varName;
 	}
-	
+
 	/* *****************
 	 * Load/Save methods
 	 ***************** */
@@ -416,6 +431,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		}
 	}
 
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 
@@ -430,6 +446,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		}
 	}
 
+	@Override
 	protected void loadProperties(Attributes props) {
 		super.loadProperties(props);
 
@@ -443,11 +460,12 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 			System.out.println("Variable " + variableKey + "=" + variableValue);
 		}
 	}
-	
+
+	@Override
 	public String getFilename() {
 		return "sectiondump.xml";
 	}
-	public boolean loadFrom(InputStream in) throws IOException {
+	public boolean loadFrom(InputStream in) {
 		try {
 			XMLReader reader = XMLReaderFactory.createXMLReader();
 			reader.setContentHandler(new DynamicSectionLoader(this));
@@ -464,7 +482,8 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		
 		return false;
 	}
-	
+
+	@Override
 	public boolean saveTo(OutputStream out) throws IOException {
 		PrintStream pout = new PrintStream(out);
 		outputTo(pout, "", XMLOutput.OUTPUT_PROPS_DYNAMIC);

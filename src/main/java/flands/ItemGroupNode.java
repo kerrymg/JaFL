@@ -1,7 +1,6 @@
 package flands;
 
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -23,14 +22,13 @@ public class ItemGroupNode extends Node {
 	private static List<ItemGroupNode> groupNodes;
 	private static void addGroupNode(ItemGroupNode node) {
 		if (groupNodes == null)
-			groupNodes = new LinkedList<ItemGroupNode>();
+			groupNodes = new LinkedList<>();
 		groupNodes.add(node);
 	}
 
-	public static ItemGroupNode getGroupNode(String name) {
+	static ItemGroupNode getGroupNode(String name) {
 		if (groupNodes != null) {
-			for (Iterator<ItemGroupNode> i = groupNodes.iterator(); i.hasNext(); ) {
-				ItemGroupNode n = i.next();
+			for (ItemGroupNode n : groupNodes) {
 				if (n.name.equals(name))
 					return n;
 			}
@@ -45,18 +43,19 @@ public class ItemGroupNode extends Node {
 	private String name;
 	private int limit = 0;
 
-	public ItemGroupNode(Node parent) {
+	ItemGroupNode(Node parent) {
 		super(ElementName, parent);
 		addGroupNode(this);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		name = atts.getValue("group");
 		limit = getIntValue(atts, "limit", 0);
 	}
 
 	public int getLimit() { return limit; }
-	public void adjustLimit(int delta) {
+	void adjustLimit(int delta) {
 		limit += delta;
 		if (delta != 0)
 			fireChangeEvent();
@@ -65,30 +64,34 @@ public class ItemGroupNode extends Node {
 	private List<ChangeListener> listeners;
 	public void addChangeListener(ChangeListener l) {
 		if (listeners == null)
-			listeners = new LinkedList<ChangeListener>();
+			listeners = new LinkedList<>();
 		listeners.add(l);
 	}
 	public void removeChangeListener(ChangeListener l) {
 		listeners.remove(l);
 	}
-	protected void fireChangeEvent() {
+	private void fireChangeEvent() {
 		if (listeners != null) {
 			ChangeEvent e = new ChangeEvent(this);
-			for (Iterator<ChangeListener> i = listeners.iterator(); i.hasNext(); )
-				i.next().stateChanged(e);
+			for (ChangeListener listener : listeners)
+				listener.stateChanged(e);
 		}
 	}
 
-	public void dispose() {
+	@Override
+    public void dispose() {
 		removeGroupNode(this);
 	}
 
+	@Override
 	protected Element createElement() { return null; } // invisible
 
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		props.setProperty("limit", Integer.toString(limit));
 	}
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		limit = getIntValue(atts, "limit", limit);

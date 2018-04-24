@@ -37,8 +37,9 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 	private String book;
 
 	public static final String ElementName = "choice";
-	public ChoiceNode(Node parent) { super(ElementName, parent); }
+	ChoiceNode(Node parent) { super(ElementName, parent); }
 
+	@Override
 	public void init(Attributes atts) {
 		shards = atts.getValue("shards");
 		currency = atts.getValue("currency");
@@ -81,6 +82,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 	 * Not sure why ChoiceNode would be written out since a GotoNode would
 	 * probably suffice - perhaps an item effect with some constraints handled here?
 	 */
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		
@@ -96,7 +98,8 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 		if (flee) saveProperty(props, "flee", flee);
 		if (book != null) props.setProperty("book", book);
 	}
-	
+
+	@Override
 	public void resetExecute() {
 		// TODO: What the hell? Why is this check here?
 		// Added 'flee' check to end - otherwise rerolling an enemy's parting shot
@@ -107,9 +110,10 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 	}
 
 	private static final String BoxString = "{box}";
+	@Override
 	public void handleContent(String content) {
 		// Add some more text to the choice text
-		if (boxword != null && content.indexOf(BoxString) >= 0) {
+		if (boxword != null && content.contains(BoxString)) {
 			int index = content.indexOf(BoxString);
 			if (index > 0)
 				// Add text before the checkbox
@@ -137,6 +141,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 		descriptionNode.handleContent(content);
 	}
 
+	@Override
 	public void setEnabled(boolean b) {
 		if (book != null && !Books.getCanon().getBook(book).hasBook())
 			b = false;
@@ -152,7 +157,8 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 			}
 		}
 	}
-	
+
+	@Override
 	public boolean handleEndTag() {
 		descriptionNode.handleEndTag();
 		//choiceElement.endWithNewline();
@@ -189,6 +195,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 			return (moneyIndex < 0 ? 0 : getItems().getItem(moneyIndex).getMoney());
 		}
 	}
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		// Return without enabling if we don't meet any conditions
 		System.out.println("Disabling choicenode");
@@ -213,6 +220,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 		return true;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		// Action performed on GotoNode
 		if (shards != null && pay) {
@@ -239,7 +247,8 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 	public void removeActionListener(ActionListener l) {
 		gotoNode.removeActionListener(l);
 	}
-	
+
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		if (boxword != null && evt.getSource().equals(boxword)) {
 			boolean selected = getCodewords().hasCodeword(boxword);
@@ -253,8 +262,10 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 		}
 	}
 
+	@Override
 	protected String getElementViewType() { return RowViewType; }
-	
+
+	@Override
 	public void dispose() {
 		if (shards != null) {
 			if (currency == null)

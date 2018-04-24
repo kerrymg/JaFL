@@ -10,11 +10,12 @@ import javax.swing.text.MutableAttributeSet;
  * @author Jonathan Mann
  */
 public class TableNode extends Node {
-	public TableNode(String name, Node parent) {
+	TableNode(String name, Node parent) {
 		super(name, parent);
 	}
-	
+
 	/** Overridden to add the table Element as a direct child of the root Element. */	
+	@Override
 	protected Element createElement() {
 		Element rootElement = getParent().getElement();
 		// Unnecessary; and since fights can be located inside OutcomeNodes,

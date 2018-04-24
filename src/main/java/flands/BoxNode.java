@@ -14,22 +14,25 @@ import javax.swing.text.SimpleAttributeSet;
  */
 public class BoxNode extends Node {
 	private static final boolean OverrideCreateElement = false;
-	public static final int X_AXIS = BoxLayout.X_AXIS;
-	public static final int Y_AXIS = BoxLayout.Y_AXIS;
+	private static final int X_AXIS = BoxLayout.X_AXIS;
+	static final int Y_AXIS = BoxLayout.Y_AXIS;
 	private int orientation;
-	
-	public BoxNode(Node parent, int orientation) {
+
+	BoxNode(Node parent, int orientation) {
 		super("box", parent);
 		this.orientation = orientation;
 	}
 
+	@Override
 	protected String getElementViewType() { return BoxYViewType; }
 
+	@Override
 	protected MutableAttributeSet getElementStyle() {
 		// TODO: Have a play around with these attributes
 		return new SimpleAttributeSet();
 	}
-	
+
+	@Override
 	protected Element createElement() {
 		if (OverrideCreateElement) {
 			Element rootElement = getParent().getElement();
@@ -46,5 +49,4 @@ public class BoxNode extends Node {
 		else
 			return super.createElement();
 	}
-	
 }

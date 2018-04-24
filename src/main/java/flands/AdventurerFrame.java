@@ -190,7 +190,7 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		labelGBC.addComp(left, new JLabel("Titles and Honours"), gbl, 0, row++);
 		((GBC)fieldGBC.clone()).setWeight(0.5f, 1.0f).addComp(left, new JScrollPane(titlesArea), gbl, 0, row++);
 		labelGBC.addComp(left, new JLabel("Curses"), gbl, 0, row++);
-		((GBC)fieldGBC.clone()).setWeight(0.5f, 1.0f).addComp(left, new JScrollPane(curseList), gbl, 0, row++);
+		((GBC)fieldGBC.clone()).setWeight(0.5f, 1.0f).addComp(left, new JScrollPane(curseList), gbl, 0, row);
 
 		row = 0;
 		labelGBC.addComp(right, new JLabel("Profession"), gbl, 0, row++);
@@ -204,8 +204,8 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		labelGBC.addComp(right, new JLabel("Money"), gbl, 0, row++);
 		fieldGBC.addComp(right, moneyField, gbl, 0, row++);
 		labelGBC.addComp(right, new JLabel("Blessings"), gbl, 0, row++);
-		((GBC)fieldGBC.clone()).setWeight(0.5f, 0.5f).addComp(right, new JScrollPane(blessingList), gbl, 0, row++);
-		
+		((GBC)fieldGBC.clone()).setWeight(0.5f, 0.5f).addComp(right, new JScrollPane(blessingList), gbl, 0, row);
+
 		pane.add(left);
 		pane.add(right);
 
@@ -221,10 +221,10 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		reset();
 	}
 
-	public boolean isEditable() {
+	boolean isEditable() {
 		return nameField.isEditable();
 	}
-	
+
 	public void setEditable(boolean b) {
 		if (nameField.isEditable() != b) {
 			nameField.setEditable(b);
@@ -269,6 +269,7 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		adv.getBlessings().configureList(blessingList);
 	}
 
+	@Override
 	public void itemStateChanged(ItemEvent evt) {
 		if (evt.getStateChange() == ItemEvent.SELECTED)
 			adv.setMale(maleButton.isSelected());
@@ -293,7 +294,7 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		
 		popup.show(moneyField, evt.getX(), evt.getY());
 	}
-	
+
 	private void doMoneyTransfer() {
 		if (adv.getMoney() > 0) {
 			ItemList cache = adv.getItems().getItemCache();
@@ -309,26 +310,32 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 			}
 		}
 	}
-	
+
+	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (e.getClickCount() == 2)
 			doMoneyTransfer();
 	}
 
+	@Override
 	public void mousePressed(MouseEvent e) {
 		if (e.isPopupTrigger())
 			handlePopup(e);
 	}
 
+	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (e.isPopupTrigger())
 			handlePopup(e);
 	}
 
+	@Override
 	public void mouseEntered(MouseEvent e) {}
 
+	@Override
 	public void mouseExited(MouseEvent e) {}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals(transferCommand)) {
 			doMoneyTransfer();
@@ -344,6 +351,7 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		}
 	}
 
+	@Override
 	public void fontChanged(Font f, int smallerFontSize) {
 		reset();
 		setFont(nameField);

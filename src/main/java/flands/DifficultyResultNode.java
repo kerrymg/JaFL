@@ -15,8 +15,8 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class DifficultyResultNode extends ActionNode implements Executable {
-	public static String SuccessElementName = "success";
-	public static String FailureElementName = "failure";
+	static String SuccessElementName = "success";
+	static String FailureElementName = "failure";
 
 	private final boolean success;
 	private String section;
@@ -26,21 +26,24 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 	private ParagraphNode gotoParagraph = null, textNode = null;
 	private GotoNode gotoNode = null;
 
-	public DifficultyResultNode(boolean success, Node parent) {
+	DifficultyResultNode(boolean success, Node parent) {
 		super(success ? SuccessElementName : FailureElementName, parent);
 		this.success = success;
 		setEnabled(false);
 	}
 
+	@Override
 	protected Color getHighlightColor() { return (success ? new Color(127, 255, 127) : new Color(255, 127, 127)); }
 
 	private ExecutableRunner runner = null;
+	@Override
 	public ExecutableGrouper getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner("DifficultyResult/" + success, this);
 		return runner;
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		section = atts.getValue("section");
 		var = atts.getValue("var");
@@ -60,6 +63,7 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 		}
 	}
 
+	@Override
 	public void handleContent(String content) {
 		if (content.length() == 0) return;
 		if (section != null) {
@@ -78,6 +82,7 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 		}
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (section != null) {
 			if (textNode == null) {
@@ -108,6 +113,7 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 		return super.handleEndTag();
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (!meetsConditions())
 			// Doesn't meet the entry conditions, so skip this 'block'
@@ -120,15 +126,12 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 			return true;
 
 		// We have children that we can start executing
-		if (runner.execute(grouper))
-			// All children finished
-			return true;
-		else
-			// Temporary halt
-			return false;
+		// All children finished
+// Temporary halt
+		return runner.execute(grouper);
 	}
 
-	public boolean meetsConditions() {
+	private boolean meetsConditions() {
 		if (isVariableDefined(var)) {
 			if (ability == null || Adventurer.getAbilityType(ability) == getVariableValue(DifficultyNode.AbilityTypeVar)) {
 				if (success == getVariableValue(var) > 0)
@@ -138,26 +141,31 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 		return false;
 	}
 
+	@Override
 	public void setEnabled(boolean b) {
 		super.setEnabled(b);
 		if (gotoNode != null)
 			gotoNode.setEnabled(b);
 	}
 
+	@Override
 	public void resetExecute() {
 		if (runner != null)
 			runner.resetExecute();
 		setEnabled(false);
 	}
 
+	@Override
 	protected String getElementViewType() { return (section == null ? null : RowViewType); }
-	
+
+	@Override
 	public void saveProperties(Properties props) {
 		super.saveProperties(props);
 		if (runner != null && runner.willCallContinue())
 			saveProperty(props, "continue", true);
 	}
-	
+
+	@Override
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))

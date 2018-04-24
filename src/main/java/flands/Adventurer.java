@@ -65,18 +65,18 @@ public class Adventurer implements Loadable {
 
 	public static final int ABILITY_CHARISMA = 0;
 	public static final int ABILITY_COMBAT = 1;
-	public static final int ABILITY_MAGIC = 2;
-	public static final int ABILITY_SANCTITY = 3;
+	static final int ABILITY_MAGIC = 2;
+	private static final int ABILITY_SANCTITY = 3;
 	public static final int ABILITY_SCOUTING = 4;
-	public static final int ABILITY_THIEVERY = 5;
+	static final int ABILITY_THIEVERY = 5;
 	/** The number of basic abilities (not including Rank, Defence & Stamina). */
-	public static final int ABILITY_COUNT = 6;
+	static final int ABILITY_COUNT = 6;
 
-	public static final int ABILITY_RANK = 6;
-	public static final int ABILITY_DEFENCE = 7;
-	public static final int ABILITY_STAMINA = 8;
-	public static final int ABILITY_ALL = 9; // all of the 6 abilities, that is
-	public static final int ABILITY_SINGLE = 10; // match one of the 6 abilities
+	static final int ABILITY_RANK = 6;
+	static final int ABILITY_DEFENCE = 7;
+	static final int ABILITY_STAMINA = 8;
+	static final int ABILITY_ALL = 9; // all of the 6 abilities, that is
+	static final int ABILITY_SINGLE = 10; // match one of the 6 abilities
 
 	private static final String[] AbilityNames = new String[] {"Charisma", "Combat", "Magic", "Sanctity", "Scouting", "Thievery", "Rank", "Defence", "Stamina", "*"};
 
@@ -102,12 +102,12 @@ public class Adventurer implements Loadable {
 	private SingleStat defence;
 	private boolean male;
 	private StyledDocument history;
-	private List<God> gods = new LinkedList<God>();
+	private List<God> gods = new LinkedList<>();
 	private boolean godless = false;
 	private int shards = 0;
 	private PlainDocument godDoc = null;
 	private PlainDocument shardsDoc = null;
-	private List<Title> titles = new LinkedList<Title>();
+	private List<Title> titles = new LinkedList<>();
 	private ItemList items = new ItemList(this);
 	private EffectSet effects = new EffectSet(this);
 
@@ -120,14 +120,14 @@ public class Adventurer implements Loadable {
 	private ShipList ships = new ShipList();
 
 	private ExtraChoice.List choices = new ExtraChoice.List();
-	
+
 	private Flag.Set flags = new Flag.Set();
-	
+
 	private ActiveRuleset rules = new ActiveRuleset();
-	
+
 	private boolean hardcore = false;
 	private long hardcoreTime = 0;
-	
+
 	public Adventurer() {
 		abilities = new AbilityStat[ABILITY_COUNT];
 		for (int a = 0; a < ABILITY_COUNT; a++)
@@ -143,10 +143,10 @@ public class Adventurer implements Loadable {
 		// TODO: Shift stuff that was saved under the old name
 		this.fullName = name;
 	}
-	public String getFolderName() {
+	String getFolderName() {
 		// Remove everything but letters and digits from name
 		if (fullName == null) return null;
-		StringBuffer sb = new StringBuffer(fullName);
+		StringBuilder sb = new StringBuilder(fullName);
 		for (int i = sb.length() - 1; i >= 0; i--)
 			if (!Character.isLetterOrDigit(sb.charAt(i))) {
 				if (sb.charAt(i) == ' ')
@@ -157,15 +157,15 @@ public class Adventurer implements Loadable {
 		return sb.toString();
 	}
 
-	public boolean isMale() { return male; }
-	public void setMale(boolean b) {
+	boolean isMale() { return male; }
+	void setMale(boolean b) {
 		if (male != b) {
 			male = b;
 			rank.updateDocument();
 		}
 	}
 	public Stat getRank() { return rank; }
-	public String getRankDescription() {
+	private String getRankDescription() {
 		int index = Math.min(rank.affected - 1, RankNames.length - 1);
 		return RankNames[index][(male || RankNames[index].length == 1) ? 0 : 1];
 	}
@@ -200,7 +200,7 @@ public class Adventurer implements Loadable {
 		return null;
 	}
 
-	public boolean isAbilityMaxed(int abilityType) {
+	boolean isAbilityMaxed(int abilityType) {
 		return (abilityType < ABILITY_COUNT && abilities[abilityType].natural == 12);
 	}
 
@@ -209,7 +209,7 @@ public class Adventurer implements Loadable {
 	 * @return the amount the ability was actually adjusted by; an ability can only be
 	 * lowered to 1, and one of the major six can only go up to 12.
 	 */
-	public int adjustAbility(int abilityType, int delta) {
+	int adjustAbility(int abilityType, int delta) {
 		return adjustAbility(abilityType, delta, false);
 	}
 	
@@ -221,7 +221,7 @@ public class Adventurer implements Loadable {
      * the ability is only decreased to 1 and the current stamina is decreased to 0.
 	 * @return the amount the ability was actually adjusted by.
 	 */
-	public int adjustAbility(int abilityType, int delta, boolean fatal) {
+	int adjustAbility(int abilityType, int delta, boolean fatal) {
 		boolean death = false;
 		int result;
 		if (abilityType < ABILITY_COUNT || abilityType == ABILITY_ALL) {
@@ -231,7 +231,7 @@ public class Adventurer implements Loadable {
 				firstAbility = 0;
 				lastAbility = ABILITY_COUNT - 1;
 			}
-			
+
 			for (int a = firstAbility; a <= lastAbility; a++) {
 				int d = delta;
 				// Edited 16/2/08: this first if() worked on the affected stat, rather
@@ -314,34 +314,34 @@ public class Adventurer implements Loadable {
 		return result;
 	}
 
-	public void raiseAbility(int abilityType) {
+	void raiseAbility(int abilityType) {
 		System.out.println("Raising ability " + abilityType);
 		adjustAbility(abilityType, 1);
 	}
 
-	public StyledDocument getAbilityDocument() {
+	StyledDocument getAbilityDocument() {
 		return AbilityStat.createAbilityDocument(abilities);
 	}
 
 	/**
 	 * Get the ability that has been selected, given a position in the ability document.
 	 */
-	public int posToAbility(int docPos) {
+	int posToAbility(int docPos) {
 		for (int i = 0; i < ABILITY_COUNT; i++)
 			if (abilities[i].containsPosition(docPos))
 				return i;
 		return -1;
 	}
-	
-	public String getAbilityTooltip(int ability) {
+
+	String getAbilityTooltip(int ability) {
 		return effects.getAbilityAdjustments(ability, abilities[ability].natural);
 	}
-	
+
 	/**
 	 * Generate a set of Documents, each showing an ability name and an accompanying stat.
 	 * This is intended for use by {@link DocumentChooser}.
 	 */
-	public static StyledDocument[] getAbilityDocuments(int[] abilityTypes, int[] stats) {
+	static StyledDocument[] getAbilityDocuments(int[] abilityTypes, int[] stats) {
 		DefaultStyledDocument[] docs = new DefaultStyledDocument[abilityTypes.length];
 		SimpleAttributeSet bigFontAtts = new SimpleAttributeSet();
 		SimpleAttributeSet smallFontAtts = SectionDocument.getSmallerAtts(bigFontAtts);
@@ -353,7 +353,7 @@ public class Adventurer implements Loadable {
 				docs[a].insertString(1, str.substring(1), smallFontAtts);
 				docs[a].insertString(docs[a].getLength(), " " + stats[a], bigFontAtts);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 		}
 
 		return docs;
@@ -381,14 +381,14 @@ public class Adventurer implements Loadable {
 		return -1;
 	}
 
-	public static int[] getAbilityTypes(String attrVal) {
+	static int[] getAbilityTypes(String attrVal) {
 		int[] result;
 		if (attrVal == null || attrVal.equals("?") || attrVal.equals("*")) {
 			result = new int[ABILITY_COUNT];
 			for (int a = 0; a < result.length; a++)
 				result[a] = a;
 		}
-		else if (attrVal.indexOf("|") < 0) {
+		else if (!attrVal.contains("|")) {
 			result = new int[] { getAbilityType(attrVal) };
 			if (result[0] < 0)
 				System.out.println("Adventurer: unrecognised ability name: " + attrVal);
@@ -412,18 +412,18 @@ public class Adventurer implements Loadable {
 	 * Get the number of dice to be used in a Difficulty roll.
 	 * See 3.91 for the case where this gets changed to 1.
 	 */
-	public int getDifficultyDice() { return difficultyRollDice; }
-	public void setDifficultyDice(int dice) {
+	int getDifficultyDice() { return difficultyRollDice; }
+	void setDifficultyDice(int dice) {
 		if (dice > 0)
 			difficultyRollDice = dice;
 	}
 	
 	public int getProfession() { return profession; }
-	public String getProfessionName() { return getProfessionName(getProfession()); }
+	String getProfessionName() { return getProfessionName(getProfession()); }
 	void setProfession(int p) { profession = p; FLApp.getSingle().refreshAdventureSheet(); }
 
-	public static String getProfessionName(int type) { return ProfessionNames[type]; }
-	public static int getProfessionType(String name) {
+	static String getProfessionName(int type) { return ProfessionNames[type]; }
+	static int getProfessionType(String name) {
 		if (name.length() >= 2) {
 			String match = name.toLowerCase();
 			for (int p = 0; p < PROF_COUNT; p++)
@@ -443,47 +443,45 @@ public class Adventurer implements Loadable {
 		private List<String> compatible = null;
 		
 		public God(String name) { this.name = name; }
-		public void addCompatibleGod(String god) {
-			if (compatible == null) compatible = new LinkedList<String>();
+		void addCompatibleGod(String god) {
+			if (compatible == null) compatible = new LinkedList<>();
 			compatible.add(god.toLowerCase());
 		}
-		
+
 		public String getName() { return name; }
 		public AbilityEffect getEffect() { return effect; }
 		public void setEffect(AbilityEffect effect) { this.effect = effect; }
-		
-		public boolean compatibleWith(String god) {
+
+		boolean compatibleWith(String god) {
 			if (compatible == null) return false;
 			if (god.equals("")) return false;
 			god = god.toLowerCase();
-			for (Iterator<String> i = compatible.iterator(); i.hasNext(); ) {
-				String compat = i.next();
+			for (String compat : compatible) {
 				if (compat.indexOf('?') >= 0 || compat.indexOf('*') >= 0) {
 					Pattern godPattern = FLApp.createNamePattern(compat);
 					if (godPattern.matcher(god).matches())
 						return true;
-				}
-				else if (compat.equals(god))
+				} else if (compat.equals(god))
 					return true;
 			}
 			return false;
 		}
-		
+
 		private String getCompatibleString() {
 			if (compatible == null) return null;
-			StringBuffer sb = new StringBuffer();
-			for (Iterator<String> i = compatible.iterator(); i.hasNext(); ) {
+			StringBuilder sb = new StringBuilder();
+			for (String compat : compatible) {
 				if (sb.length() > 0)
 					sb.append(",");
-				sb.append(i.next());
+				sb.append(compat);
 			}
 			return sb.toString();
 		}
 	}
-	
+
 	public static class GodEffectSrc {
 		private String god;
-		public GodEffectSrc(String god) { this.god = god; }
+		GodEffectSrc(String god) { this.god = god; }
 		public String getGod() { return god; }
 		public boolean equals(Object o) {
 			if (o instanceof GodEffectSrc)
@@ -492,67 +490,67 @@ public class Adventurer implements Loadable {
 		}
 		public String toString() { return "[" + god + "]"; }
 	}
-	
-	public boolean hasGod(String god) {
+
+	boolean hasGod(String god) {
 		if (god.equals("*"))
 			return !gods.isEmpty();
 		else if (god.equals(""))
 			return gods.isEmpty();
-		for (Iterator<God> i = gods.iterator(); i.hasNext(); )
-			if (i.next().getName().equalsIgnoreCase(god))
+		for (God aGod : gods)
+			if (aGod.getName().equalsIgnoreCase(god))
 				return true;
 		return false;
 	}
-	
+
 	/**
 	 * Checks whether the given god can be 'added' without affecting any gods in place.
 	 * @return <code>false</code> if the character already worships this god, or a non-compatible one;
 	 * <code>true</code> otherwise.
 	 */
-	public boolean safeToAddGod(String god) {
+	boolean safeToAddGod(String god) {
 		if (god.equals("")) return true;
 		if (gods.isEmpty()) return true;
 		if (hasGod(god)) return false;
-		for (Iterator<God> i = gods.iterator(); i.hasNext(); )
-			if (!i.next().compatibleWith(god))
+		for (God aGod : gods)
+			if (!aGod.compatibleWith(god))
 				return false;
 		return true;
 	}
-	
+
 	/**
 	 * Convenience method to handle the removal of a specific god.
 	 * Removes any resurrections or ability effects tied to the god in question.
 	 */
 	private void removeAGod(God g, Iterator<God> i) {
 		for (int r = resurrections.size() - 1; r >= 0; r--)
-			if (resurrections.get(r).isGod(g.getName()))							
+			if (resurrections.get(r).isGod(g.getName()))
 				// Resurrection was connected to following a particular god
 				removeResurrection(resurrections.get(r));
-		
+
 		if (g.getEffect() != null) {
 			// Remove it now
 			effects.removeStatRelated(g.getEffect().getAbility(), new GodEffectSrc(g.getName()), g.getEffect());
 			effects.notifyOwner();
 		}
-		i.remove();		
+		i.remove();
 	}
-	
+
 	public void setGod(String god) { setGod(god, null); }
-	public void setGod(String god, String compatible) {
+	void setGod(String god, String compatible) {
 		if (gods.size() == 1 && gods.get(0).getName().equalsIgnoreCase(god))
 			// No change
 			return;
-		
+
 		if (godless && god != null && !god.equals(""))
 			return; // can't have a god
-		
+
 		God newGod = new God(god);
 		if (compatible != null) {
 			StringTokenizer st = new StringTokenizer(compatible, ",;");
 			while (st.hasMoreTokens())
 				newGod.addCompatibleGod(st.nextToken().trim());
 		}
-		
+
 		// Remove incompatible gods
 		for (Iterator<God> i = gods.iterator(); i.hasNext(); ) {
 			God g = i.next();
@@ -562,40 +560,39 @@ public class Adventurer implements Loadable {
 				removeAGod(g, i);
 			}
 		}
-		
+
 		// Add new god
 		if (god != null && !god.equals(""))
 			gods.add(newGod);
-		
+
 		updateGodDocument();
 	}
-	public void setGodEffect(String god, AbilityEffect ae) {
-		for (Iterator<God> i = gods.iterator(); i.hasNext(); ) {
-			God g = i.next();
-			if (g.getName().equalsIgnoreCase(god)) {
-				if (g.getEffect() != null)
-					effects.removeStatRelated(g.getEffect().getAbility(), new GodEffectSrc(g.getName()), g.getEffect());
-			
-				g.setEffect(ae);
-				effects.addStatRelated(ae.getAbility(), new GodEffectSrc(g.getName()), ae);
+	void setGodEffect(String god, AbilityEffect ae) {
+		for (God aGod : gods) {
+			if (aGod.getName().equalsIgnoreCase(god)) {
+				if (aGod.getEffect() != null)
+					effects.removeStatRelated(aGod.getEffect().getAbility(), new GodEffectSrc(aGod.getName()), aGod.getEffect());
+
+				aGod.setEffect(ae);
+				effects.addStatRelated(ae.getAbility(), new GodEffectSrc(aGod.getName()), ae);
 				effects.notifyOwner();
 			}
 		}
 	}
-	public void removeGod(String god) {
+	void removeGod(String god) {
 		if (god != null) {
 			for (Iterator<God> i = gods.iterator(); i.hasNext(); ) {
 				God g = i.next();
 				if (god.equals("*") || god.equalsIgnoreCase(g.getName())) {
 					removeAGod(g, i);
 				}
-					
+
 			}
 			updateGodDocument();
 		}
 	}
-	public boolean isGodless() { return godless; }
-	public void setGodless(boolean b) {
+	boolean isGodless() { return godless; }
+	void setGodless(boolean b) {
 		if (b != godless) {
 			godless = b;
 			if (b && !gods.isEmpty())
@@ -603,16 +600,16 @@ public class Adventurer implements Loadable {
 			FLApp.getSingle().refreshAdventureSheet();
 		}
 	}
-	
+
 	private String getGodsString() {
 		if (gods.isEmpty()) return "None";
-		StringBuffer godStr = new StringBuffer();
-		for (Iterator<God> i = gods.iterator(); i.hasNext(); ) {
+		StringBuilder godStr = new StringBuilder();
+		for (God god : gods) {
 			if (godStr.length() > 0)
 				godStr.append(", ");
-			godStr.append(i.next().getName());
+			godStr.append(god.getName());
 		}
-		return godStr.toString();		
+		return godStr.toString();
 	}
 	private void updateGodDocument() {
 		if (godDoc != null) {
@@ -627,26 +624,26 @@ public class Adventurer implements Loadable {
 				*/
 				godDoc.replace(0, godDoc.getLength(), getGodsString(), atts);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 		}
 	}
-	
-	public Document getGodDocument() {
+
+	Document getGodDocument() {
 		if (godDoc == null) {
 			godDoc = new PlainDocument();
 			try {
 				godDoc.insertString(0, getGodsString(), null);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 		}
 		return godDoc;
 	}
 
 	private PlainDocument titleDocument = null;
-	public boolean hasTitle(String title) {
+	boolean hasTitle(String title) {
 		String lowerTitle = title.toLowerCase();
-		for (Iterator<Title> i = titles.iterator(); i.hasNext(); ) {
-			if (i.next().matches(lowerTitle))
+		for (Title aTitle : titles) {
+			if (aTitle.matches(lowerTitle))
 				return true;
 		}
 		return false;
@@ -658,7 +655,7 @@ public class Adventurer implements Loadable {
 			updateTitleDocument();
 		}
 	}
-	public void addTitle(String title, String pattern, int initialValue, int adjustBy) {
+	void addTitle(String title, String pattern, int initialValue, int adjustBy) {
 		if (pattern == null) {
 			addTitle(title);
 			return;
@@ -666,8 +663,7 @@ public class Adventurer implements Loadable {
 
 		String lowerTitle = title.toLowerCase();
 		boolean existingTitle = false;
-		for (Iterator<Title> i = titles.iterator(); i.hasNext(); ) {
-			Title t = i.next();
+		for (Title t : titles) {
 			if (t.matches(lowerTitle)) {
 				existingTitle = true;
 				t.adjustValue(adjustBy);
@@ -682,17 +678,16 @@ public class Adventurer implements Loadable {
 
 		updateTitleDocument();
 	}
-	public int getTitleValue(String titleKey, int defaultValue) {
+	int getTitleValue(String titleKey, int defaultValue) {
 		String lowerTitle = titleKey.toLowerCase();
-		for (Iterator<Title> i = titles.iterator(); i.hasNext(); ) {
-			Title t = i.next();
+		for (Title t : titles) {
 			if (t.matches(lowerTitle))
 				return t.getValue();
 		}
 		return defaultValue;
 	}
 
-	public boolean removeTitle(String title) {
+	boolean removeTitle(String title) {
 		String lowerTitle = title.toLowerCase();
 		for (ListIterator<Title> i = titles.listIterator(); i.hasNext(); )
 			if (i.next().matches(lowerTitle)) {
@@ -702,7 +697,7 @@ public class Adventurer implements Loadable {
 			}
 		return false;
 	}
-	public Document getTitleDocument() {
+	Document getTitleDocument() {
 		if (titleDocument == null) {
 			titleDocument = new PlainDocument();
 			updateTitleDocument();
@@ -711,16 +706,16 @@ public class Adventurer implements Loadable {
 	}
 	private void updateTitleDocument() {
 		if (titleDocument == null) return;
-		StringBuffer titleBuffer = new StringBuffer();
-		for (Iterator<Title> i = titles.iterator(); i.hasNext(); )
-			titleBuffer.append(i.next()).append('\n');
+		StringBuilder titleBuffer = new StringBuilder();
+		for (Title title : titles)
+			titleBuffer.append(title).append('\n');
 		if (titleBuffer.length() > 0)
 			titleBuffer.setLength(titleBuffer.length() - 1); // removes the last newline
 
 		try {
 			titleDocument.replace(0, titleDocument.getLength(), titleBuffer.toString(), null);
 		}
-		catch (BadLocationException ble) {}
+		catch (BadLocationException ignored) {}
 	}
 
 	private List<ChangeListener> moneyListeners = null;
@@ -741,7 +736,7 @@ public class Adventurer implements Loadable {
 			notifyListeners(moneyListeners, this);
 		}
 	}
-	public Document getMoneyDocument() {
+	Document getMoneyDocument() {
 		if (shardsDoc == null) {
 			shardsDoc = new PlainDocument();
 			String moneyStr;
@@ -752,7 +747,7 @@ public class Adventurer implements Loadable {
 			try {
 				shardsDoc.insertString(0, moneyStr, null);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 		}
 		return shardsDoc;
 	}
@@ -762,15 +757,15 @@ public class Adventurer implements Loadable {
 			try {
 				shardsDoc.replace(0, shardsDoc.getLength(), moneyStr, null);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 		}
 	}
-	public void addMoneyListener(ChangeListener l) {
+	void addMoneyListener(ChangeListener l) {
 		if (moneyListeners == null)
-			moneyListeners = new LinkedList<ChangeListener>();
+			moneyListeners = new LinkedList<>();
 				moneyListeners.add(l);
 	}
-	public void removeMoneyListener(ChangeListener l) {
+	void removeMoneyListener(ChangeListener l) {
 		if (moneyListeners != null)
 			moneyListeners.remove(l);
 	}
@@ -778,21 +773,21 @@ public class Adventurer implements Loadable {
 	private static void notifyListeners(List<ChangeListener> listeners, Object src) {
 		if (listeners != null) {
 			ChangeEvent evt = new ChangeEvent(src);
-			for (Iterator<ChangeListener> i = listeners.iterator(); i.hasNext(); )
-				i.next().stateChanged(evt);
+			for (ChangeListener listener : listeners)
+				listener.stateChanged(evt);
 		}
 	}
 
-	public boolean isHardcore() { return hardcore; }
+	boolean isHardcore() { return hardcore; }
 	void setHardcore(boolean b) { hardcore = b; }
-	
+
 	/**
 	 * Check that the hardcore state is valid. This checks that the timestamp stored with
 	 * the character is close enough to that on the file.
 	 * @return <code>false</code> if the timestamps fail to match (meaning we won't continue
 	 * as hardcore); <code>true</code> otherwise.
 	 */
-	public boolean validateHardcore(long time) {
+	boolean validateHardcore(long time) {
 		if (hardcore) {
 			System.out.println("File timestamp: " + time);
 			System.out.println("Hardcore stamp: " + hardcoreTime);
@@ -804,7 +799,7 @@ public class Adventurer implements Loadable {
 		}
 		return true;
 	}
-	
+
 	public ItemList getItems() { return items; }
 
 	public EffectSet getEffects() { return effects; }
@@ -817,16 +812,16 @@ public class Adventurer implements Loadable {
 
 	public ShipList getShips() { return ships; }
 
-	public ExtraChoice.List getExtraChoices() { return choices; }
-	
+	ExtraChoice.List getExtraChoices() { return choices; }
+
 	public Flag.Set getFlags() { return flags; }
-	
-	private List<Resurrection> resurrections = new LinkedList<Resurrection>();
+
+	private List<Resurrection> resurrections = new LinkedList<>();
 	private DefaultStyledDocument resurrectionDoc = null;
 	//public Resurrection getResurrection() { return resurrection; }
 
-	public boolean hasResurrection() { return !resurrections.isEmpty(); }
-	public void addResurrection(Resurrection r) {
+	boolean hasResurrection() { return !resurrections.isEmpty(); }
+	void addResurrection(Resurrection r) {
 		if (!r.isSupplemental()) {
 			// Remove existing, non-supplemental resurrections
 			for (int i = resurrections.size() - 1; i >= 0; i--)
@@ -835,8 +830,8 @@ public class Adventurer implements Loadable {
 		}
 		resurrections.add(r);
 		boolean worshipper = false;
-		for (Iterator<God> i = gods.iterator(); i.hasNext(); ) {
-			if (r.isGod(i.next().getName())) {
+		for (God god : gods) {
+			if (r.isGod(god.getName())) {
 				worshipper = true;
 				break;
 			}
@@ -847,22 +842,22 @@ public class Adventurer implements Loadable {
 			r.setGod(null);
 		updateResurrectionDoc();
 	}
-	
-	public void removeResurrection(Resurrection r) {
+
+	void removeResurrection(Resurrection r) {
 		for (int i = resurrections.size() - 1; i >= 0; i--)
 			if (resurrections.get(i) == r)
 				resurrections.remove(i);
 		updateResurrectionDoc();
 	}
-	
-	public Resurrection chooseResurrection(String title) {
+
+	Resurrection chooseResurrection(String title) {
 		switch (resurrections.size()) {
 			case 0:
 				return null;
 			case 1:
 				return resurrections.get(0);
 		}
-		
+
 		DefaultStyledDocument[] docs = new DefaultStyledDocument[resurrections.size()];
 		for (int i = 0; i < resurrections.size(); i++) {
 			DefaultStyledDocument doc = new DefaultStyledDocument();
@@ -870,15 +865,15 @@ public class Adventurer implements Loadable {
 			list.addTo(doc, true);
 			docs[i] = doc;
 		}
-		
+
 		DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), title, docs, false);
 		chooser.setVisible(true);
-		
+
 		if (chooser.getSelectedIndices() == null) return null;
 		return resurrections.get(chooser.getSelectedIndices()[0]);
 	}
-	
-	public StyledDocument getResurrectionDocument() {
+
+	StyledDocument getResurrectionDocument() {
 		if (resurrectionDoc == null)
 			resurrectionDoc = new DefaultStyledDocument();
 		updateResurrectionDoc();
@@ -892,28 +887,27 @@ public class Adventurer implements Loadable {
 				resurrectionDoc.remove(0, resurrectionDoc.getLength());
 			else {
 				boolean first = true;
-				for (Iterator<Resurrection> i = resurrections.iterator(); i.hasNext(); ) {
+				for (Resurrection resurrection : resurrections) {
 					if (!first)
 						resurrectionDoc.insertString(resurrectionDoc.getLength(), "\n", null);
-					Resurrection r = i.next();
-					StyledTextList list = r.getContent(null);
+					StyledTextList list = resurrection.getContent(null);
 					list.addTo(resurrectionDoc, first);
 					first = false;
 				}
 			}
 		}
-		catch (BadLocationException ble) {}
+		catch (BadLocationException ignored) {}
 	}
 
-	public static final int MODIFIER_AFFECTED = 0;
-	public static final int MODIFIER_NATURAL = 1;
-	public static final int MODIFIER_NOTOOL = 2;
-	public static final int MODIFIER_NOARMOUR = 3;
-	public static final int MODIFIER_CURRENT = 4;
+	static final int MODIFIER_AFFECTED = 0;
+	static final int MODIFIER_NATURAL = 1;
+	static final int MODIFIER_NOTOOL = 2;
+	static final int MODIFIER_NOARMOUR = 3;
+	private static final int MODIFIER_CURRENT = 4;
 	private static final String[] AbilityModifierNames =
 		{"affected", "natural", "noweapon", "noarmour", "current"};
-	
-	public static int getAbilityModifier(String val) {
+
+	static int getAbilityModifier(String val) {
 		if (val == null)
 			return MODIFIER_AFFECTED;
 		else if (val.startsWith("nat"))
@@ -927,7 +921,7 @@ public class Adventurer implements Loadable {
 		else
 			return MODIFIER_AFFECTED;
 	}
-	public static String getAbilityModifierName(int type) {
+	static String getAbilityModifierName(int type) {
 		try {
 			return AbilityModifierNames[type];
 		}
@@ -936,8 +930,8 @@ public class Adventurer implements Loadable {
 		}
 	}
 
-	public static final int PURPOSE_TESTING = 0;
-	public static final int PURPOSE_VALUE = 1;
+	static final int PURPOSE_TESTING = 0;
+	static final int PURPOSE_VALUE = 1;
 	public int getAbilityValue(int ability, int modifier) {
 		Stat stat = getAbility(ability);
 		switch (modifier) {
@@ -971,7 +965,7 @@ public class Adventurer implements Loadable {
 			return 1;
 	}
 
-	
+
 	void checkAbilityBonus(int ability) {
 		System.out.println("Adventurer.checkAbilityBonus(" + ability + ")");
 		Stat affectedStat = null;
@@ -1058,30 +1052,32 @@ public class Adventurer implements Loadable {
 		defence.updateDocument();
 	}
 
-	public boolean isRuleActive(String rule) {
+	private boolean isRuleActive(String rule) {
 		return FLApp.getSingle().isRuleActive(rule);
 	}
 	void updatedActiveRules() {
 		calcDefence();
 	}
-	
+
+	@Override
 	public String getFilename() { return adventurerFileName; }
 
 	public static Adventurer[] loadAvailableAdventurers() {
-		ArrayList<Adventurer> list = new ArrayList<Adventurer> ();
+		ArrayList<Adventurer> list = new ArrayList<> ();
 			File currentDir = new File(".");
 		if (currentDir.isDirectory()) {
 			String[] files = currentDir.list();
-			for (int f = 0; f < files.length; f++) {
-				if (new File(files[f]).isDirectory()) {
-					System.out.println("Attempting to load from sub-directory: " + files[f]);
+			for (String file : files) {
+				if (new File(file).isDirectory()) {
+					System.out.println("Attempting to load from sub-directory: " + file);
 					try {
-						FileInputStream in = new FileInputStream(files[f] + File.separator + adventurerFileName);
+						FileInputStream in = new FileInputStream(file + File.separator + adventurerFileName);
 						Adventurer adv = load(in);
 						if (adv != null)
 							list.add(adv);
 					}
-					catch (FileNotFoundException fnfe) {}
+					catch (FileNotFoundException ignored) {
+					}
 				}
 			}
 		}
@@ -1091,6 +1087,7 @@ public class Adventurer implements Loadable {
 		return advArray;
 	}
 
+	@Override
 	public boolean loadFrom(InputStream in) {
 		try {
 			Properties charProps = new Properties();
@@ -1178,7 +1175,7 @@ public class Adventurer implements Loadable {
 				if (r == null) break;
 				resurrections.add(r);
 			}
-			
+
 			val = charProps.getProperty("TitleCount");
 			if (val != null) {
 				int titleCount = Integer.parseInt(val);
@@ -1189,7 +1186,7 @@ public class Adventurer implements Loadable {
 						titles.add(Title.createFromLoadableString(titleStr));
 				}
 			}
-			
+
 			val = charProps.getProperty("DifficultyDice");
 			if (val != null)
 				difficultyRollDice = Integer.parseInt(val);
@@ -1202,12 +1199,12 @@ public class Adventurer implements Loadable {
 				hardcore = true;
 				hardcoreTime = Long.parseLong(val);
 			}
-			
+
 			flags.loadFrom(charProps);
 			
 			rules = new ActiveRuleset();
 			rules.addFixedRules(charProps.getProperty("Rules"));
-			
+
 			return success;
 		}
 		catch (IOException ioe) {
@@ -1225,6 +1222,7 @@ public class Adventurer implements Loadable {
 		return (ch.loadFrom(in) ? ch : null);
 	}
 
+	@Override
 	public boolean saveTo(OutputStream out) {
 		ExtProperties charProps = new ExtProperties();
 		charProps.setProperty("Name", fullName);
@@ -1239,7 +1237,7 @@ public class Adventurer implements Loadable {
 				charProps.set(AbilityNames[a]+".Flags", abilities[a].flags);
 		}
 		charProps.set("Shards", shards);
-		
+
 		if (godless)
 			charProps.setProperty("Godless", "true");
 		for (int i = 0; i < gods.size(); i++) {
@@ -1252,7 +1250,7 @@ public class Adventurer implements Loadable {
 			if (g.getEffect() != null)
 				charProps.setProperty(godKey + "Effect", g.getEffect().toLoadableString());
 		}
-		
+
 		for (int i = 0; i < resurrections.size(); i++)
 			resurrections.get(i).saveTo(charProps, i);
 		charProps.set("TitleCount", titles.size());
@@ -1277,10 +1275,10 @@ public class Adventurer implements Loadable {
 
 		return false;
 	}
-	
+
 	public String toString() { return fullName; }
 	public String toDebugString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("[Name=").append(fullName);
 		sb.append("\n Profession=").append(getProfessionName());
 		sb.append("\n Rank=").append(getRank().affected).append(", Description=").append(getRankDescription());
@@ -1295,7 +1293,7 @@ public class Adventurer implements Loadable {
 	private static final String startingAdventurersFileName = "Adventurers.xml";
 	public static Adventurer[] loadStarting(Books.BookDetails book) {
 		if (book == null || !book.hasBook()) return null;
-		
+
 		try {
 			InputStream in = book.getInputStream(startingAdventurersFileName);
 			if (in == null) {
@@ -1303,7 +1301,7 @@ public class Adventurer implements Loadable {
 						+ startingAdventurersFileName);
 				return null;
 			}
-			
+
 			XMLReader reader = XMLReaderFactory.createXMLReader();
 			Adventurer[] result = new Adventurer[PROF_COUNT];
 			reader.setContentHandler(new Handler(result));
@@ -1331,13 +1329,14 @@ public class Adventurer implements Loadable {
 				}
 		}
 
-		private LinkedList<String> tagStack = new LinkedList<String>();
+		private LinkedList<String> tagStack = new LinkedList<>();
 		private int[] abilityIndices = null;
 		private int currentProf = -1;
 		private int currentStyle = 0;
 		private StyledDocument currentDocument = null;
 		private String getCurrentTag() { return (tagStack.size() > 0 ? tagStack.getFirst() : ""); }
-		public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
+		@Override
+		public void startElement(String uri, String localName, String qName, Attributes atts) {
 			handleContent();
 
 			String tagName = qName.toLowerCase();
@@ -1354,20 +1353,20 @@ public class Adventurer implements Loadable {
 				}
 				else if (tagName.equals("stamina")) {
 					int amount = Integer.parseInt(atts.getValue("amount"));
-					for (int a = 0; a < advs.length; a++) {
-						advs[a].stamina.natural = amount;
-						advs[a].stamina.current = amount;
+					for (Adventurer adv : advs) {
+						adv.stamina.natural = amount;
+						adv.stamina.current = amount;
 					}
 				}
 				else if (tagName.equals("rank")) {
 					int amount = Integer.parseInt(atts.getValue("amount"));
-					for (int a = 0; a < advs.length; a++)
-						advs[a].rank.natural = amount;
+					for (Adventurer adv : advs)
+						adv.rank.natural = amount;
 				}
 				else if (tagName.equals("gold")) {
 					int amount = Integer.parseInt(atts.getValue("amount"));
-					for (int a = 0; a < advs.length; a++)
-						advs[a].shards = amount;
+					for (Adventurer adv : advs)
+						adv.shards = amount;
 				}
 				else if (tagName.equals("items")) {
 					System.out.println("Items element: throw to item parsing code");
@@ -1397,47 +1396,52 @@ public class Adventurer implements Loadable {
 							advs[currentItem.getProfession()].getItems().addItem(currentItem);
 						else {
 							// Owned by all professions
-							for (int a = 0; a < advs.length; a++)
-								advs[a].getItems().addItem(currentItem);
+							for (Adventurer adv : advs)
+								adv.getItems().addItem(currentItem);
 						}
-						currentItem = null;
 					}
 				}
 			}
-			catch (NumberFormatException nfe) {
+			catch (NumberFormatException ignored) {
 			}
 
 			tagStack.addFirst(tagName);
 		}
 
-		public void endElement(String uri, String localName, String qName) throws SAXException {
+		@Override
+		public void endElement(String uri, String localName, String qName) {
 			handleContent();
 			tagStack.removeFirst();
 
 			String tagName = qName.toLowerCase();
-			if (tagName.equals("abilities")) {
+			switch (tagName) {
+			case "abilities":
 				abilityIndices = null;
-			}
-			else if (tagName.equals("profession")) {
+				break;
+			case "profession":
 				currentProf = -1;
-			}
-			else if (tagName.equals("items")) {
+				break;
+			case "items":
 				System.out.println("Items element: return from item parsing code");
-			}
-			else if (tagName.equals("adventurer")) {
+				break;
+			case "adventurer":
 				if (currentProf >= 0)
 					advs[currentProf].history = currentDocument;
 				currentProf = -1;
 				currentDocument = null;
 				currentStyle = 0;
-			}
-			else if (tagName.equals("i"))
+				break;
+			case "i":
 				currentStyle &= ~Font.ITALIC;
-			else if (tagName.equals("b"))
+				break;
+			case "b":
 				currentStyle &= ~Font.BOLD;
+				break;
+			}
 		}
 		private String content = "";
-		public void characters(char[] ch, int start, int length) throws SAXException {
+		@Override
+		public void characters(char[] ch, int start, int length) {
 			if (length > 0)
 				// Not sure why this would get called otherwise, but just in case
 				content += new String(ch, start, length);
@@ -1493,29 +1497,37 @@ public class Adventurer implements Loadable {
 			content = "";
 		}
 
+		@Override
 		public void setDocumentLocator(org.xml.sax.Locator l) {}
-		public void startDocument() throws SAXException {}
-		public void endDocument() throws SAXException {
+		@Override
+		public void startDocument() {}
+		@Override
+		public void endDocument() {
 			// Make sure affected stats are all refreshed to reflect items
-			for (int a = 0; a < advs.length; a++)
-				advs[a].calcAffectedStats();
+			for (Adventurer adv : advs)
+				adv.calcAffectedStats();
 		}
-		public void startPrefixMapping(String prefix, String uri) throws SAXException {}
-		public void endPrefixMapping(String prefix) throws SAXException {}
-		public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {}
-		public void processingInstruction(String target, String data) throws SAXException {}
-		public void skippedEntity(String name) throws SAXException {}
+		@Override
+		public void startPrefixMapping(String prefix, String uri) {}
+		@Override
+		public void endPrefixMapping(String prefix) {}
+		@Override
+		public void ignorableWhitespace(char[] ch, int start, int length) {}
+		@Override
+		public void processingInstruction(String target, String data) {}
+		@Override
+		public void skippedEntity(String name) {}
 	}
 
 
 	public static abstract class Stat {
 		public int natural, affected;
 		protected int flags;
-		public static final int FIXED = 1 << 0;
-		public static final int CURSED = 1 << 1;
-		
-		public Stat() { this(1, 1); }
-		public Stat(int natural, int affected) {
+		static final int FIXED = 1 << 0;
+		static final int CURSED = 1 << 1;
+
+		Stat() { this(1, 1); }
+		Stat(int natural, int affected) {
 			this.natural = natural;
 			this.affected = affected;
 			flags = 0;
@@ -1523,7 +1535,7 @@ public class Adventurer implements Loadable {
 
 		public Document getDocument() { return null; }
 		protected abstract void updateDocument();
-		
+
 		public boolean isFixed() { return (flags & FIXED) != 0; }
 		public boolean isCursed() { return (flags & CURSED) != 0; }
 		public void setFixed(boolean b) {
@@ -1544,7 +1556,7 @@ public class Adventurer implements Loadable {
 
 	public static class SingleStat extends Stat {
 		private class InnerDocument extends PlainDocument {
-			public InnerDocument() {
+			InnerDocument() {
 				super();
 				try {
 					insertString(0, getDocString(), null);
@@ -1553,7 +1565,7 @@ public class Adventurer implements Loadable {
 					System.err.println(ble.toString());
 				}
 			}
-			public void updatedVal() {
+			void updatedVal() {
 				try {
 					replace(0, getLength(), getDocString(), null);
 				}
@@ -1564,17 +1576,19 @@ public class Adventurer implements Loadable {
 		}
 
 		private InnerDocument doc = null;
-		public SingleStat() { super(); }
-		public SingleStat(int natural, int affected) { super(natural, affected); }
+		SingleStat() { super(); }
+		SingleStat(int natural, int affected) { super(natural, affected); }
 
 		protected String getDocString() { return Integer.toString(affected); }
 
+		@Override
 		public Document getDocument() {
 			if (doc == null)
 				doc = new InnerDocument();
 			return doc;
 		}
 
+		@Override
 		protected void updateDocument() {
 			if (doc != null)
 				doc.updatedVal();
@@ -1586,13 +1600,14 @@ public class Adventurer implements Loadable {
 	 * It needs a pointer to gender as well as to the rank.
 	 */
 	private class RankStat extends SingleStat {
+		@Override
 		protected String getDocString() { return affected + " (" + getRankDescription() + ")"; }
 	}
 
 	public class StaminaStat extends SingleStat {
 		public int current;
 
-		public StaminaStat() {
+		StaminaStat() {
 			super();
 			this.current = natural;
 		}
@@ -1632,18 +1647,19 @@ public class Adventurer implements Loadable {
 				return false;
 		}
 
+		@Override
 		protected String getDocString() { return current + "/" + affected; }
 	}
 
 	public static class AbilityStat extends Stat {
-		public final int abilityType;
+		final int abilityType;
 
 		private StructuredDocument doc;
 		private Position startPosition;
 		private int valLength;
 		private int startOffset, abilityNameOffset;
 
-		public AbilityStat(int abilityType) {
+		AbilityStat(int abilityType) {
 			super();
 			this.abilityType = abilityType;
 		}
@@ -1653,7 +1669,7 @@ public class Adventurer implements Loadable {
 			this.abilityType = abilityType;
 		}
 
-		public static StyledDocument createAbilityDocument(AbilityStat[] abilities) {
+		static StyledDocument createAbilityDocument(AbilityStat[] abilities) {
 			StructuredDocument doc = new StructuredDocument();
 			doc.grabWriteLock();
 			Element root = doc.getDefaultRootElement();
@@ -1666,8 +1682,8 @@ public class Adventurer implements Loadable {
 			TableView.setFillWidth(tableAtts, true);
 			BranchElement table = doc.createBranch(root, tableAtts);
 
-			for (int a = 0; a < abilities.length; a++)
-				abilities[a].addContent(doc);
+			for (AbilityStat ability : abilities)
+				ability.addContent(doc);
 			Element[] rows = new Element[abilities.length];
 			for (int a = 0; a < abilities.length; a++)
 				rows[a] = abilities[a].addStructure(doc, table);
@@ -1682,7 +1698,7 @@ public class Adventurer implements Loadable {
 			return doc;
 		}
 
-		public static AttributeSet createColumnAtts(int align) {
+		static AttributeSet createColumnAtts(int align) {
 			SimpleAttributeSet atts = new SimpleAttributeSet();
 			Node.setViewType(atts, Node.ParagraphViewType);
 			StyleConstants.setAlignment(atts, align);
@@ -1732,8 +1748,7 @@ public class Adventurer implements Loadable {
 			if (doc != null) {
 				int startOffset = startPosition.getOffset();
 				if (pos > startOffset + valLength) return false;
-				if (pos < startOffset - (getAbilityName(abilityType).length()+1)) return false;
-				return true;
+				return pos >= startOffset - (getAbilityName(abilityType).length() + 1);
 			}
 			return false;
 		}
@@ -1744,7 +1759,8 @@ public class Adventurer implements Loadable {
 				valText = "(" + valText + ")";
 			return valText;
 		}
-		
+
+		@Override
 		protected void updateDocument() {
 			if (doc != null) {
 				try {
@@ -1770,17 +1786,18 @@ public class Adventurer implements Loadable {
 		void grabWriteLock() { writeLock(); }
 		void releaseWriteLock() { writeUnlock(); }
 
-		public void addContent(String text) {
+		void addContent(String text) {
 			try {
 				getContent().insertString(getLength(), text);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 		}
 
-		public BranchElement createBranch(Element parent, AttributeSet a) {
+		BranchElement createBranch(Element parent, AttributeSet a) {
 			return (BranchElement)createBranchElement(parent, a);
 		}
 
+		@Override
 		public Element createLeafElement(Element parent, AttributeSet a, int p0, int p1) {
 			return super.createLeafElement(parent, a, p0, p1);
 		}
@@ -1804,7 +1821,7 @@ public class Adventurer implements Loadable {
 			}
 		}
 	}
-	
+
 	public void fontChanged(Font f, int smallerFontSize) {
 		// TODO Auto-generated method stub
 	}

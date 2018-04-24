@@ -30,26 +30,26 @@ public class Ship {
 	}
 
 	private static final int[] Capacities = {1, 2, 3};
-	public static int getCapacity(int type) { return Capacities[type]; }
-	public static String getCapacityString(int type) {
+	private static int getCapacity(int type) { return Capacities[type]; }
+	static String getCapacityString(int type) {
 		int cap = getCapacity(type);
 		return cap + (cap == 1 ? " Cargo Unit" : " Cargo Units");
 	}
 
-	public static final int NO_CREW = -1;
+	static final int NO_CREW = -1;
 	public static final int POOR_CREW = 0;
-	public static final int AVG_CREW = 1;
+	static final int AVG_CREW = 1;
 	public static final int GOOD_CREW = 2;
 	public static final int EX_CREW = 3;
 	public static final int MAX_CREW = 3;
 	private static final String[] CrewNames = {"Poor", "Average", "Good", "Excellent"};
-	public static final String getCrewName(int type) {
+	static String getCrewName(int type) {
 		if (type == NO_CREW)
 			return "None";
 		else
 			return CrewNames[type];
 	}
-	public static int getCrew(String name) {
+	static int getCrew(String name) {
 		name = name.toLowerCase();
 		for (int i = 0; i < CrewNames.length; i++)
 			if (CrewNames[i].toLowerCase().startsWith(name))
@@ -57,10 +57,10 @@ public class Ship {
 		return NO_CREW;
 	}
 
-	public static final int MATCH_ALL_CARGO = -2;
-	public static final int MATCH_SINGLE_CARGO = -1;
+	static final int MATCH_ALL_CARGO = -2;
+	static final int MATCH_SINGLE_CARGO = -1;
 	public static final int NO_CARGO = 0;
-	public static final int FUR_CARGO = 1;
+	static final int FUR_CARGO = 1;
 	public static final int GRAIN_CARGO = 2;
 	public static final int METAL_CARGO = 3;
 	public static final int MINERAL_CARGO = 4;
@@ -71,7 +71,7 @@ public class Ship {
 	public static final int MAX_CARGO = 8;
 	private static final String[] CargoNames = {"None", "Furs", "Grain", "Metals", "Minerals", "Spices", "Textiles", "Timber", "Slaves"};
 	public static String getCargoName(int type) { return CargoNames[type]; }
-	public static int getCargo(String name) {
+	static int getCargo(String name) {
 		if (name.equals("?")) return MATCH_SINGLE_CARGO;
 		else if (name.equals("*")) return MATCH_ALL_CARGO;
 		
@@ -123,13 +123,13 @@ public class Ship {
 		dout.writeUTF(dock == null ? "" : dock);
 
 		byte cargoCount = 0;
-		for (int c = 0; c < cargo.length; c++)
-			if (cargo[c] != NO_CARGO)
+		for (int aCargo : cargo)
+			if (aCargo != NO_CARGO)
 				cargoCount++;
 		dout.writeByte(cargoCount);
-		for (byte c = 0; c < cargo.length; c++)
-			if (cargo[c] != NO_CARGO)
-				dout.writeByte(cargo[c]);
+		for (int aCargo : cargo)
+			if (aCargo != NO_CARGO)
+				dout.writeByte(aCargo);
 
 		return true;
 	}
@@ -146,7 +146,7 @@ public class Ship {
 	 * Adjust the crew quality up or down.
 	 * The crew quality cannot go above excellent, or below poor.
 	 */
-	public void adjustCrew(int change) {
+	void adjustCrew(int change) {
 		crewQuality += change;
 		if (crewQuality > MAX_CREW)
 			crewQuality = MAX_CREW;
@@ -156,7 +156,7 @@ public class Ship {
 
 	public int getCapacity() { return cargo.length; }
 
-	public int getCargo(int i) { return cargo[i]; }
+	int getCargo(int i) { return cargo[i]; }
 	private int findCargo(int type) {
 		for (int i = 0; i < cargo.length; i++)
 			if (cargo[i] == type)
@@ -166,35 +166,35 @@ public class Ship {
 	public boolean isFull() {
 		return findCargo(NO_CARGO) < 0;
 	}
-	public int getFreeSpace() {
+	int getFreeSpace() {
 		int count = 0;
-		for (int i = 0; i < cargo.length; i++)
-			if (cargo[i] == NO_CARGO)
+		for (int aCargo : cargo)
+			if (aCargo == NO_CARGO)
 				count++;
 		return count;
 	}
-	public boolean hasCargo(int type) {
+	boolean hasCargo(int type) {
 		if (type == MATCH_SINGLE_CARGO || type == MATCH_ALL_CARGO) {
-			for (int i = 0; i < cargo.length; i++)
-				if (cargo[i] != NO_CARGO)
+			for (int aCargo : cargo)
+				if (aCargo != NO_CARGO)
 					return true;
 			return false;
 		}
 
 		return findCargo(type) >= 0;
 	}
-	public int[] hasCargoTypes() {
+	int[] hasCargoTypes() {
 		int[] counts = getCargoCounts();
 		int length = 0;
 		for (int i = 1; i < counts.length; i++)
 			if (counts[i] > 0) length++;
-		
+
 		int types[] = new int[length];
 		length = 0;
 		for (int i = 1; i < counts.length; i++)
 			if (counts[i] > 0)
 				types[length++] = i;
-		
+
 		return types;
 	}
 	public boolean addCargo(int type) {
@@ -213,7 +213,7 @@ public class Ship {
 	 * handled here.
 	 * @return <code>true</code> if an item of cargo of the given type was removed.
 	 */
-	public boolean removeCargo(int type) {
+	boolean removeCargo(int type) {
 		if (type == MATCH_ALL_CARGO) {
 			boolean anyCargo = false;
 			for (int i = 0; i < cargo.length; i++) {
@@ -224,7 +224,7 @@ public class Ship {
 			}
 			return anyCargo;
 		}
-		
+
 		int i = findCargo(type);
 		if (i >= 0) {
 			cargo[i] = NO_CARGO;
@@ -235,11 +235,11 @@ public class Ship {
 	}
 	private int[] getCargoCounts() {
 		int[] cargoCounts = new int[MAX_CARGO + 1];
-		for (int i = 0; i < cargo.length; i++)
-			cargoCounts[cargo[i]]++;
+		for (int aCargo : cargo)
+			cargoCounts[aCargo]++;
 		return cargoCounts;
 	}
-	public String getCargoString() {
+	private String getCargoString() {
 		int[] cargoCounts = getCargoCounts();
 		String str = null;
 		for (int c = 1; c < cargoCounts.length; c++) {
@@ -262,16 +262,16 @@ public class Ship {
 	public void setDocked(String str) { dock = str; }
 
 	/******** TableModel helper methods ********/
-	public static final int TYPE_COLUMN = 0;
-	public static final int NAME_COLUMN = 1;
-	public static final int CREW_COLUMN = 2;
-	public static final int CAPACITY_COLUMN = 3;
-	public static final int CARGO_COLUMN = 4;
-	public static final int DOCKED_COLUMN = 5;
-	public static final int COLUMN_COUNT = 6;
+	private static final int TYPE_COLUMN = 0;
+	static final int NAME_COLUMN = 1;
+	static final int CREW_COLUMN = 2;
+	private static final int CAPACITY_COLUMN = 3;
+	static final int CARGO_COLUMN = 4;
+	static final int DOCKED_COLUMN = 5;
+	private static final int COLUMN_COUNT = 6;
 
-	public static int getColumnCount() { return COLUMN_COUNT; }
-	public static String getColumnName(int column) {
+	static int getColumnCount() { return COLUMN_COUNT; }
+	static String getColumnName(int column) {
 		switch (column) {
 			case TYPE_COLUMN:
 				return "Ship type";
@@ -288,16 +288,16 @@ public class Ship {
 		}
 		return "Bad column #" + column;
 	}
-	public static Class getColumnClass(int column) {
+	static Class getColumnClass(int column) {
 		if (column == CAPACITY_COLUMN)
 			return Integer.class;
 		else
 			return String.class;
 	}
-	public static boolean isCellEditable(int column) {
+	static boolean isCellEditable(int column) {
 		return (column == NAME_COLUMN);
 	}
-	public Object getValueAt(int column) {
+	Object getValueAt(int column) {
 		switch (column) {
 			case TYPE_COLUMN:
 				return getTypeName(getType());
@@ -306,7 +306,7 @@ public class Ship {
 			case CREW_COLUMN:
 				return getCrewName(getCrew());
 			case CAPACITY_COLUMN:
-				return Integer.valueOf(getCapacity());
+				return getCapacity();
 			case CARGO_COLUMN:
 				return getCargoString();
 			case DOCKED_COLUMN:
@@ -314,7 +314,7 @@ public class Ship {
 		}
 		return "Bad column #" + column;
 	}
-	public boolean setValueAt(Object val, int column) {
+	boolean setValueAt(Object val, int column) {
 		if (column == NAME_COLUMN) {
 			name = val.toString();
 			return true;

@@ -30,10 +30,10 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class Item implements XMLOutput {
-	public static final int PLAIN_TYPE = 0;
-	public static final int TOOL_TYPE = 1;
-	public static final int WEAPON_TYPE = 2;
-	public static final int ARMOUR_TYPE = 3;
+	static final int PLAIN_TYPE = 0;
+	static final int TOOL_TYPE = 1;
+	static final int WEAPON_TYPE = 2;
+	static final int ARMOUR_TYPE = 3;
 	private static final String[] ItemTypeNames = {"item", "tool", "weapon", "armour"};
 
 	static Object AbilityPotionSource = "SinglePotionSource";
@@ -42,12 +42,12 @@ public class Item implements XMLOutput {
 	public String getTypeName() { return getTypeName(getType()); }
 	public static String getTypeName(int type) { return ItemTypeNames[type]; }
 
-	public static final Item createItem(String elementName) {
+	public static Item createItem(String elementName) {
 		return createItem(elementName, null);
 	}
 
 	public static Item createItem(String elementName, String itemName) {
-		if (itemName != null && itemName.indexOf("|") >= 0) {
+		if (itemName != null && itemName.contains("|")) {
 			// Create a chain of items
 			System.out.println("Creating item chain from attributes");
 			String[] itemNames = itemName.split("\\|");
@@ -73,7 +73,7 @@ public class Item implements XMLOutput {
 			return new Weapon(itemName);
 		else if (elementName.equals(ItemTypeNames[ARMOUR_TYPE]))
 			return new Armour(itemName);
-		
+
 		if (itemName != null)
 			System.out.println("Item element type unrecognised: " + elementName);
 		return null;
@@ -103,10 +103,10 @@ public class Item implements XMLOutput {
 		this.name = name;
 	}
 
-	public static Item createMoneyItem(int shards) {
+	static Item createMoneyItem(int shards) {
 		return createMoneyItem(shards, "Shard");
 	}
-	public static Item createMoneyItem(int money, String currency) {
+	static Item createMoneyItem(int money, String currency) {
 		String name = money + " " + currency;
 		if (money != 1)
 			name += "s";
@@ -115,14 +115,14 @@ public class Item implements XMLOutput {
 		i.currency = currency;
 		return i;
 	}
-	
-	public static final String NameAttribute = "name";
-	public static final String ProfessionAttribute = "profession";
-	public static final String AbilityAttribute = "ability";
-	public static final String BuyAttribute = "buy";
-	public static final String SellAttribute = "sell";
-	public static final String BonusAttribute = "bonus";
-	public static final String UsingAttribute = "using";
+
+	private static final String NameAttribute = "name";
+	private static final String ProfessionAttribute = "profession";
+	static final String AbilityAttribute = "ability";
+	private static final String BuyAttribute = "buy";
+	private static final String SellAttribute = "sell";
+	private static final String BonusAttribute = "bonus";
+	static final String UsingAttribute = "using";
 
 	private String name;
 	private boolean checkedForWildcards = false;
@@ -134,7 +134,7 @@ public class Item implements XMLOutput {
 
 	private int profession = -1;
 	public int getProfession() { return profession; }
-	public boolean isProfessionSpecific() { return (profession >= 0); }
+	boolean isProfessionSpecific() { return (profession >= 0); }
 
 	private int money = -1;
 	private String currency;
@@ -148,7 +148,7 @@ public class Item implements XMLOutput {
 	public void adjustMoney(int delta) {
 		setMoney(money + delta);
 	}
-	public String getCurrency() {
+	String getCurrency() {
 		return currency;
 	}
 
@@ -168,14 +168,14 @@ public class Item implements XMLOutput {
 	private String bonusStr;
 	public int getBonus() { return bonus; }
 	void setBonus(int b) { this.bonus = b; }
-	public String getBonusString() {
+	String getBonusString() {
 		return (bonus > 0) ? "+" + bonus :
 			((bonus < 0) ? "" + bonus : "");
 	}
 	/**
 	 * Adjust the bonus of the item, or the bonus of the first ability effect found.
 	 */
-	public void adjustBonus(int delta) {
+    void adjustBonus(int delta) {
 		adjustBonus(delta, Adventurer.ABILITY_SINGLE);
 	}
 	/**
@@ -203,18 +203,18 @@ public class Item implements XMLOutput {
 			}
 			e = e.nextEffect();
 		}
-		
+
 		if (adjusted)
 			updateDocument();
-		
+
 		return adjusted;
 	}
-	
+
 	/**
 	 * Check if the bonus of an item matches our bonus.
 	 * @param i the item being matched.
 	 */
-	protected boolean matchBonus(Item i) {
+    boolean matchBonus(Item i) {
 		if (bonusStr != null) { // ie. a bonus was specified
 			if (bonus >= 0) {
 				// An exact bonus value was specified
@@ -247,7 +247,7 @@ public class Item implements XMLOutput {
 				}
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -261,7 +261,7 @@ public class Item implements XMLOutput {
 		if (sellNode != null && sellNode.getSectionName().equals(sellSection))
 			sellNode = null;
 	}
-	public int getSalePrice() {
+	int getSalePrice() {
 		if (sellNode != null) {
 			if (sellNode.getSectionName().equals(FLApp.getSingle().getCurrentSection()))
 				return sellNode.getPrice();
@@ -270,19 +270,19 @@ public class Item implements XMLOutput {
 			return sell;
 		return -1;
 	}
-	public void clearSalePrice() {
+	void clearSalePrice() {
 		// Clear the sell field for items bought in a market;
 		// see TradeNode.BuyNode.actionPerformed() for an explanation.
 		sell = -1;
 	}
-	public boolean isSaleable() { return (getSalePrice() >= 0); }
+	boolean isSaleable() { return (getSalePrice() >= 0); }
 	void soldItem() {
 		if (sellNode != null)
 			sellNode.soldItem(this);
 	}
 
 	private Item nextItem = null;
-	public Item getNextItem() { return nextItem; }
+	Item getNextItem() { return nextItem; }
 
 	protected String group = null;
 	protected void init(Attributes xmlAtts) {
@@ -328,7 +328,7 @@ public class Item implements XMLOutput {
 
 		if (nextItem != null)
 			nextItem.init(xmlAtts);
-		else if (name != null && name.indexOf("|") >= 0) {
+		else if (name != null && name.contains("|")) {
 			System.out.println("Creating chained items from name " + name);
 			String[] names = name.split("\\|");
 			Item currItem = this;
@@ -358,8 +358,8 @@ public class Item implements XMLOutput {
 	public String getGroup() { return group; }
 
 	private String tags;
-	public static final String TagKeep = "keep";
-	public boolean hasTag(String tag) {
+	static final String TagKeep = "keep";
+	private boolean hasTag(String tag) {
 		if (tags == null)
 			return false;
 		
@@ -370,8 +370,8 @@ public class Item implements XMLOutput {
 		}
 		return false;
 	}
-	public boolean hasKeepTag() { return hasTag(TagKeep); }
-	public boolean matchTags(Item item) {
+	boolean hasKeepTag() { return hasTag(TagKeep); }
+	boolean matchTags(Item item) {
 		if (tags == null) return true;
 		String itags = item.tags;
 		if (itags == null) return false;
@@ -385,7 +385,7 @@ public class Item implements XMLOutput {
 		}
 		return true;
 	}
-	public void addTag(String tag) {
+	void addTag(String tag) {
 		if (hasTag(tag)) return;
 		if (tags == null)
 			tags = "," + tag + ",";
@@ -393,7 +393,7 @@ public class Item implements XMLOutput {
 			tags = "," + tag + tags;
 		System.out.println("Tag string now = " + tags);
 	}
-	public void addTags(String tagString) {
+	void addTags(String tagString) {
 		String[] split = tagString.split(",");
 		for (int s = 0; s < split.length; s++) {
 			split[s] = split[s].trim();
@@ -401,8 +401,8 @@ public class Item implements XMLOutput {
 				addTag(split[s]);
 		}
 	}
-	
-	public void removeTag(String tag) {
+
+	void removeTag(String tag) {
 		if (tags == null) return;
 		String match = "," + tag + ",";
 		int index = tags.indexOf(match);
@@ -412,7 +412,7 @@ public class Item implements XMLOutput {
 			System.out.println("Tag string now = " + tags);
 		}
 	}
-	
+
 	public String toString() { return getName(); }
 	public String toDebugString() { return "Plain - " + toString() + (group == null ? "" : " [" + group + "]"); }
 	protected boolean matchName(Item item) {
@@ -431,7 +431,7 @@ public class Item implements XMLOutput {
 		
 		return name.equals("?") || name.equals("*") || name.equals(item.getName().toLowerCase());
 	}
-	protected boolean matchNamePattern(Item item) {
+	private boolean matchNamePattern(Item item) {
 		return namePattern.matcher(item.getName().toLowerCase()).matches();
 	}
 	public boolean matches(Item i) {
@@ -451,7 +451,7 @@ public class Item implements XMLOutput {
 	}
 
 	private static AttributeSet standardAtts = null;
-	public static AttributeSet getStandardAttributes() {
+	static AttributeSet getStandardAttributes() {
 		if (standardAtts == null) {
 			SimpleAttributeSet atts = new SimpleAttributeSet();
 			StyleConstants.setBold(atts, true);
@@ -466,17 +466,17 @@ public class Item implements XMLOutput {
 		return smallerAtts;
 	}
 
-	protected void updateDocument() {
+	void updateDocument() {
 		if (doc != null)
 			updateContent(doc);
 	}
 
-	protected void updateContent(DefaultStyledDocument doc) {
+	private void updateContent(DefaultStyledDocument doc) {
 		StyledTextList itemText = createItemText(getStandardAttributes(), false);
 		itemText.addTo(doc, true);
 	}
 
-	protected StyledTextList createItemText(AttributeSet atts, boolean caps) {
+	StyledTextList createItemText(AttributeSet atts, boolean caps) {
 		AttributeSet itemAtts;
 		if (atts == null)
 			itemAtts = getStandardAttributes();
@@ -522,7 +522,7 @@ public class Item implements XMLOutput {
 		return stList.addTo(doc, parent);
 	}
 
-	protected static final String capitalise(String text) {
+	static String capitalise(String text) {
 		return text.substring(0, 1).toUpperCase() + text.substring(1);
 	}
 
@@ -566,7 +566,7 @@ public class Item implements XMLOutput {
 		return i;
 	}
 
-	protected void copyFieldsTo(Item i) {
+	void copyFieldsTo(Item i) {
 		i.profession = profession;
 		i.buy = buy;
 		i.sell = sell;
@@ -593,17 +593,17 @@ public class Item implements XMLOutput {
 			if (Node.getBooleanValue(atts, UsingAttribute, false))
 				wielded = true;
 		}
-		
+
 		protected void saveProperties(Properties props) {
 			super.saveProperties(props);
 			if (wielded)
-				Node.saveProperty(props, UsingAttribute, wielded);
+				Node.saveProperty(props, UsingAttribute, true);
 		}
-		
+
 		public int getAbility() { return Adventurer.ABILITY_COMBAT; }
 		public boolean affectsAbility(int ability) { return ability == Adventurer.ABILITY_COMBAT; }
 		public String getAbilityName() { return Adventurer.getAbilityName(getAbility()); }
-		
+
 		public boolean adjustBonus(int delta, int ability) {
 			boolean adjusted = false;
 			if (ability == getAbility() ||
@@ -612,19 +612,19 @@ public class Item implements XMLOutput {
 				setBonus(getBonus() + delta);
 				adjusted = true;
 			}
-			
+
 			if (!adjusted || ability == Adventurer.ABILITY_ALL)
 				adjusted = adjusted || super.adjustBonus(delta, ability);
 			
 			if (adjusted)
 				updateDocument();
-			
+
 			return adjusted;
 		}
-		
+
 		private boolean wielded = false;
 		public boolean canBeWielded() { return true; }
-		public boolean isWielded() { return wielded; }
+		boolean isWielded() { return wielded; }
 		public void setWielded(boolean b) {
 			if (wielded != b) {
 				wielded = b;
@@ -648,7 +648,7 @@ public class Item implements XMLOutput {
 			return false;
 		}
 
-		public String getFullName() {
+		String getFullName() {
 			if (getBonus() == 0)
 				return getName();
 			else
@@ -706,7 +706,7 @@ public class Item implements XMLOutput {
 					try {
 						weaponDocs[w].insertString(0, capitalise(WeaponTypes[w]), getStandardAttributes());
 					}
-					catch (BadLocationException ble) {}
+					catch (BadLocationException ignored) {}
 				}
 
 				DocumentChooser weaponChooser = new DocumentChooser(FLApp.getSingle(), "Choose Weapon Type", weaponDocs, false);
@@ -728,7 +728,7 @@ public class Item implements XMLOutput {
 			return w;
 		}
 	}
-	
+
 
 	public static class Tool extends Weapon {
 		private Tool(String name) { super(name); }
@@ -784,27 +784,30 @@ public class Item implements XMLOutput {
 			setBonus(bonus);
 		}
 
+		@Override
 		protected void init(Attributes atts) {
 			super.init(atts);
 			if (Node.getBooleanValue(atts, UsingAttribute, false))
 				worn = true;
 		}
-		
+
+		@Override
 		protected void saveProperties(Properties props) {
 			super.saveProperties(props);
 			if (worn)
-				Node.saveProperty(props, UsingAttribute, worn);
+				Node.saveProperty(props, UsingAttribute, true);
 		}
-		
+
 		private boolean worn = false;
-		public boolean isWorn() { return worn; }
-		public void setWorn(boolean b) {
+		boolean isWorn() { return worn; }
+		void setWorn(boolean b) {
 			if (worn != b) {
 				worn = b;
 				updateDocument();
 			}
 		}
-		
+
+		@Override
 		public boolean adjustBonus(int delta, int ability) {
 			boolean adjusted = false;
 			if (ability == Adventurer.ABILITY_DEFENCE ||
@@ -823,23 +826,28 @@ public class Item implements XMLOutput {
 			return adjusted;
 		}
 
+		@Override
 		public int getType() { return ARMOUR_TYPE; }
-		public String getFullName() { return getName() + " (Defence " + getBonusString() + ")"; }
+		String getFullName() { return getName() + " (Defence " + getBonusString() + ")"; }
 
+		@Override
 		protected void initialiseEffectsList(StyledTextList effectsList, AttributeSet atts) {
 			// Include Defence bonus
 			if (getBonus() != 0)
 				effectsList.add("Defence " + getBonusString(), atts);
 		}
 
+		@Override
 		public String toDebugString() { return "Armour - " + getFullName() + (group == null ? "" : " [" + group + "]"); }
 
+		@Override
 		public Item copy() {
 			Armour a = new Armour(getName(), getBonus());
 			copyFieldsTo(a);
 			return a;
 		}
 
+		@Override
 		public boolean matches(Item i) {
 			if (group != null && (i.group == null || !group.equals(i.group))) return false;
 			if (i.getType() == ARMOUR_TYPE) {
@@ -863,7 +871,7 @@ public class Item implements XMLOutput {
 		items[3] = new Armour("chain mail", 3);
 		return items;
 	}
-	
+
 	protected void saveProperties(Properties props) {
 		if (name != null)
 			props.setProperty("name", name);
@@ -882,31 +890,35 @@ public class Item implements XMLOutput {
 		if (tags != null)
 			props.setProperty("tags", tags);
 	}
-	
+
+	@Override
 	public void outputTo(PrintStream out, String indent, int flags) throws IOException {
 		Node.output(this, out, indent, flags);
 	}
-	public void outputXML(PrintStream out, String indent) throws IOException {
+	void outputXML(PrintStream out, String indent) throws IOException {
 		outputTo(out, indent, XMLOutput.OUTPUT_PROPS_STATIC | XMLOutput.OUTPUT_PROPS_DYNAMIC);
 	}
-	
-	public String getXMLTag() { return getTypeName(); }
+
+	@Override
+    public String getXMLTag() { return getTypeName(); }
+	@Override
 	public void storeAttributes(Properties atts, int flags) { saveProperties(atts); }
+	@Override
 	public Iterator<XMLOutput> getOutputChildren() {
 		if (getEffects() == null && getCurse() == null)
 			return null;
-		
-		LinkedList<XMLOutput> l = new LinkedList<XMLOutput>();
+
+		LinkedList<XMLOutput> l = new LinkedList<>();
 		Effect eff = getEffects();
 		while (eff != null) {
 			l.add(eff);
 			eff = eff.nextEffect();
 		}
-		
+
 		Curse c = getCurse();
 		if (c != null)
 			l.add(c);
-		
+
 		return l.iterator();
 	}
 }

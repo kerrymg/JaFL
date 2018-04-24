@@ -375,7 +375,8 @@ public final class GBC extends GridBagConstraints implements Cloneable {
 		}
     }
 
-	public Object clone() {
-		return super.clone();
+	@Override
+	public GBC clone() {
+		return (GBC)super.clone();
 	}
 }

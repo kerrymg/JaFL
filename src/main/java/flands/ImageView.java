@@ -35,7 +35,7 @@ public class ImageView extends View {
      *
      * @param elem the element to create a view for
      */
-    public ImageView(Element elem) {
+	ImageView(Element elem) {
 		super(elem);
 		AttributeSet attr = elem.getAttributes();
 		i = Node.getImage(attr);
@@ -57,7 +57,8 @@ public class ImageView extends View {
      * @param a the allocated region to render into
      * @see View#paint
      */
-    public void paint(Graphics g, Shape a) {
+    @Override
+	public void paint(Graphics g, Shape a) {
 		alloc = a.getBounds();
 		if (alloc.getWidth() >= i.getWidth(null) && alloc.getHeight() >= i.getHeight(null)) {
 			// Draw the image at the regular size
@@ -91,7 +92,8 @@ public class ImageView extends View {
      * Remember the width so that we can an appropriately scaled height
      * in {@link #getMinimumSpan(int)}.
      */
-    public void setSize(float width, float height) {
+    @Override
+	public void setSize(float width, float height) {
     	viewWidth = width;
     }
     
@@ -100,7 +102,8 @@ public class ImageView extends View {
      * Defaults to returning 0 for the width;
      * returns a scaled height, based on how much width has been allocated.
      */
-    public float getMinimumSpan(int axis) {
+    @Override
+	public float getMinimumSpan(int axis) {
     	switch (axis) {
     	case View.X_AXIS:
     		return 0f;
@@ -126,7 +129,8 @@ public class ImageView extends View {
      *           The parent may choose to resize or break the view.
      * @exception IllegalArgumentException for an invalid axis
      */
-    public float getPreferredSpan(int axis) {
+    @Override
+	public float getPreferredSpan(int axis) {
     	switch (axis) {
 		case View.X_AXIS:
 			return i.getWidth(null);
@@ -150,7 +154,8 @@ public class ImageView extends View {
      *   away from the origin.  An alignment of 0.5 would be the
      *   center of the view.
      */
-    public float getAlignment(int axis) {
+    @Override
+	public float getAlignment(int axis) {
 	switch (axis) {
 	case View.Y_AXIS:
 	    return 1;
@@ -170,7 +175,8 @@ public class ImageView extends View {
      *   represent a valid location in the associated document
      * @see View#modelToView
      */
-    public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
+    @Override
+	public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
 	int p0 = getStartOffset();
 	int p1 = getEndOffset();
 	if ((pos >= p0) && (pos <= p1)) {
@@ -195,7 +201,8 @@ public class ImageView extends View {
      *  given point of view >= 0
      * @see View#viewToModel
      */
-    public int viewToModel(float x, float y, Shape a, Position.Bias[] bias) {
+    @Override
+	public int viewToModel(float x, float y, Shape a, Position.Bias[] bias) {
 	Rectangle alloc = (Rectangle) a;
 	if (x < alloc.x + (alloc.width / 2)) {
 	    bias[0] = Position.Bias.Forward;
@@ -213,11 +220,11 @@ public class ImageView extends View {
     private class BufferDrawer implements Runnable {
     	private Image buffer;
     	private Graphics2D bufferG;
-    	private boolean drawn = false;
+    	private boolean drawn;
     	private int scaledWidth, scaledHeight;
     	private int drawingWidth, drawingHeight;
     	
-    	public BufferDrawer() {
+    	BufferDrawer() {
     		drawn = false;
     		scaledWidth = -1;
     		scaledHeight = -1;
@@ -235,6 +242,7 @@ public class ImageView extends View {
     		return false;
     	}
     	
+		@Override
 		public void run() {
 			drawn = false;
 			drawingWidth = scaledWidth;

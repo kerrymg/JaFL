@@ -48,8 +48,8 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	private boolean weaponLock = false, armourLock = false, frozen = false;
 	private List<Object> currencyListeners = null;
 
-	public static final int MAX_ITEM_COUNT = 12;
-	private ArrayList<Item> items = new ArrayList<Item>(MAX_ITEM_COUNT);
+	private static final int MAX_ITEM_COUNT = 12;
+	private ArrayList<Item> items;
 
 	// The currently 'active' items
 	private Item.Weapon wielded = null;
@@ -59,13 +59,13 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	public ItemList(Adventurer owner) {
 		this.owner = owner;
 		tools = new Item.Tool[Adventurer.ABILITY_COUNT];
-		items = new ArrayList<Item>(MAX_ITEM_COUNT);
+		items = new ArrayList<>(MAX_ITEM_COUNT);
 		itemLimit = 0; // counts number of 'money' items in the list
 	}
 
 	public ItemList(String name) {
 		this.name = name;
-		items = new ArrayList<Item>();
+		items = new ArrayList<>();
 	}
 
 	public Adventurer getAdventurer() { return owner; }
@@ -77,38 +77,39 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	 * This is intended for use with item caches, which normally don't have
 	 * an owner to affect.
 	 */
-	public EffectSet createTempEffects() {
+	EffectSet createTempEffects() {
 		if (effects == null) {
 			effects = new EffectSet(null);
-			for (int i = 0; i < items.size(); i++)
-				addItemEffects(items.get(i));
+			for (Item item : items)
+				addItemEffects(item);
 			// TODO: make sure the best weapon and armour are selected
 		}
 		return effects;
 	}
-	
+
 	/**
 	 * Remove the object used to track the effects of items in the list.
 	 * This only affects the object returned by {@link #createTempEffects()}.
 	 */
-	public void dumpTempEffects() {
+	void dumpTempEffects() {
 		if (effects != null)
 			effects = null;
 	}
 
+	@Override
 	public int getSize() {
 		return (getAdventurer() != null ? MAX_ITEM_COUNT + itemLimit :
 			    (itemLimit > 0 ? itemLimit : getItemCount()));
 	}
-	public int getItemCount() { return items.size(); }
+	int getItemCount() { return items.size(); }
 	public Item getItem(int i) {
 		return (i < getItemCount() ? items.get(i) : null);
 	}
-	public int getFreeSpace() {
+	int getFreeSpace() {
 		return (getAdventurer() != null ? MAX_ITEM_COUNT + itemLimit - getItemCount() :
 			(itemLimit > 0 ? itemLimit - getItemCount() : 10));
 	}
-	public void setItemLimit(int limit) {
+	void setItemLimit(int limit) {
 		if (getAdventurer() == null) {
 			itemLimit = limit;
 			
@@ -124,25 +125,27 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	private List<ChangeListener> listeners = null;
 	public void addChangeListener(ChangeListener l) {
 		if (listeners == null)
-			listeners = new LinkedList<ChangeListener>();
+			listeners = new LinkedList<>();
 		if (!listeners.contains(l))
 			listeners.add(l);
 	}
-	public void removeChangeListener(ChangeListener l) {
+	void removeChangeListener(ChangeListener l) {
 		if (listeners != null)
 			listeners.remove(l);
 	}
 	private void notifyListeners() {
 		if (listeners != null) {
 			ChangeEvent evt = new ChangeEvent(this);
-			for (Iterator<ChangeListener> i = listeners.iterator(); i.hasNext(); )
-				i.next().stateChanged(evt);
+			for (ChangeListener listener : listeners) {
+				listener.stateChanged(evt);
+			}
 		}
 
 		if (getEffects() != null)
 			getEffects().notifyOwner();
 	}
 
+	@Override
 	public Object getElementAt(int i) { return getItemDocument(i); }
 	private StyledDocument getItemDocument(int i) {
 		Item item = getItem(i);
@@ -159,7 +162,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 				// long dash
 				emptyDoc.insertString(0, "\u2014", atts);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 		}
 		return emptyDoc;
 	}
@@ -171,10 +174,10 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	CacheNode getItemCacheNode() {
 		return itemCache;
 	}
-	public void setItemCache(CacheNode itemCache) {
+	void setItemCache(CacheNode itemCache) {
 		this.itemCache = itemCache;
 	}
-	public void removeItemCache(CacheNode itemCache) {
+	void removeItemCache(CacheNode itemCache) {
 		if (this.itemCache == itemCache)
 			this.itemCache = null;
 	}
@@ -182,7 +185,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	/**
 	 * Block the player from wielding another weapon, until the next section.
 	 */
-	public void lockWeapon() {
+	void lockWeapon() {
 		weaponLock = true;
 		FLApp.getSingle().addGameListener(this);
 	}
@@ -193,7 +196,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	/**
 	 * Block the player from wearing different armour, until the next section.
 	 */
-	public void lockArmour() {
+	void lockArmour() {
 		armourLock = true;
 		FLApp.getSingle().addGameListener(this);
 	}
@@ -262,10 +265,10 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		}
 	}
 
-	public int getMoneyItem() {
+	int getMoneyItem() {
 		return getMoneyItem("Shard");
 	}
-	public int getMoneyItem(String currency) {
+	int getMoneyItem(String currency) {
 		for (int i = 0; i < getItemCount(); i++) {
 			Item item = getItem(i);
 			if (item.isMoney() && item.getCurrency().equals(currency))
@@ -273,17 +276,17 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		}
 		return -1;
 	}
-	
+
 	public void addCurrencyListener(ChangeListener listener) {
 		addCurrencyListener("Shard", listener);
 	}
-	public void addCurrencyListener(String currency, ChangeListener listener) {
+	void addCurrencyListener(String currency, ChangeListener listener) {
 		if (currencyListeners == null)
-			currencyListeners = new LinkedList<Object>();
+			currencyListeners = new LinkedList<>();
 		currencyListeners.add(listener);
 		currencyListeners.add(currency);
 	}
-	
+
 	private void notifyCurrencyListeners(String currency) {
 		if (currencyListeners != null) {
 			ChangeEvent evt = new ChangeEvent(this);
@@ -295,8 +298,8 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 			}
 		}
 	}
-	
-	public void removeCurrencyListener(ChangeListener listener) {
+
+	void removeCurrencyListener(ChangeListener listener) {
 		if (currencyListeners != null) {
 			for (Iterator<Object> i = currencyListeners.iterator(); i.hasNext(); ) {
 				ChangeListener l = (ChangeListener)i.next();
@@ -310,12 +313,12 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 			}
 		}
 	}
-	
+
 	public boolean addItem(Item i) {
 		return insertItem(i, items.size());
 	}
 
-	public boolean insertItem(Item i, int index) {
+	boolean insertItem(Item i, int index) {
 		if (i.isMoney()) {
 			if (getAdventurer() != null && i.getCurrency().equals("Shard")) {
 				// Add to regular 'Shards' field
@@ -350,7 +353,6 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 				if (moneyItem.getMoney() <= 0) {
 					items.remove(moneyIndex);
 					fireIntervalRemoved(this, moneyIndex, moneyIndex);
-					moneyItem = null;
 					if (itemLimit > 0)
 						itemLimit--;
 				}
@@ -437,13 +439,13 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		adjustEffects(i, Effect.TYPE_AURA, true);
 		adjustEffects(i, Effect.TYPE_TOOL, true);
 	}
-	
+
 	public boolean adjustMoney(int money, String currency) {
 		if (getAdventurer() != null && (currency == null || currency.equals("Shard"))) {
 			getAdventurer().adjustMoney(money);
 			return true;
 		}
-		
+
 		int moneyIndex = getMoneyItem(currency);
 		if (moneyIndex < 0) {
 			if (money > 0) {
@@ -457,7 +459,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 			int newTotal = money + moneyItem.getMoney();
 			if (shardsLimit >= 0 && money + moneyItem.getMoney() > shardsLimit)
 				return false;
-			
+
 			if (newTotal <= 0) {
 				removeItem(moneyIndex);
 				// Just so you remember - the adjustment below is done in removeItem()
@@ -472,15 +474,15 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		notifyCurrencyListeners(currency);
 		return true;
 	}
-	
+
 	public int[] findMatches(Item match) {
 		return findMatches(match, false);
 	}
-	
+
 	public int[] findMatches(Item match, boolean respectKeepTag) {
 		return findMatches(match, respectKeepTag, 1);
 	}
-	
+
 	public int[] findMatches(Item match, boolean respectKeepTag, int minNumber) {
 		String firstName = match.getName();
 		int[] indices = new int[getItemCount()];
@@ -522,7 +524,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		}
 	}
 
-	public boolean areItemsSame(int[] indices) {
+	boolean areItemsSame(int[] indices) {
 		for (int i = 1; i < indices.length; i++)
 			if (!getItem(indices[i-1]).matches(getItem(indices[i]))) {
 				System.out.println("Item " + indices[i-1] + " != " + indices[i]);
@@ -531,7 +533,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		return true;
 	}
 
-	public boolean removeItem(Item i) {
+	boolean removeItem(Item i) {
 		int index = items.indexOf(i);
 		if (index >= 0) {
 			removeItem(index);
@@ -541,7 +543,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 			return false;
 	}
 
-	public void removeItem(int index) {
+	void removeItem(int index) {
 		if (index < getItemCount()) {
 			Item removed = items.remove(index);
 			fireIntervalRemoved(this, index, index);
@@ -595,13 +597,13 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 				}
 			}
 		}
-		adjustEffects(removed, Effect.TYPE_AURA, false);	
+		adjustEffects(removed, Effect.TYPE_AURA, false);
 		adjustEffects(removed, Effect.TYPE_TOOL, false);
 	}
-	
-	public void removeAll() { removeAll(true); }
-	
-	public void removeAll(boolean respectKeepTag) {
+
+	void removeAll() { removeAll(true); }
+
+	void removeAll(boolean respectKeepTag) {
 		int itemCount = getItemCount();
 		if (itemCount == 0) return;
 
@@ -645,14 +647,14 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		notifyListeners();
 	}
 
-	public Item.Weapon getWielded() { return getWielded(false); }
-	public Item.Weapon getWielded(boolean findNew) {
+	Item.Weapon getWielded() { return getWielded(false); }
+	private Item.Weapon getWielded(boolean findNew) {
 		if (wielded == null && findNew) {
 			int maxBonus = -1;
 			for (int i = 0; i < getItemCount(); i++) {
 				Item item = getItem(i);
 				if (item.canBeWielded()) {
-					int bonus = ((Item.Weapon)item).getBonus();
+					int bonus = item.getBonus();
 					if (bonus > maxBonus) {
 						maxBonus = bonus;
 						wielded = (Item.Weapon)item;
@@ -668,14 +670,14 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		return wielded;
 	}
 
-	public Item.Armour getWorn() { return getWorn(false); }
-	public Item.Armour getWorn(boolean findNew) {
+	Item.Armour getWorn() { return getWorn(false); }
+	private Item.Armour getWorn(boolean findNew) {
 		if (worn == null && findNew) {
 			int maxBonus = 0;
 			for (int i = 0; i < getItemCount(); i++) {
 				Item item = getItem(i);
 				if (item.getType() == Item.ARMOUR_TYPE) {
-					int bonus = ((Item.Armour)item).getBonus();
+					int bonus = item.getBonus();
 					if (bonus > maxBonus) {
 						maxBonus = bonus;
 						worn = (Item.Armour)item;
@@ -700,7 +702,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	 * @param ability one of the basic 6 ability types.
 	 * @param findNew whether to look for a valid tool, if none is currently selected
 	 */
-	public Item.Tool getTool(int ability, boolean findNew) {
+	private Item.Tool getTool(int ability, boolean findNew) {
 		if (tools[ability] == null && findNew) {
 			int maxBonus = 0;
 			for (int i = 0; i < getItemCount(); i++) {
@@ -725,7 +727,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	 * Besides checking its document, its effects may have changed.
 	 * @param i
 	 */
-	public void modifiedItem(Item i) {
+	void modifiedItem(Item i) {
 		int index = items.indexOf(i);
 		if (index >= 0) {
 			fireContentsChanged(this, index, index);
@@ -769,7 +771,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 
 	private JList configuredList = null;
 	private MouseListener listListener = null;
-	public void configureList(JList list) {
+	void configureList(JList list) {
 		if (list.getModel() instanceof ItemList) {
 			ItemList oldModel = (ItemList)list.getModel();
 			list.removeMouseListener(oldModel.listListener);
@@ -784,6 +786,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	}
 
 	private class ItemRenderer extends DocumentCellRenderer {
+		@Override
 		protected Color getBackground(JList list, int index, boolean selected) {
 			Item item = getItem(index);
 			if (item != null && (item == wielded || item == worn)) {
@@ -817,7 +820,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		private Item currentItem;
 		private void changeWieldedState(int index) {
 			if (!canChangeWeapons()) return;
-			
+
 			Item.Weapon w = (Item.Weapon)getItem(index);
 			boolean wieldNow = !w.isWielded();
 			if (wielded != null) {
@@ -828,7 +831,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 				wielded = null;
 				fireContentsChanged(ItemList.this, oldIndex, oldIndex);
 			}
-					
+
 			if (wieldNow) {
 				w.setWielded(true);
 				wielded = w;
@@ -878,6 +881,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 			return -1;
 		}
 
+		@Override
 		public void mouseMoved(MouseEvent evt) {
 			FLApp.getSingle().setToolTipContext(configuredList);
 			FLApp.getSingle().setMouseAtX(evt.getX());
@@ -885,10 +889,12 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 			// TODO: Will I also need to update these in the actionPerformed() method
 			// (which handles popup MenuItems)?
 		}
+		@Override
 		public void mouseDragged(MouseEvent evt) {
 			mouseMoved(evt);
 		}
-		
+
+		@Override
 		public void mouseClicked(MouseEvent evt) {
 			if (evt.getClickCount() == 2) {
 				// Double-click should trigger main event for that item
@@ -1020,15 +1026,18 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 				itemMenu.show(configuredList, evt.getX(), evt.getY());
 		}
 
+		@Override
 		public void mousePressed(MouseEvent evt) {
 			if (evt.isPopupTrigger())
 				handlePopup(evt);
 		}
+		@Override
 		public void mouseReleased(MouseEvent evt) {
 			if (evt.isPopupTrigger())
 				handlePopup(evt);
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			if (currentItem == null || currentIndex < 0 || getItem(currentIndex) != currentItem) return;
 			int index = currentIndex;
@@ -1036,26 +1045,30 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 			currentIndex = -1;
 			currentItem = null;
 			String command = evt.getActionCommand();
-			if (command.equals(dropCommand) || command.equals(sellCommand)) {
+			switch (command) {
+			case dropCommand:
+			case sellCommand:
 				removeItem(index);
 				if (command.equals(sellCommand)) {
 					int price = item.getSalePrice();
 					if (price > 0) {
-						String currency = ((SectionNode)FLApp.getSingle().getRootNode()).getMarketCurrency();
+						String currency = ((SectionNode) FLApp.getSingle().getRootNode()).getMarketCurrency();
 						adjustMoney(price, currency);
 						//getAdventurer().adjustMoney(price);
 					}
 					item.soldItem();
 				}
 				FLApp.getSingle().actionTaken();
-			}
-			else if (command.equals(wieldCommand) || command.equals(unwieldCommand)) {
+				break;
+			case wieldCommand:
+			case unwieldCommand:
 				changeWieldedState(index);
-			}
-			else if (command.equals(wearCommand) || command.equals(unwearCommand)) {
+				break;
+			case wearCommand:
+			case unwearCommand:
 				changeWornState(index);
-			}
-			else if (command.equals(useCommand)) {
+				break;
+			case useCommand:
 				UseEffect effect = getUseEffect(item);
 				if (effect != null) {
 					boolean result = effect.use();
@@ -1067,14 +1080,14 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 					}
 				}
 				FLApp.getSingle().actionTaken();
-			}
-			else if (command.equals(transferCommand)) {
+				break;
+			case transferCommand:
 				if (item.isMoney()) {
 					if (getAdventurer() != null) {
 						doDeposit(index);
 						return;
 					}
-					
+
 					// Taking money from cache - choose money amount
 					MoneyChooser chooser = new MoneyChooser(FLApp.getSingle(), "Transfer Money", "How much do you want to take:", 0, item.getMoney());
 					chooser.setVisible(true);
@@ -1086,33 +1099,33 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 					}
 					return;
 				}
-				
-				boolean added = false;
+
+				boolean added;
 				if (getAdventurer() == null)
 					added = FLApp.getSingle().getAdventurer().getItems().addItem(item);
-				else 
+				else
 					added = getItemCache().addItem(item);
-				
+
 				if (added) {
 					removeItem(index);
 					FLApp.getSingle().actionTaken();
 				}
-			}
-			else if (command.equals(xmlCommand)) {
+				break;
+			case xmlCommand:
 				try {
 					item.outputXML(System.out, "");
-				}
-				catch (IOException ioe) {
+				} catch (IOException ioe) {
 					System.err.println("Error in outputting item " + item.toDebugString());
 					ioe.printStackTrace();
 				}
-			}
-			else if (command.equals(messageCommand)) {
+				break;
+			case messageCommand:
 				JOptionPane.showMessageDialog(configuredList, reason, "Can't Transfer Item", JOptionPane.INFORMATION_MESSAGE);
 				reason = null;
+				break;
 			}
 		}
-		
+
 		private void doDeposit(int index) {
 			ItemList cache = getItemCache();
 			if (cache != null) {
@@ -1130,16 +1143,17 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		}
 	}
 
-	public String toDebugString() {
-		StringBuffer sb = new StringBuffer();
+	String toDebugString() {
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < getItemCount(); i++) {
 			if (i > 0)
 				sb.append('\n');
-			sb.append(" Item " + (i+1) + ": " + getItem(i).toDebugString());
+			sb.append(" Item ").append(i + 1).append(": ").append(getItem(i).toDebugString());
 		}
 		return sb.toString();
 	}
 
+	@Override
 	public void eventOccurred(GameEvent evt) {
 		if (evt.getID() == GameEvent.NEW_SECTION) {
 			System.out.println("ItemList got NewSection event");
@@ -1151,22 +1165,26 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	/* ****************
 	 * Loadable methods
 	 **************** */
-	public String getXMLTag() {
+	@Override
+    public String getXMLTag() {
 		return "items";
 	}
 
+	@Override
 	public void storeAttributes(Properties atts, int flags) {
 		if (name != null)
 			atts.setProperty("name", name);
 	}
 
+	@Override
 	public Iterator<XMLOutput> getOutputChildren() {
-		LinkedList<XMLOutput> l = new LinkedList<XMLOutput>();
+		LinkedList<XMLOutput> l = new LinkedList<>();
 		for (int i = 0; i < getItemCount(); i++)
 			l.add(getItem(i));
 		return l.iterator();
 	}
 
+	@Override
 	public void outputTo(PrintStream out, String indent, int flags) throws IOException {
 		Node.output(this, out, indent, flags);
 	}

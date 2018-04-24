@@ -26,8 +26,8 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class TickNode extends ActionNode implements Executable, ItemListener, Flag.Listener, Roller.Listener, UndoManager.Creator {
-	public static final String GainElementName = "gain";
-	public static final String TickElementName = "tick";
+	static final String GainElementName = "gain";
+	static final String TickElementName = "tick";
 
 	private String codeword = null;
 	private int ticks;
@@ -53,11 +53,12 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 	private Item item = null;
 	private String profession;
 
-	public TickNode(String name, Node parent) {
+	TickNode(String name, Node parent) {
 		super(name, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		codeword = atts.getValue("codeword");
 		god = atts.getValue("god");
@@ -114,7 +115,8 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 
 		super.init(atts);
 	}
-	
+
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (codeword != null) props.setProperty("codeword", codeword);
@@ -152,6 +154,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		if (profession != null) props.setProperty("profession", profession);
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
 		if (name.equals(EffectNode.ElementName))
@@ -176,6 +179,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 	}
 
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
 
@@ -192,10 +196,11 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		addEnableElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		System.out.println("Adding TickNode() as child Executable");
 		if (!hadContent && !hidden && !getParent().hideChildContent()) {
-			String text = null;
+			String text;
 			boolean newSentence = getDocument().isNewSentence(getDocument().getLength());
 			if (codeword != null)
 				text = (newSentence ? "Tick" : "tick") + " the codeword " + codeword;
@@ -218,6 +223,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 	}
 
 	private boolean callContinue = false;
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (flag != null && !getFlags().getState(flag))
 			return true; // without enabling
@@ -246,7 +252,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		callContinue = true;
 		return false;
 	}
-	
+
 	private boolean canBeSkipped() {
 		if (hidden) return false;
 		if (!forced || flag != null || price != null)
@@ -266,12 +272,11 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 			return true;
 		else if (crew != null) {
 			int s = getShips().getSingleShip();
-			if (crew != null && s < 0 || getShips().getShip(s).getCrew() == getAttributeValue(crew))
-				return true;
+			return crew != null && s < 0 || getShips().getShip(s).getCrew() == getAttributeValue(crew);
 		}
 		return false;
 	}
-	
+
 	private boolean actionDoesAnything() {
 		if (codeword != null && !getCodewords().hasCodeword(codeword))
 			return true;
@@ -296,15 +301,14 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 				Ship ship = getShips().getShip(s);
 				if (crew != null && ship.getCrew() != getAttributeValue(crew))
 					return true;
-				if (cargo != Ship.NO_CARGO && !ship.isFull())
-					return true;
+				return cargo != Ship.NO_CARGO && !ship.isFull();
 			}
 		}
-		else if (profession != null)
-			return true;
+		else return profession != null;
 		return false;
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		System.out.println("TickNode.flagChanged: " + name + " set to " + state);
 		if (flag != null && flag.equals(name)) {
@@ -317,21 +321,24 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 				setEnabled(true);
 		}
 	}
-	
+
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 		// TODO: Undo whatever actionPerformed did.
 		// See 2.345 - TickNode is grouped with RandomNode, so use of a Luck blessing
 		// will allow the player to get two bonuses!
 	}
-	
+
+	@Override
 	protected Element createElement() {
 		Element e = super.createElement();
 		if (e != null)
 			System.out.println("TickNode created Element: " + e);
 		return e;
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		setEnabled(false);
 		System.out.println("Tick node activated");
@@ -381,7 +388,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 				}
 				abilityChosen = dc.getSelectedIndices()[0];
 			}
-			
+
 			if (abilityEffect != null) {
 				boolean add = true;
 				String effect = abilityEffect;
@@ -520,9 +527,9 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 					try {
 						docs[i].insertString(0, Adventurer.getProfessionName(profs[i]), null);
 					}
-					catch (BadLocationException e) {}
+					catch (BadLocationException ignored) {}
 				}
-				
+
 				while (true) {
 					DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), "Choose Profession", docs, false);
 					chooser.setVisible(true);
@@ -533,7 +540,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 					}
 				}
 			}
-			
+
 			getAdventurer().setProfession(profChosen);
 		}
 		else if (ticks > 0) {
@@ -560,6 +567,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 	 * Feedback from checkboxes at section head. The user has pressed a checkbox directly
 	 * rather than activating the node; we have to handle that here.
 	 */
+	@Override
 	public void itemStateChanged(ItemEvent evt) {
 		if (ignoreItemEvent) return;
 		
@@ -573,6 +581,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		}
 	}
 
+	@Override
 	public void dispose() {
 		if (flag != null)
 			getFlags().removeListener(flag, this);
@@ -582,6 +591,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 
 	private int abilityChosen = -1;
 	private int gainAmount = 0;
+	@Override
 	public void rollerFinished(Roller r) {
 		//int preScore = getAdventurer().getAbility(abilityChosen).natural;
 		gainAmount = getAdventurer().adjustAbility(abilityChosen, r.getResult());
@@ -592,6 +602,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		findExecutableGrouper().continueExecution(this, true);
 	}
 
+	@Override
 	public void undoOccurred(UndoManager undo) {
 		if (gainAmount != 0) {
 			getAdventurer().adjustAbility(abilityChosen, -gainAmount);
@@ -599,17 +610,20 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		}
 		setEnabled(true);
 	}
-	
+
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		callContinue = getBooleanValue(atts, "continue", false);
 	}
-	
+
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		saveProperty(props, "continue", callContinue);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		String text = null;
 		if (codeword != null)
@@ -661,7 +675,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 					return null;
 				}
 			}
-			
+
 			switch (ability) {
 			case Adventurer.ABILITY_ALL:
 				text += " all your abilities";

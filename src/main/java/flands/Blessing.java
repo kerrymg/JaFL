@@ -19,14 +19,14 @@ import org.xml.sax.Attributes;
 public class Blessing {
 	static final int MATCHALL_TYPE = -2;
 	static final int MATCHANY_TYPE = -1;
-	public static final int ABILITY_TYPE = 0;
-	public static final int STORM_TYPE = 1;
-	public static final int DEFENCE_TYPE = 2;
-	public static final int INJURY_TYPE = 3;
-	public static final int DISEASE_TYPE = 4;
-	public static final int LUCK_TYPE = 5;
-	public static final int TRAVEL_TYPE = 6;
-	public static final int WRATH_TYPE = 7;
+	static final int ABILITY_TYPE = 0;
+	private static final int STORM_TYPE = 1;
+	static final int DEFENCE_TYPE = 2;
+	private static final int INJURY_TYPE = 3;
+	private static final int DISEASE_TYPE = 4;
+	static final int LUCK_TYPE = 5;
+	static final int TRAVEL_TYPE = 6;
+	private static final int WRATH_TYPE = 7;
 
 	private int type;
 	private int ability = -1;
@@ -46,21 +46,21 @@ public class Blessing {
 	}
 
 	private static final Blessing[] AbilityBlessings = new Blessing[Adventurer.ABILITY_COUNT];
-	public static Blessing getAbilityBlessing(int ability) {
+	static Blessing getAbilityBlessing(int ability) {
 		if (AbilityBlessings[ability] == null)
 			AbilityBlessings[ability] = new Blessing(ABILITY_TYPE, ability);
 		return AbilityBlessings[ability];
 	}
 
-	public static final Blessing DEFENCE = new Blessing(DEFENCE_TYPE, 3); // 5.89 has this figure - is this a default?
-	public static final Blessing DISEASE = new Blessing(DISEASE_TYPE);
+	static final Blessing DEFENCE = new Blessing(DEFENCE_TYPE, 3); // 5.89 has this figure - is this a default?
+	static final Blessing DISEASE = new Blessing(DISEASE_TYPE);
 	public static final Blessing INJURY = new Blessing(INJURY_TYPE);
 	public static final Blessing LUCK = new Blessing(LUCK_TYPE);
 	public static final Blessing STORM = new Blessing(STORM_TYPE);
 	public static final Blessing TRAVEL = new Blessing(TRAVEL_TYPE);
-	public static final Blessing WRATH = new Blessing(WRATH_TYPE);
+	static final Blessing WRATH = new Blessing(WRATH_TYPE);
 
-	public static Blessing getBlessing(Attributes atts) {
+	static Blessing getBlessing(Attributes atts) {
 		String type = atts.getValue("blessing");
 		if (type == null)
 			return null;
@@ -73,27 +73,27 @@ public class Blessing {
 		type = type.toLowerCase();
 
 		int ability = Adventurer.getAbilityType(type);
-		if (type.indexOf("defen") >= 0) {
+		if (type.contains("defen")) {
 			int bonus = 3;
 			String bonusStr = atts.getValue("bonus");
 			if (bonusStr != null)
 				try {
 					bonus = Integer.parseInt(bonusStr);
 				}
-			catch (NumberFormatException nfe) {}
+			catch (NumberFormatException ignored) {}
 			return new Blessing(DEFENCE_TYPE, bonus);
 		}
-		else if (type.indexOf("disease") >= 0 || type.indexOf("poison") >= 0)
+		else if (type.contains("disease") || type.contains("poison"))
 			return new Blessing(DISEASE_TYPE);
-		else if (type.indexOf("injury") >= 0)
+		else if (type.contains("injury"))
 			return new Blessing(INJURY_TYPE);
-		else if (type.indexOf("storm") >= 0)
+		else if (type.contains("storm"))
 			return new Blessing(STORM_TYPE);
-		else if (type.indexOf("luck") >= 0)
+		else if (type.contains("luck"))
 			return new Blessing(LUCK_TYPE);
-		else if (type.indexOf("travel") >= 0)
+		else if (type.contains("travel"))
 			return new Blessing(TRAVEL_TYPE);
-		else if (type.indexOf("wrath") >= 0)
+		else if (type.contains("wrath"))
 			return new Blessing(WRATH_TYPE);
 		else if (ability >= 0 && ability < Adventurer.ABILITY_COUNT)
 			return new Blessing(ABILITY_TYPE, ability);
@@ -141,7 +141,7 @@ public class Blessing {
 		if (type == DEFENCE_TYPE)
 			Node.saveProperty(props, "bonus", bonus);
 	}
-	
+
 	public int getType() { return type; }
 	public boolean isAbilityBlessing() { return (type == ABILITY_TYPE); }
 	public int getAbility() { return ability; }
@@ -155,7 +155,7 @@ public class Blessing {
 	 * Add a Defence bonus to the player's abilities.
 	 * @param bonus the bonus to the player's Defence stat.
 	 */
-	public static void addDefenceBlessing(int bonus) {
+	static void addDefenceBlessing(int bonus) {
 		AbilityEffect e = AbilityEffect.createAbilityBonus(Adventurer.ABILITY_DEFENCE, bonus);
 		getAdventurer().getEffects().addStatRelated(Adventurer.ABILITY_DEFENCE, DEFENCE, e);
 		lastDefenceEffect = e;
@@ -166,7 +166,7 @@ public class Blessing {
 	 * Add the same Defence bonus that was last used in the
 	 * {@link #addDefenceBlessing(int)} method.
 	 */
-	public static void readdDefenceBlessing() {
+	static void readdDefenceBlessing() {
 		if (lastDefenceEffect != null) {
 			getAdventurer().getEffects().addStatRelated(Adventurer.ABILITY_DEFENCE, DEFENCE, lastDefenceEffect);
 			getAdventurer().checkAbilityBonus(Adventurer.ABILITY_DEFENCE);
@@ -177,22 +177,22 @@ public class Blessing {
 	 * The bonus will be remembered, in case it needs to be added again
 	 * if a player undo-es the last roll of a fight.
 	 */
-	public static void removeDefenceBlessing() {
+	static void removeDefenceBlessing() {
 		if (lastDefenceEffect != null) {
 			getAdventurer().getEffects().removeStatRelated(Adventurer.ABILITY_DEFENCE, DEFENCE, lastDefenceEffect);
 			getAdventurer().checkAbilityBonus(Adventurer.ABILITY_DEFENCE);
 		}
 	}
-	
+
 	/**
 	 * Looks for an active Defence blessing;
 	 * @return the value of the Defence bonus; <code>0</code> if not present.
 	 */
-	public static int findActiveDefenceBlessing() {
+	static int findActiveDefenceBlessing() {
 		return getAdventurer().getEffects().getStatRelatedBonus(Adventurer.ABILITY_DEFENCE, DEFENCE);
 	}
-	
-	public String getContentString() {
+
+	String getContentString() {
 		switch (type) {
 			case ABILITY_TYPE:
 				return Adventurer.getAbilityName(ability).toUpperCase();
@@ -241,15 +241,14 @@ public class Blessing {
 		try {
 			Blessing b = (Blessing)o;
 			if (type != b.type) return false;
-			if (type == ABILITY_TYPE && ability != b.ability) return false;
-			return true;
+			return type != ABILITY_TYPE || ability == b.ability;
 		}
 		catch (ClassCastException cce) {
 			cce.printStackTrace();
 		}
 		return false;
 	}
-	
+
 	String toLoadableString() {
 		String str = "" + (char)type;
 		if (type == ABILITY_TYPE)
@@ -260,7 +259,7 @@ public class Blessing {
 			str += ",1";
 		return str;
 	}
-	
+
 	static Blessing createFromLoadableString(String str) {
 		int type = str.charAt(0);
 		Blessing b;

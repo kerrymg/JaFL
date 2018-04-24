@@ -42,7 +42,7 @@ public class FontChooser extends JDialog
 	private Font currentFont;
 	private JTextPane displayPane;
 
-	public FontChooser(Frame parent, Font initialFont, int smallerFontSize) {
+	FontChooser(Frame parent, Font initialFont, int smallerFontSize) {
 		super(parent, "Choose Font", true);
 
 		this.currentFont = initialFont;
@@ -72,11 +72,11 @@ public class FontChooser extends JDialog
 		displayPane.setStyledDocument(createDisplayDocument());
 
 		CommandButtons buttons = CommandButtons.createRow(CommandButtons.OK_CANCEL, this);
-		
+
 		GridBagLayout gbl = new GridBagLayout();
 		Container content = getContentPane();
 		content.setLayout(gbl);
-		
+
 		new GBC(0, 0)
 			.setSpan(2, 1)
 			.setInsets(12, 12, 0, 0)
@@ -87,7 +87,7 @@ public class FontChooser extends JDialog
 			.setBothFill()
 			.setInsets(6, 12, 5, 0)
 			.addComp(content, new JScrollPane(fontList), gbl);
-		
+
 		new GBC(0, 2)
 			.setAnchor(GBC.WEST)
 			.setInsets(0, 12, 0, 0)
@@ -96,7 +96,7 @@ public class FontChooser extends JDialog
 			.setAnchor(GBC.EAST)
 			.setInsets(0, 6, 0, 0)
 			.addComp(content, sizeSpinner, gbl);
-		
+
 		new GBC(0, 3)
 			.setAnchor(GBC.WEST)
 			.setInsets(6, 12, 0, 0)
@@ -105,7 +105,7 @@ public class FontChooser extends JDialog
 			.setAnchor(GBC.EAST)
 			.setInsets(6, 6, 0, 0)
 			.addComp(content, smallerSizeSpinner, gbl);
-		
+
 		new GBC(2, 0)
 			.setWeight(1, 0)
 			.setInsets(12, 5, 0, 11)
@@ -122,24 +122,25 @@ public class FontChooser extends JDialog
 			.setSpan(3, 1)
 			.setBothFill()
 			.addComp(content, buttons, gbl);
-		
+
 		pack();
 		setLocationRelativeTo(parent);
 		enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 		fontList.ensureIndexIsVisible(selectedFontIndex);
 	}
 
+	@Override
 	protected void processWindowEvent(WindowEvent evt) {
 		if (evt.getID() == WindowEvent.WINDOW_CLOSING)
 			close();
 		super.processWindowEvent(evt);
 	}
-	
+
 	private void close() {
 		setVisible(false);
 		dispose();
 	}
-	
+
 	private void changeFont() {
 		currentFont = new Font(fontList.getSelectedValue().toString(), Font.PLAIN, 
 			sizeModel.getNumber().intValue());
@@ -150,7 +151,7 @@ public class FontChooser extends JDialog
 	throws BadLocationException {
 		doc.insertString(doc.getLength(), text, atts);
 	}
-	
+
 	private StyledDocument createDisplayDocument() {
 		DefaultStyledDocument doc = new DefaultStyledDocument();
 		MutableAttributeSet atts = new SimpleAttributeSet();
@@ -181,20 +182,23 @@ public class FontChooser extends JDialog
 			append(doc, " +1)", boldAtts);
 			append(doc, ".\n", atts);
 		}
-		catch (BadLocationException ble) {}
+		catch (BadLocationException ignored) {}
 		return doc;
 	}
-	
+
+	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		changeFont();
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent e) {
 		changeFont();
 	}
 
 	private Font chosenFont = null;
 	private int smallerCapsSize = 0;
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals(CommandButtons.okCommand)) {
 			chosenFont = currentFont;
@@ -205,7 +209,7 @@ public class FontChooser extends JDialog
 			close();
 		}
 	}
-	
-	public Font getChosenFont() { return chosenFont; }
-	public int getSmallerCapsFontSize() { return smallerCapsSize; }
+
+	Font getChosenFont() { return chosenFont; }
+	int getSmallerCapsFontSize() { return smallerCapsSize; }
 }

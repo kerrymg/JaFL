@@ -1,5 +1,6 @@
 package flands;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,34 +21,36 @@ public class TextNode extends Node {
 	 * A text node is a convenience for Nodes like GroupNode - the text within
 	 * is written to the document.
 	 */
-	public static final String TextElementName = "text";
+	static final String TextElementName = "text";
 	/**
 	 * A description node gathers the styled text within without adding it to the
 	 * document. It can then be used as the description for an effect, as part of
 	 * a curse or item on the Adventurer Sheet.
 	 */
-	public static final String DescElementName = "desc";
+	static final String DescElementName = "desc";
 	
 	private final boolean isTextNode;
 	private AttributeSet defaultAtts = null;
 	private StyledTextList styledTextList = new StyledTextList();
 	private boolean hadAnyContent = false;
 	
-	public TextNode(Node parent, boolean isTextNode) {
+	TextNode(Node parent, boolean isTextNode) {
 		super(isTextNode ? TextElementName : DescElementName , parent);
 		this.isTextNode = isTextNode;
 	}
 
-	public void setTextAttributes(AttributeSet atts) {
+	void setTextAttributes(AttributeSet atts) {
 		defaultAtts = atts;
 	}
 
 	private List<Element> elementList;
+	@Override
 	public void init(Attributes atts) {
 		super.init(atts);
-		elementList = new LinkedList<Element>();
+		elementList = new LinkedList<>();
 	}
 
+	@Override
 	protected Element createElement() {
 		if (isTextNode) {
 			Node parent = getParent();
@@ -65,6 +68,7 @@ public class TextNode extends Node {
 			return null;
 	}
 
+	@Override
 	public void handleContent(String text) {
 		if (text.length() == 0)
 			return;
@@ -79,8 +83,7 @@ public class TextNode extends Node {
 			StyleNode.applyActiveStyles(atts);
 			textUnit = new StyledText(text, atts);
 			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { textUnit });
-			for (int i = 0; i < leaves.length; i++)
-				elementList.add(leaves[i]);
+			Collections.addAll(elementList, leaves);
 		}
 
 		// Also add a copy to our cached text list, without any default attributes
@@ -90,6 +93,7 @@ public class TextNode extends Node {
 		styledTextList.add(textUnit);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (!hadAnyContent) {
 			// Empty text node = deliberate space
@@ -98,9 +102,10 @@ public class TextNode extends Node {
 		return super.handleEndTag();
 	}
 
+	@Override
 	public Element[] getLeaves() {
-		return elementList.toArray(new Element[elementList.size()]);
+		return elementList.toArray(new Element[0]);
 	}
-	
+
 	public StyledTextList getText() { return styledTextList; }
 }

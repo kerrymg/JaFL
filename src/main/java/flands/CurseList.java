@@ -32,19 +32,21 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 	private List<Curse> curses;
 	private Adventurer owner;
 
-	public CurseList(Adventurer owner) {
+	CurseList(Adventurer owner) {
 		this.owner = owner;
-		curses = new ArrayList<Curse>();
+		curses = new ArrayList<>();
 	}
 
 	private Adventurer getAdventurer() { return owner; }
 	private EffectSet getEffects() { return getAdventurer().getEffects(); }
 
+	@Override
 	public int getSize() { return curses.size(); }
-	public Curse getCurse(int i) { return curses.get(i); }
+	private Curse getCurse(int i) { return curses.get(i); }
+	@Override
 	public Object getElementAt(int i) { return getCurse(i); }
 
-	public void addCurse(Curse c) {
+	void addCurse(Curse c) {
 		if (!curses.contains(c)) {
 			if ((c.getType() == Curse.DISEASE_TYPE || c.getType() == Curse.POISON_TYPE) &&
 				getAdventurer().getBlessings().hasBlessing(Blessing.DISEASE)) {
@@ -76,7 +78,7 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 		}
 	}
 
-	public void removeCurse(int index) {
+	void removeCurse(int index) {
 		if (index < getSize()) {
 			Curse c = curses.remove(index);
 			if (c.getItem() != null)
@@ -95,11 +97,11 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 		}
 	}
 
-	public void removeAll() {
+	void removeAll() {
 		for (int i = getSize() - 1; i >= 0; i--)
 			removeCurse(i);
 	}
-	
+
 	public int[] findMatches(Curse match) {
 		int[] matches = new int[getSize()];
 		int count = 0;
@@ -135,7 +137,7 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 	}
 
 	private JList configuredList = null;
-	public void configureList(JList list) {
+	void configureList(JList list) {
 		if (list.getModel() instanceof CurseList) {
 			CurseList oldModel = (CurseList)list.getModel();
 			list.removeMouseListener(oldModel);
@@ -149,12 +151,16 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 		list.addMouseListener(this);
 	}
 
+	@Override
 	public void mouseEntered(MouseEvent evt) {}
+	@Override
 	public void mouseExited(MouseEvent evt) {}
+	@Override
 	public void mousePressed(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			handlePopup(evt);
 	}
+	@Override
 	public void mouseReleased(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			handlePopup(evt);
@@ -166,6 +172,7 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 			return index;
 		return -1;
 	}
+	@Override
 	public void mouseClicked(MouseEvent evt) {
 		if (evt.getClickCount() == 2) {
 			int index = getIndex(evt.getPoint());
@@ -193,6 +200,7 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 			}
 		}
 	}
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		askLiftQuestion(currentIndex, currentCurse);
 		currentIndex = -1;
@@ -204,14 +212,17 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 			removeCurse(index);
 	}
 
+	@Override
 	public String getXMLTag() {
 		return "curses";
 	}
 
+	@Override
 	public void storeAttributes(Properties atts, int flags) {}
 
+	@Override
 	public Iterator<XMLOutput> getOutputChildren() {
-		LinkedList<XMLOutput> l = new LinkedList<XMLOutput>();
+		LinkedList<XMLOutput> l = new LinkedList<>();
 		for (int i = 0; i < getSize(); i++) {
 			Curse c = getCurse(i);
 			if (c.getItem() == null)
@@ -220,6 +231,7 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 		return l.iterator();
 	}
 
+	@Override
 	public void outputTo(PrintStream out, String indent, int flags) throws IOException {
 		Node.output(this, out, indent, flags);
 	}

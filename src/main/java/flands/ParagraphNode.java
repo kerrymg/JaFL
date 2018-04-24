@@ -28,10 +28,12 @@ public class ParagraphNode extends Node {
 		findExecutableGrouper().addIntermediateNode(this);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		super.init(atts);
 	}
 
+	@Override
 	public void handleContent(String content) {
 		// Add a child with the current style
 		if (content.trim().length() == 0) {
@@ -51,6 +53,7 @@ public class ParagraphNode extends Node {
 		addEnableElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		Element e = getElement();
 		if (e.getElementCount() > 0) {
@@ -61,8 +64,10 @@ public class ParagraphNode extends Node {
 		return super.handleEndTag();
 	}
 
+	@Override
 	protected String getElementViewType() { return ParagraphViewType; }
 
+	@Override
 	protected MutableAttributeSet getElementStyle() {
 		SimpleAttributeSet atts = new SimpleAttributeSet();
 		StyleConstants.setAlignment(atts, alignment);

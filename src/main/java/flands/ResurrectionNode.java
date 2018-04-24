@@ -21,13 +21,14 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 	private Resurrection resurrection;
 	private String shards = null;
 	private String flag = null;
-	
-	public ResurrectionNode(Node parent) {
+
+	ResurrectionNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 		findExecutableGrouper().addExecutable(this);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		String text = atts.getValue("text");
 		String book = atts.getValue("book");
@@ -52,14 +53,16 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 		super.init(atts);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (resurrection != null) resurrection.saveTo(props);
 		if (shards != null) saveVarProperty(props, "shards", shards);
 		if (flag != null) props.setProperty("flag", flag);
 	}
-	
+
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String text) {
 		if (!hadContent && text.trim().length() == 0) return;
 		hadContent = true;
@@ -68,6 +71,7 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 		addHighlightElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (!hadContent && !hidden) {
 			if (resurrection != null) {
@@ -86,7 +90,8 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 				(shards == null || getAttributeValue(shards) <= getAdventurer().getMoney())
 				);
 	}
-	
+
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (flag != null && !getFlags().getState(flag))
 			setEnabled(false);
@@ -99,11 +104,13 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 		return true;
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		setEnabled(getAdventurer().getMoney() >= getAttributeValue(shards));
 	}
 
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (flag != null && flag.equals(name)) {
 			if (state && canDoAction())
@@ -112,9 +119,11 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 				setEnabled(false);
 		}
 	}
-	
+
+	@Override
 	public void resetExecute() { setEnabled(false); }
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (shards != null) {
 			System.out.println("Resurrection costs " + getAttributeValue(shards));
@@ -134,15 +143,18 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 			getFlags().setState(flag, false);
 	}
 
+	@Override
 	protected Element createElement() { return null; }
 
+	@Override
 	public void dispose() {
 		if (shards == null)
 			getAdventurer().removeMoneyListener(this);
 		if (flag != null)
 			getFlags().removeListener(flag, this);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		String text;
 		if (resurrection == null)

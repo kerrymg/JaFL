@@ -29,18 +29,18 @@ public class MoneyChooser extends JDialog implements ActionListener, ChangeListe
 	private int minimum = 0;
 	private boolean successful = false;
 
-	public MoneyChooser(Frame f, String title, String text, int value, int max) {
+	MoneyChooser(Frame f, String title, String text, int value, int max) {
 		super(f, title, true);
 		init(f, text, value, max);
 	}
 
-	public MoneyChooser(Frame f, String title, String text, int value, int min, int max, int multiples) {
+	MoneyChooser(Frame f, String title, String text, int value, int min, int max, int multiples) {
 		super(f, title, true);
 		this.multiples = multiples;
 		this.minimum = min;
 		init(f, text, value, max);
 	}
-	
+
 	public MoneyChooser(Frame f, String title, String text, int value, int max, float withdrawalCharge, int multiples) {
 		super(f, title, true);
 		this.withdrawalCharge = withdrawalCharge;
@@ -50,6 +50,7 @@ public class MoneyChooser extends JDialog implements ActionListener, ChangeListe
 
 	private void init(Window owner, String text, int value, int max) {
 		spinnerModel = new SpinnerNumberModel(value, minimum, max, multiples) {
+			@Override
 			public void setValue(Object val) {
 				if (multiples != 1) {
 					int newVal = ((Number)val).intValue();
@@ -119,10 +120,12 @@ public class MoneyChooser extends JDialog implements ActionListener, ChangeListe
 		return (result - (int)Math.ceil(result*withdrawalCharge));
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		withdrawalField.setText(Integer.toString((int)Math.ceil(getValue() * withdrawalCharge)));
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(CommandButtons.okCommand))
 			successful = true;

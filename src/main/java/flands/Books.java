@@ -33,7 +33,7 @@ public class Books {
 		private static final int MISSING_TYPE = -1;
 		private static final int DIR_TYPE = 0;
 		private static final int ZIP_TYPE = 1;
-		
+
 		private int[] pathTypes;
 		private String[] paths;
 		
@@ -48,16 +48,16 @@ public class Books {
 			this.title = title;
 			paths = new String[0];
 		}
-		
+
 		public BookDetails(String key, String title, String path) {
 			this(key, title);
-			
+
 			if (path != null)
 				paths = path.split(",");
 			else
 				paths = new String[0];
 			pathTypes = new int[paths.length];
-			
+
 			boolean gotAnyPath = false;
 			for (int p = 0; p < paths.length; p++) {
 				if (paths[p] == null) {
@@ -90,7 +90,7 @@ public class Books {
 				if (pathTypes[p] >= 0)
 					gotAnyPath = true;
 			}
-			
+
 			if (gotAnyPath) {
 				if (!fileExists("book.ini"))
 					System.out.println("Couldn't find book.ini file for book " + key);
@@ -129,7 +129,7 @@ public class Books {
 			*/
 		}
 
-		public boolean fileExists(String name) {
+		boolean fileExists(String name) {
 			for (int p = 0; p < paths.length; p++) {
 				switch (pathTypes[p]) {
 				case DIR_TYPE:
@@ -154,8 +154,8 @@ public class Books {
 			}
 			return false;
 		}
-		
-		public InputStream getInputStream(String name) {
+
+		InputStream getInputStream(String name) {
 			for (int p = 0; p < paths.length; p++) {
 				switch (pathTypes[p]) {
 				case DIR_TYPE:
@@ -179,10 +179,10 @@ public class Books {
 				}
 			}
 			System.out.println("Couldn't find file " + name);
-			
+
 			return null;
 		}
-		
+
 		public boolean hasBook() {
 			return (fileExists("book.ini"));
 			//return (pathType >= DIR_TYPE);
@@ -196,24 +196,23 @@ public class Books {
 			catch (NumberFormatException nfe) { return -1; }
 		}
 		public String getTitle() { return title; }
-		public int getLowestSection() {
+		int getLowestSection() {
 			findSectionRange();
 			return lowestSection;
 		}
-		public int getHighestSection() {
+		int getHighestSection() {
 			findSectionRange();
 			return highestSection;
 		}
-		
+
 		private String[] getAllFilenames() {
-			Vector<String> allFiles = new Vector<String>();
+			Vector<String> allFiles = new Vector<>();
 			for (int p = 0; p < paths.length; p++) {
 				switch (pathTypes[p]) {
 				case DIR_TYPE:
 					File dir = new File(paths[p]);
 					String[] contents = dir.list();
-					for (int f = 0; f < contents.length; f++)
-						allFiles.add(contents[f]);
+					allFiles.addAll(Arrays.asList(contents));
 					break;
 				case ZIP_TYPE:
 					try {
@@ -231,32 +230,31 @@ public class Books {
 					}
 				}
 			}
-			return allFiles.toArray(new String[allFiles.size()]);
+			return allFiles.toArray(new String[0]);
 		}
 		
 		private void findSectionRange() {
 			if (foundSectionRange) return;
 			foundSectionRange = true;
 			String[] files = getAllFilenames();
-			if (files != null) {
-				int min = Integer.MAX_VALUE;
-				int max = Integer.MIN_VALUE;
-				for (int i = 0; i < files.length; i++) {
-					if (files[i].endsWith(".xml") && Character.isDigit(files[i].charAt(0))) {
-						try {
-							int section = Integer.parseInt(files[i].substring(0, files[i].length() - 4));
-							if (section < min)
-								min = section;
-							else if (section > max)
-								max = section;
-						}
-						catch (NumberFormatException nfe) {}
+			int min = Integer.MAX_VALUE;
+			int max = Integer.MIN_VALUE;
+			for (String file : files) {
+				if (file.endsWith(".xml") && Character.isDigit(file.charAt(0))) {
+					try {
+						int section = Integer.parseInt(file.substring(0, file.length() - 4));
+						if (section < min)
+							min = section;
+						else if (section > max)
+							max = section;
+					}
+					catch (NumberFormatException ignored) {
 					}
 				}
-				System.out.println("Book " + key + ": lowest section=" + min + ",highest=" + max);
-				lowestSection = min;
-				highestSection = max;
 			}
+			System.out.println("Book " + key + ": lowest section=" + min + ",highest=" + max);
+			lowestSection = min;
+			highestSection = max;
 		}
 		
 		public String[] getOfficialCodewords() {
@@ -269,7 +267,7 @@ public class Books {
 			Arrays.sort(codewords);
 			return codewords;
 		}
-		
+
 		private Properties getProps() {
 			if (bookProps == null) {
 				InputStream propStream = getInputStream("book.ini");
@@ -288,23 +286,24 @@ public class Books {
 			}
 			return bookProps;
 		}
-		
-		public String getMapFilename() {
+
+		String getMapFilename() {
 			return getProps().getProperty("Map");
 		}
-		public String getMapTitle() {
+		String getMapTitle() {
 			return getProps().getProperty("Map.Title");
 		}
-		public String getDeathSection() {
+		String getDeathSection() {
 			return getProps().getProperty("Death");
 		}
-		public String getIconFilename() {
+		String getIconFilename() {
 			return getProps().getProperty("Icon");
 		}
-		public String getRequiredRules() {
+		String getRequiredRules() {
 			return getProps().getProperty("Rules");
 		}
 
+		@Override
 		public int compareTo(Object o) {
 			try {
 				BookDetails bd = (BookDetails)o;
@@ -322,7 +321,7 @@ public class Books {
 				return -1;
 			}
 		}
-		
+
 		public String toString() {
 			return "Book[" + key + "," + paths[0] + "," + title + "]";
 		}
@@ -333,8 +332,8 @@ public class Books {
 	 */
 	public static class BookListModel extends AbstractListModel {
 		private ArrayList<BookDetails> books;
-		public BookListModel() {
-			SortedSet<BookDetails> sortedBooks = new TreeSet<BookDetails>();
+		BookListModel() {
+			SortedSet<BookDetails> sortedBooks = new TreeSet<>();
 			Books canon = getCanon();
 			for (Iterator<BookDetails> i = canon.getAllBooks(); i.hasNext(); ) {
 				BookDetails book = i.next();
@@ -342,32 +341,33 @@ public class Books {
 					sortedBooks.add(book);
 			}
 			
-			books = new ArrayList<BookDetails>();
-			for (Iterator<BookDetails> i = sortedBooks.iterator(); i.hasNext(); )
-				books.add(i.next());
+			books = new ArrayList<>();
+			books.addAll(sortedBooks);
 		}
-		
+
+		@Override
 		public int getSize() {
 			return books.size();
 		}
-	
+
 		public BookDetails getBook(int index) {
 			return books.get(index);
 		}
-		
+
+		@Override
 		public Object getElementAt(int index) {
 			BookDetails book = getBook(index);
 			return book.getKey() + ": " + book.getTitle();
 		}
 	}
 
-	public static BookDetails MissingBook = new BookDetails("0", "MISSING") {
+	private static BookDetails MissingBook = new BookDetails("0", "MISSING") {
 		public boolean hasBook() { return false; }
 	};
 
 	private Map<String,BookDetails> bookMap;
 	public Books() {
-		bookMap = new HashMap<String,BookDetails>();
+		bookMap = new HashMap<>();
 	}
 
 	public BookDetails getBook(String key) {
@@ -377,22 +377,22 @@ public class Books {
 		else
 			return book;
 	}
-	public void addBook(BookDetails book) {
+	private void addBook(BookDetails book) {
 		bookMap.put(book.key, book);
 	}
 
-	public Iterator<BookDetails> getAllBooks() {
+	private Iterator<BookDetails> getAllBooks() {
 		return bookMap.values().iterator();
 	}
 
-	public String[] getAvailableKeys() {
-		Set<String> availableBooks = new HashSet<String>();
+	String[] getAvailableKeys() {
+		Set<String> availableBooks = new HashSet<>();
 		for (Iterator<BookDetails> i = getAllBooks(); i.hasNext(); ) {
 			BookDetails b = i.next();
 			if (b.hasBook())
 				availableBooks.add(b.getKey());
 		}
-		return availableBooks.toArray(new String[availableBooks.size()]);
+		return availableBooks.toArray(new String[0]);
 	}
 
 	private static Books canon = null;
@@ -404,10 +404,10 @@ public class Books {
 				props.load(new FileInputStream(listingFile));
 				String[] keys = props.getProperty("Books").split(",");
 				Books books = new Books();
-				for (int k = 0; k < keys.length; k++) {
-					String title = props.getProperty(keys[k] + ".Title");
-					String path = props.getProperty(keys[k] + ".Path");
-					books.addBook(new BookDetails(keys[k], title, path));
+				for (String key : keys) {
+					String title = props.getProperty(key + ".Title");
+					String path = props.getProperty(key + ".Path");
+					books.addBook(new BookDetails(key, title, path));
 				}
 				canon = books;
 			} catch (FileNotFoundException e) {

@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -48,17 +47,17 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			findFonts();
 		return preferredFont;
 	}
-	public static float getFontVerticalAlignment() {
+	static float getFontVerticalAlignment() {
 		if (preferredFont == null)
 			findFonts();
 		return fontAlignment;
 	}
-	public static int getSmallerCapsFontSize() {
+	static int getSmallerCapsFontSize() {
 		if (smallerFontSize == 0)
 			findFonts();
 		return smallerFontSize;
 	}
-	public static SimpleAttributeSet getSmallerAtts(AttributeSet parentAtts) {
+	static SimpleAttributeSet getSmallerAtts(AttributeSet parentAtts) {
 		SimpleAttributeSet atts = (parentAtts == null ? new SimpleAttributeSet() : new SimpleAttributeSet(parentAtts));
 		StyleConstants.setFontSize(atts, getSmallerCapsFontSize());
 		return atts;
@@ -128,7 +127,8 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			StyleConstants.setFontSize(rootStyle, f.getSize());
 			rootStyle.addChangeListener(new javax.swing.event.ChangeListener() 
 			{
-				public void stateChanged(javax.swing.event.ChangeEvent evt) 
+				@Override
+				public void stateChanged(javax.swing.event.ChangeEvent evt)
 				{
 					System.out.println("Root style changed: " + evt);
 				}
@@ -136,25 +136,28 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		}
 	}
 
+	@Override
 	public Element getDefaultRootElement() { return rootNode; }
 
 	/* ****************
 	 * Document methods
 	 **************** */
 	/** Overridden to do nothing. */
+	@Override
 	public void insertString(int offset, String str, AttributeSet a) {}
 
 	/** Overridden to do nothing. */
-	public void remove(int offs, int len) throws BadLocationException {}
+	@Override
+	public void remove(int offs, int len) {}
 
 	/**
 	 * Adds some text to the content, without doing anything with the elements.
 	 * This is our preferred (hidden) interface.
 	 */
-	void addContent(String str) {
+	private void addContent(String str) {
 		insertContent(getLength(), str);
 	}
-	void insertContent(int offset, String str) {
+	private void insertContent(int offset, String str) {
 		try {
 			getContent().insertString(offset, str);
 		}
@@ -166,7 +169,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	/**
 	 * Replace some of the content with the given text.
 	 */
-	public void replaceContent(int offset, int len, String str) {
+	void replaceContent(int offset, int len, String str) {
 		if (len != str.length())
 			System.err.println("Error: replaceContent called with len != str.length(); this would result in bad errors");
 		else {
@@ -175,7 +178,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 				getContent().remove(offset, len);
 				getContent().insertString(offset, str);
 			}
-			catch (BadLocationException ble) {}
+			catch (BadLocationException ignored) {}
 			fireChangeEvent(e);
 		}
 	}
@@ -234,9 +237,9 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			if (branch.getElementCount() == 0)
 				// The first leaf shouldn't have any leading spaces
 				styledText[0].text = Node.trimStart(styledText[0].text);
-			List<Element> leafList = new LinkedList<Element>();
-			for (int i = 0; i < styledText.length; i++)
-				addLeavesTo(branch, styledText[i], leafList);
+			List<Element> leafList = new LinkedList<>();
+			for (StyledText aStyledText : styledText)
+				addLeavesTo(branch, aStyledText, leafList);
 			Element[] leaves = new Element[leafList.size()];
 			leaves = leafList.toArray(leaves);
 			branch.replace(branch.getElementCount(), 0, leaves);
@@ -249,7 +252,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	}
 
 	/** Immediately add content and a leaf to handle the content. */
-	private final void addLeafTo(BranchElement parentElement, StyledText styledText, List<Element> leafList) {
+	private void addLeafTo(BranchElement parentElement, StyledText styledText, List<Element> leafList) {
 		int startOffset = getLength();
 		addContent(styledText.text);
 		leafList.add(createLeafElement(parentElement, styledText.atts, startOffset, getLength()));
@@ -257,7 +260,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 
 	private static String[] capsWords = null;
 	/** Get a list of words that should be 'capitalized'. */
-	public static String[] getCapsWords() {
+	static String[] getCapsWords() {
 		if (capsWords == null) {
 			capsWords = new String[Adventurer.ABILITY_COUNT];
 			for (int a = 0; a < Adventurer.ABILITY_COUNT; a++)
@@ -304,11 +307,11 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 					// See if this matches any known words
 					String capsString = text.substring(i, j);
 					String[] words = getCapsWords();
-					for (int w = 0; w < words.length; w++)
-						if (words[w].equals(capsString)) {
+					for (String word : words)
+						if (word.equals(capsString)) {
 							SimpleAttributeSet smallerFontAtts = getSmallerAtts(styledText.atts);
-							addLeafTo(parentElement, new StyledText(text.substring(0, i+1), styledText.atts), leafList);
-							addLeafTo(parentElement, new StyledText(text.substring(i+1, j), smallerFontAtts), leafList);
+							addLeafTo(parentElement, new StyledText(text.substring(0, i + 1), styledText.atts), leafList);
+							addLeafTo(parentElement, new StyledText(text.substring(i + 1, j), smallerFontAtts), leafList);
 							if (j < text.length())
 								// Recursively handle the rest of the text
 								addLeavesTo(parentElement, new StyledText(text.substring(j), styledText.atts), leafList);
@@ -322,15 +325,15 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		else {
 			String text = styledText.text;
 			String[] words = getCapsWords();
-			for (int w = 0; w < words.length; w++) {
-				int index = text.indexOf(words[w]);
+			for (String word : words) {
+				int index = text.indexOf(word);
 				if (index >= 0) {
 					SimpleAttributeSet smallerFontAtts = getSmallerAtts(styledText.atts);
 					if (index > 0)
-						addLeavesTo(parentElement, new StyledText(text.substring(0, index+1), styledText.atts), leafList);
-					addLeafTo(parentElement, new StyledText(words[w].substring(1), smallerFontAtts), leafList);
-					if (index + words[w].length() < text.length())
-						addLeavesTo(parentElement, new StyledText(text.substring(index + words[w].length()), styledText.atts), leafList);
+						addLeavesTo(parentElement, new StyledText(text.substring(0, index + 1), styledText.atts), leafList);
+					addLeafTo(parentElement, new StyledText(word.substring(1), smallerFontAtts), leafList);
+					if (index + word.length() < text.length())
+						addLeavesTo(parentElement, new StyledText(text.substring(index + word.length()), styledText.atts), leafList);
 					return;
 				}
 			}
@@ -400,6 +403,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	}
 
 	/** Copied from DefaultStyledDocument. */
+	@Override
 	public Element getParagraphElement(int pos) {
 		Element e = getDefaultRootElement();
 		while (!e.isLeaf()) {
@@ -411,8 +415,9 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	}
 
 	/** Copied from DefaultStyledDocument. */
+	@Override
 	public Element getCharacterElement(int pos) {
-		Element e = null;
+		Element e;
 		for (e = getDefaultRootElement(); !e.isLeaf(); ) {
 			int index = e.getElementIndex(pos);
 			e = e.getElement(index);
@@ -421,6 +426,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	}
 
 	/** Copied from DefaultStyledDocument. */
+	@Override
 	public Style getLogicalStyle(int pos) {
 		Style s = null;
 		Element paragraph = getParagraphElement(pos);
@@ -433,34 +439,43 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		}
 		return s;
 	}
+	@Override
 	public void setLogicalStyle(int pos, Style s) {}
+	@Override
 	public void setParagraphAttributes(int offset, int length, AttributeSet s, boolean replace) {}
+	@Override
 	public void setCharacterAttributes(int offset, int length, AttributeSet s, boolean replace) {}
 
 	/* ********************
 	 * StyleContext methods
 	 ******************** */
 	private static StyleContext context = null;
-	public StyleContext getStyleContext() { return context; }
+	private StyleContext getStyleContext() { return context; }
 
+	@Override
 	public Style addStyle(String name, Style parent) {
 		return getStyleContext().addStyle(name, parent);
 	}
+	@Override
 	public void removeStyle(String name) {
 		getStyleContext().removeStyle(name);
 	}
+	@Override
 	public Style getStyle(String name) {
 		System.out.println("SectionDocument.getStyle(" + name + ")");
 		//Thread.currentThread().dumpStack();
 		return getStyleContext().getStyle(name);
 	}
 
+	@Override
 	public Color getForeground(AttributeSet attr) {
 		return getStyleContext().getForeground(attr);
 	}
+	@Override
 	public Color getBackground(AttributeSet attr) {
 		return getStyleContext().getBackground(attr);
 	}
+	@Override
 	public Font getFont(AttributeSet attr) {
 		return getStyleContext().getFont(attr);
 	}
@@ -474,33 +489,33 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	/**
 	 * Methods to create and retrieve common Styles.
 	 */
-	public Style getRootStyle() {
+	private Style getRootStyle() {
 		return getStyle(StyleContext.DEFAULT_STYLE);
 	}
 
-	public static interface FontUser {
-		public void fontChanged(Font f, int smallerFontSize);
+	public interface FontUser {
+		void fontChanged(Font f, int smallerFontSize);
 	}
 	
-	private static List<FontUser> fontUsers = new LinkedList<FontUser>();
-	private static List<Component> componentFontUsers = new LinkedList<Component>();
-	public static void addFontUser(FontUser fu) {
+	private static List<FontUser> fontUsers = new LinkedList<>();
+	private static List<Component> componentFontUsers = new LinkedList<>();
+	static void addFontUser(FontUser fu) {
 		if (!fontUsers.contains(fu))
 			fontUsers.add(fu);
 	}
 	public static void removeFontUser(FontUser fu) {
 		fontUsers.remove(fu);
 	}
-	public static void addComponentFontUser(Component c) {
+	static void addComponentFontUser(Component c) {
 		if (!componentFontUsers.contains(c))
 			componentFontUsers.add(c);
 	}
-	public static void removeComponentFontUser(Component c) {
+	static void removeComponentFontUser(Component c) {
 		componentFontUsers.remove(c);
 	}
-	
+
 	@SuppressWarnings("deprecation")
-	public static void setPreferredFont(Font f, int size) {
+	static void setPreferredFont(Font f, int size) {
 		if (f.getFamily().equals(preferredFont.getFamily()) &&
 			f.getSize() == preferredFont.getSize() &&
 			smallerFontSize == size)
@@ -516,11 +531,11 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		// This call is deprecated. So sue me.
 		FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(preferredFont);
 		fontAlignment = ((float)fm.getLeading()/2 + fm.getAscent()) / fm.getHeight();
-		
-		for (Iterator<Component> i = componentFontUsers.iterator(); i.hasNext(); )
-			i.next().setFont(preferredFont);
-		for (Iterator<FontUser> i = fontUsers.iterator(); i.hasNext(); )
-			i.next().fontChanged(preferredFont, smallerFontSize);
+
+		for (Component componentFontUser : componentFontUsers)
+			componentFontUser.setFont(preferredFont);
+		for (FontUser fontUser : fontUsers)
+			fontUser.fontChanged(preferredFont, smallerFontSize);
 		
 		// Save the chosen font
 		Properties props = new Properties();
@@ -568,7 +583,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		return s;
 	}
 
-	public Style getTableStyle() {
+	Style getTableStyle() {
 		Style s = getStyle("Table");
 		if (s == null) {
 			s = addStyle("Table", null);
@@ -590,7 +605,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		return s;
 	}
 
-	public RootElement createRootElement() {
+	RootElement createRootElement() {
 		if (rootNode == null) {
 			rootNode = new RootElement();
 			return rootNode;
@@ -602,21 +617,24 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	}
 
 	public class RootElement extends Branch  {
-		public RootElement() {
+		RootElement() {
 			super(null, getRootStyle());
 			addAttribute(Node.ViewTypeAttribute, Node.BoxYViewType);
 		}
 
+		@Override
 		public String getName() {
 			return AbstractDocument.SectionElementName;
 		}
 	}
 
 
+	@Override
 	protected SectionDocument.Branch createBranchElement(Element parent, AttributeSet a) {
 		return new Branch(parent, a);
 	}
 
+	@Override
 	protected Element createLeafElement(Element parent, AttributeSet a, int p1, int p2) {
 		return new ContentElement(parent, a, p1, p2);
 	}
@@ -625,14 +643,14 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	 * Our subclass of BranchElement.
 	 */
 	public class Branch extends BranchElement {
-		public Branch(Element parent, AttributeSet a) {
+		Branch(Element parent, AttributeSet a) {
 			super(parent, a);
 		}
 
 		/**
 		 * Add some purely textual content (a leaf) to this branch.
 		 */
-		public Element addLeaf(String text, AttributeSet a) {
+		Element addLeaf(String text, AttributeSet a) {
 			int startOffset = getLength();
 			addContent(text);
 			Element leaf = createLeafElement(this, a, startOffset, getLength());
@@ -653,7 +671,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		}
 
 		public Element[] getLeaves() {
-			List<Element> leaves = new ArrayList<Element>(getElementCount());
+			List<Element> leaves = new ArrayList<>(getElementCount());
 			int count = getElementCount();
 			for (int i = 0; i < count; i++) {
 				Element child = getElement(i);
@@ -663,7 +681,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			Element[] result = new Element[leaves.size()];
 			return leaves.toArray(result);
 		}
-		
+
 		public String toString() {
 			String result = "Branch(" + getName() + ") " + getStartOffset() + "," +
 			getEndOffset();
@@ -684,7 +702,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	public class ContentElement extends AbstractElement {
 		private transient int start, end;
 
-		public ContentElement(Element parent, AttributeSet a, int offs0, int offs1) {
+		ContentElement(Element parent, AttributeSet a, int offs0, int offs1) {
 			super(parent, a);
 			start = offs0;
 			end = offs1;
@@ -725,9 +743,12 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			return "ContentElement(" + getName() + ") " + start + "," + end + "\n";
 		}
 
+		@Override
 		public int getStartOffset() { return start; }
+		@Override
 		public int getEndOffset() { return end; }
 
+		@Override
 		public String getName() {
 			String nm = super.getName();
 			if (nm == null) {
@@ -736,11 +757,17 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			return nm;
 		}
 
+		@Override
 		public int getElementIndex(int pos) { return -1; }
+		@Override
 		public Element getElement(int index) { return null; }
+		@Override
 		public int getElementCount()  { return 0; }
+		@Override
 		public boolean isLeaf() { return true; }
+		@Override
 		public boolean getAllowsChildren() { return false; }
+		@Override
 		public java.util.Enumeration children() { return null; }
 
 		// --- serialization (may as well copy these methods) ------------
@@ -759,13 +786,12 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		}
 	}
 
-	protected void fireChangeEvents(Element[] es) {
-		for (int i = 0; i < es.length; i++) {
-			Element e = es[i];
+	void fireChangeEvents(Element[] es) {
+		for (Element e : es) {
 			fireChangeEvent(e);
 		}
 	}
-	protected void fireChangeEvent(Element e) {
+	private void fireChangeEvent(Element e) {
 		if (e.isLeaf()) {
 			int start = e.getStartOffset();
 			DefaultDocumentEvent evt = new DefaultDocumentEvent(start, e.getEndOffset() - start, DefaultDocumentEvent.EventType.CHANGE);

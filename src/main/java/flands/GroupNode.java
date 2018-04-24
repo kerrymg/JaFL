@@ -2,7 +2,6 @@ package flands;
 
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -21,19 +20,21 @@ import org.xml.sax.Attributes;
  */
 public class GroupNode extends ActionNode implements Executable, ExecutableGrouper {
 	public static final String ElementName = "group";
-	private List<Executable> execChildren = new ArrayList<Executable>();
+	private List<Executable> execChildren = new ArrayList<>();
 	private TextNode textNode = null;
 	private boolean forced;
 
-	public GroupNode(Node parent) {
+	GroupNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public ExecutableGrouper getExecutableGrouper() {
 		return this;
 	}
 
+	@Override
 	protected void addChild(Node child) {
 		/*if (child instanceof ActionNode)
 			actionChildren.add((ActionNode)child);
@@ -47,11 +48,13 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 		super.addChild(child);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		forced = getBooleanValue(atts, "force", false);
 		super.init(atts);
 	}
 
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0)
 			return;
@@ -61,8 +64,10 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 		addEnableElements(leaves);
 	}
 
-	public boolean hideChildContent() { return true; }
-	
+	@Override
+    public boolean hideChildContent() { return true; }
+
+	@Override
 	public boolean handleEndTag() {
 		if (textNode != null) {
 			Element[] textLeaves = textNode.getLeaves();
@@ -76,21 +81,22 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 	}
 
 	private boolean childCallingParent = false;
+	@Override
 	public boolean isEnabled() {
 		if (childCallingParent)
 			return true;
 		
 		ActionNode queryNode = currentNode;
 		if (queryNode == null && execChildren.size() > 0) {
-			for (int i = 0; i < execChildren.size(); i++) {
-				if (execChildren.get(i) instanceof ActionNode) {
-					queryNode = (ActionNode)execChildren.get(i);
+			for (Executable execChild : execChildren) {
+				if (execChild instanceof ActionNode) {
+					queryNode = (ActionNode) execChild;
 					break;
 				}
 			}
 		}
 		//queryNode = actionChildren.get(0);
-		
+
 		if (queryNode != null) {
 			System.out.println("GroupNode.isEnabled() called, current child=" + execChildren.indexOf(queryNode));
 			childCallingParent = true;
@@ -103,22 +109,22 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 				setEnabled(result);
 			return result;
 		}
-		
+
 		return enabled;
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper eg) {
 		System.out.println("GroupNode.execute() called");
 		if (execChildren.size() > 0) {
 			// Start executing each of our children
 			// This will most likely enable the first only, which is
 			// blocking until actionPerformed is called.
-			for (int i = 0; i < execChildren.size(); i++) {
-				Executable e = execChildren.get(i);
+			for (Executable e : execChildren) {
 				if (e instanceof ActionNode) {
-					currentNode = (ActionNode)e;
+					currentNode = (ActionNode) e;
 					UndoManager.getCurrent().add(new ExecutableWrapper(currentNode));
-					((Executable)currentNode).execute(this); // don't care about result
+					((Executable) currentNode).execute(this); // don't care about result
 					if (currentNode.isEnabled() || !forced) {
 						isEnabled(); // trigger an evaluation of enabled state
 						return !forced; // forced means we don't allow execution to continue
@@ -147,7 +153,8 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 
 		return true;
 	}
-	
+
+	@Override
 	public void resetExecute() {
 		//if (runner != null)
 		//	runner.resetExecute();
@@ -155,25 +162,27 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 	}
 
 	private boolean doingAction = false;
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (doingAction) return; // currently not used
-		
+
 		if (currentNode == null || !currentNode.isEnabled()) {
 			setEnabled(false);
 			return;
 		}
-		
+
 		boolean continues = currentNode.doGroupAction(this);
 		if (!continues)
 			// Child didn't continue execution - we'll do it manually
 			continueExecution((Executable)currentNode, false);
 	}
 
+	@Override
 	protected String getTipText() {
 		if (currentNode == null || !currentNode.isEnabled())
 			return null;
-		
-		List<String> lines = new LinkedList<String>();
+
+		List<String> lines = new LinkedList<>();
 		int index = execChildren.indexOf(currentNode);
 		for (int i = index; i < execChildren.size(); i++) {
 			Executable e = execChildren.get(i);
@@ -192,9 +201,9 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 		else if (lines.size() == 1)
 			return lines.get(0);
 		else {
-			StringBuffer sb = new StringBuffer("Do the following:<ul>");
-			for (Iterator<String> i = lines.iterator(); i.hasNext(); )
-				sb.append("<li>").append(i.next()).append("</li>");
+			StringBuilder sb = new StringBuilder("Do the following:<ul>");
+			for (String line : lines)
+				sb.append("<li>").append(line).append("</li>");
 			sb.append("</ul>");
 			return sb.toString();
 		}
@@ -205,15 +214,18 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 	 * If we want to track which is the 'current' node, especially after an undo,
 	 * we need to keep track of child execution ourselves.
 	 ************************* */
+	@Override
 	public void addExecutable(Executable e) {
 		execChildren.add(e);
 	}
 
+	@Override
 	public void addIntermediateNode(Node n) {
 		System.out.println("GroupNode.addIntermediateNode(" + n + ") called");
 	}
 
 	private ActionNode currentNode = null;
+	@Override
 	public void continueExecution(Executable eDone, boolean inSeparateThread) {
 		separateThread = inSeparateThread;
 		int index = -1;
@@ -223,7 +235,7 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 			if (index < 0)
 				System.out.println("GroupNode.continueExecution(" + eDone + "): child not recognised");
 		}
-		
+
 		for (int i = index+1; i < execChildren.size(); i++) {
 			// Execute the next child
 			System.out.println("GroupNode: continuing to child " + i);
@@ -255,7 +267,7 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 				}
 			}
 		}
-		
+
 		// TODO: To catch undo events, we need to add a mock Executable at the end here.
 		// That way it gets resetExecute() called, even if it's the last child that
 		// created the undo (like, say, a DifficultyNode).
@@ -269,23 +281,26 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 	}
 
 	private boolean separateThread = false;
+	@Override
 	public boolean isSeparateThread() {
 		return separateThread;
 	}
-	
+
+	@Override
 	protected void loadProperties(Attributes props) {
 		super.loadProperties(props);
 		int childIndex = getIntValue(props, "currentChild", -1);
 		if (childIndex >= 0)
 			currentNode = (ActionNode)execChildren.get(childIndex);
 	}
-	
+
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		if (currentNode != null)
 			saveProperty(props, "currentChild", execChildren.indexOf(currentNode));
 	}
-	
+
 	/**
 	 * Wrapper around each Executable. We use this when adding children to
 	 * the UndoManager; then when resetExecute() is called we get notified.
@@ -296,13 +311,15 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 		private ExecutableWrapper(ActionNode node) {
 			this.e = (Executable)node;
 		}
-		
+
+		@Override
 		public boolean execute(ExecutableGrouper grouper) {
 			if (e == null)
 				return true;
 			return e.execute(grouper);
 		}
 
+		@Override
 		public void resetExecute() {
 			int childIndex = execChildren.size();
 			if (e != null)
@@ -315,7 +332,7 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 						currentNode = (ActionNode)execChildren.get(i);
 						break;
 					}
-				
+
 				if (currentNode == null)
 					System.err.println("GroupNode.ExecutableWrapper: couldn't find previous ActionNode");
 			}
@@ -324,7 +341,7 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 
 			if (e != null)
 				e.resetExecute();
-			
+
 			setEnabled(true);
 			// if this isn't right, GroupNode.resetExecute() will be called again
 			// and we'll be disabled.

@@ -66,7 +66,7 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 		add(new JScrollPane(textPane));
 	}
 
-	public SectionBrowser(String xmlFile) {
+	SectionBrowser(String xmlFile) {
 		this();
 
 		try {
@@ -157,7 +157,7 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 		return outerFrame;
 	}
 
-	public JDialog createDialog(Window owner, String title) {
+	JDialog createDialog(Window owner, String title) {
 		baseTitle = title;
 		if (owner instanceof Frame)
 			outerDialog = new JDialog((Frame)owner, title, true);
@@ -169,22 +169,25 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 		return outerDialog;
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		if (evt.getSource() == bookSpinner) {
 			currentBook = bookSpinner.getValue().toString();
 			Books.BookDetails b = Books.getCanon().getBook(currentBook);
 			if (sectionSpinner != null) {
-				sectionSpinner.setMinimum(Integer.valueOf(b.getLowestSection()));
-				sectionSpinner.setMaximum(Integer.valueOf(b.getHighestSection()));
+				sectionSpinner.setMinimum(b.getLowestSection());
+				sectionSpinner.setMaximum(b.getHighestSection());
 			}
 		}
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
-		if (evt.getActionCommand().equals(browseCommand)) {
+		switch (evt.getActionCommand()) {
+		case browseCommand:
 			showSection(currentBook, sectionSpinner.getValue().toString());
-		}
-		else if (evt.getActionCommand().equals(randomCommand)) {
+			break;
+		case randomCommand:
 			showRandomSection();
 			if (random == 0) {
 				if (parent == null)
@@ -194,10 +197,11 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 					randomButton.setActionCommand(closeCommand);
 				}
 			}
-		}
-		else if (evt.getActionCommand().equals(closeCommand)) {
+			break;
+		case closeCommand:
 			parent.setVisible(false);
 			parent.dispose();
+			break;
 		}
 	}
 
@@ -233,7 +237,7 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 		return false;
 	}
 
-	public boolean showSection(String book, String section) {
+	private boolean showSection(String book, String section) {
 		Books.BookDetails b = Books.getCanon().getBook(book);
 		if (b != null) {
 			InputStream in = b.getInputStream(section + ".xml");
@@ -248,7 +252,7 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 		return false;
 	}
 
-	public void showRandomSection() {
+	private void showRandomSection() {
 		String[] availableKeys = Books.getCanon().getAvailableKeys();
 		Books.BookDetails b = Books.getCanon().getBook(availableKeys[(int)(Math.random()*availableKeys.length)]);
 		System.out.println("Random book=" + b.getKey());
@@ -260,7 +264,7 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 				if (bookSpinner != null)
 					bookSpinner.setValue(b.getKey());
 				if (sectionSpinner != null)
-					sectionSpinner.setValue(Integer.valueOf(section));
+					sectionSpinner.setValue(section);
 				if (random > 0)
 					random--;
 				

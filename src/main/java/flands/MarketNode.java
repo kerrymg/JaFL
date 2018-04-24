@@ -1,7 +1,6 @@
 package flands;
 
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.text.MutableAttributeSet;
@@ -23,11 +22,12 @@ public class MarketNode extends TableNode implements Executable {
 	private String currency;
 	private LinkedList<TradeEventNode> tradeEvents;
 	
-	public MarketNode(Node parent) {
+	MarketNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		buy = getBooleanValue(atts, "buy", true);
 		sell = getBooleanValue(atts, "sell", true);
@@ -37,6 +37,7 @@ public class MarketNode extends TableNode implements Executable {
 		super.init(atts);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		findExecutableGrouper().addExecutable(this);
 		return true;
@@ -47,23 +48,28 @@ public class MarketNode extends TableNode implements Executable {
 	boolean isDefaultCurrency() { return currency == null; }
 	String getCurrency() { return currency; }
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
-		if (name.equals(HeaderNode.ElementName))
+		switch (name) {
+		case HeaderNode.ElementName:
 			n = new HeaderNode(this, buy, sell);
-		else if (name.equals(TradeNode.ElementName))
+			break;
+		case TradeNode.ElementName:
 			n = new TradeNode(this);
-		else if (name.equals(TradeEventNode.BoughtElementName) ||
-				 name.equals(TradeEventNode.SoldElementName)) {
+			break;
+		case TradeEventNode.BoughtElementName:
+		case TradeEventNode.SoldElementName:
 			if (tradeEvents == null)
-				tradeEvents = new LinkedList<TradeEventNode>();
+				tradeEvents = new LinkedList<>();
 			tradeEvents.add(new TradeEventNode(name, this));
 			n = tradeEvents.getLast();
-		}
-		else {
+			break;
+		default:
 			Item i = Item.createItem(name);
 			if (i != null)
 				n = new TradeNode(this, i);
+			break;
 		}
 
 		if (n != null) {
@@ -74,19 +80,22 @@ public class MarketNode extends TableNode implements Executable {
 			return super.createChild(name);
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		setEnabled(true);
 		return true;
 	}
 
+	@Override
 	public void resetExecute() {}
 
-	public void itemTraded(boolean bought, Item traded) {
+	void itemTraded(boolean bought, Item traded) {
 		if (tradeEvents != null)
-			for (Iterator<TradeEventNode> i = tradeEvents.iterator(); i.hasNext(); )
-				i.next().itemTraded(bought, traded);
+			for (TradeEventNode tradeEvent : tradeEvents)
+				tradeEvent.itemTraded(bought, traded);
 	}
-	
+
+	@Override
 	public void dispose() {
 		if (isSellingMarket()) {
 			// Remove all SellNodes from their Items
@@ -128,12 +137,13 @@ public class MarketNode extends TableNode implements Executable {
 		private int type = -1;
 		private boolean buy, sell;
 
-		public HeaderNode(Node parent, boolean buy, boolean sell) {
+		HeaderNode(Node parent, boolean buy, boolean sell) {
 			super(ElementName, parent);
 			this.buy = buy;
 			this.sell = sell;
 		}
 
+		@Override
 		protected MutableAttributeSet getElementStyle() {
 			SimpleAttributeSet italicAtts = new SimpleAttributeSet();
 			StyleConstants.setItalic(italicAtts, true);
@@ -141,6 +151,7 @@ public class MarketNode extends TableNode implements Executable {
 			return italicAtts;
 		}
 
+		@Override
 		public void init(Attributes atts) {
 			String val = atts.getValue("type");
 			if (val != null)
@@ -148,7 +159,7 @@ public class MarketNode extends TableNode implements Executable {
 			super.init(atts);
 
 			// Add the cells
-			String[] headers = null;
+			String[] headers;
 			if (type >= 0)
 				headers = HeaderStrings[type];
 			else {
@@ -180,6 +191,7 @@ public class MarketNode extends TableNode implements Executable {
 			}
 		}
 
+		@Override
 		protected String getElementViewType() { return RowViewType; }
 	}
 }

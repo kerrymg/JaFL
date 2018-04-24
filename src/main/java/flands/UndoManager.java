@@ -1,7 +1,6 @@
 package flands;
 
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
@@ -9,40 +8,44 @@ import java.util.LinkedList;
  * @author Jonathan Mann
  */
 public class UndoManager {
-	public static interface Creator {
-		public void undoOccurred(UndoManager undo);
+	public interface Creator {
+		void undoOccurred(UndoManager undo);
 	}
-	
+
 	public static class NullCreator implements Creator {
+		@Override
 		public void undoOccurred(UndoManager undo) {}
 	}
-	
+
 	private static UndoManager single = null;
-	public static UndoManager createNew(Creator creator) {
+	static UndoManager createNew(Creator creator) {
 		single = new UndoManager(creator);
 		return single;
 	}
-	public static UndoManager createNull() {
+	static UndoManager createNull() {
 		return createNew(new NullCreator());
 	}
 	public static UndoManager getCurrent() {
 		if (single == null)
-			return createNew(new Creator() { public void undoOccurred(UndoManager undo) {} } );
+			return createNew(new Creator() {
+				@Override
+				public void undoOccurred(UndoManager undo) {}
+			});
 		else
 			return single;
 	}
 
 	private final Creator creator;
-	private LinkedList<Executable> executables = new LinkedList<Executable>();
+	private LinkedList<Executable> executables = new LinkedList<>();
 	private int ignoreCalls = 0;
-	
+
 	private UndoManager(Creator creator) {
 		this.creator = creator;
 	}
 
 	public Creator getCreator() { return creator; }
-	
-	public void ignoreCalls(boolean b) {
+
+	void ignoreCalls(boolean b) {
 		System.out.println("UndoManager.ignoreCalls(" + b + ")");
 		if (b)
 			ignoreCalls++;
@@ -62,8 +65,8 @@ public class UndoManager {
 	}
 
 	public void undo() {
-		for (Iterator<Executable> i = executables.iterator(); i.hasNext(); )
-			i.next().resetExecute();
+		for (Executable executable : executables)
+			executable.resetExecute();
 		executables.clear();
 		creator.undoOccurred(this);
 	}

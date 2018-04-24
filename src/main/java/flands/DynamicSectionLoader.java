@@ -5,7 +5,6 @@ import java.util.LinkedList;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
-import org.xml.sax.SAXException;
 
 /**
  * Handles loading a saved section (and its working state) from XML.
@@ -21,16 +20,17 @@ public class DynamicSectionLoader implements ContentHandler {
 		}
 	}
 
-	private LinkedList<StackEntry> stack = new LinkedList<StackEntry>();
+	private LinkedList<StackEntry> stack = new LinkedList<>();
 	private SectionNode rootNode;
-	public DynamicSectionLoader(SectionNode node) {
+	DynamicSectionLoader(SectionNode node) {
 		rootNode = node;
 	}
 
 	/* *******************************
 	 * Relevant ContentHandler methods
 	 ******************************* */
-	public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
+	@Override
+	public void startElement(String uri, String localName, String qName, Attributes atts) {
 		Node childNode;
 		if (stack.isEmpty()) {
 			childNode = rootNode;
@@ -43,38 +43,48 @@ public class DynamicSectionLoader implements ContentHandler {
 		stack.addLast(new StackEntry(childNode));
 	}
 
-	public void endElement(String uri, String localName, String qName) throws SAXException {
+	@Override
+	public void endElement(String uri, String localName, String qName) {
 		stack.removeLast();
 	}
 
 	/* *********************************
 	 * Irrelevant ContentHandler methods
 	 ********************************* */
+	@Override
 	public void setDocumentLocator(org.xml.sax.Locator l) {
 		//System.out.println("setDocumentLocator(" + l + ")");
 	}
-	public void startDocument() throws SAXException {
+	@Override
+	public void startDocument() {
 		//System.out.println("startDocument()");
 	}
-	public void endDocument() throws SAXException {
+	@Override
+	public void endDocument() {
 		//System.out.println("endDocument()");
 	}
-	public void startPrefixMapping(String prefix, String uri) throws SAXException {
+	@Override
+	public void startPrefixMapping(String prefix, String uri) {
 		//System.out.println("startPrefixMapping(" + prefix + "," + uri + ")");
 	}
-	public void endPrefixMapping(String prefix) throws SAXException {
+	@Override
+	public void endPrefixMapping(String prefix) {
 		//System.out.println("endPrefixMapping(" + prefix + ")");
 	}
-	public void characters(char[] ch, int start, int length) throws SAXException {
+	@Override
+	public void characters(char[] ch, int start, int length) {
 		//System.out.println("characters(" + length + ")");
 	}
-	public void ignorableWhitespace(char[] ch, int start, int length) throws SAXException {
+	@Override
+	public void ignorableWhitespace(char[] ch, int start, int length) {
 		//System.out.println("ignorableWhitespace('" + new String(ch) + "'," + start + "," + length + ")");
 	}
-	public void processingInstruction(String target, String data) throws SAXException {
+	@Override
+	public void processingInstruction(String target, String data) {
 		//System.out.println("processingInstruction(" + target + "," + data + ")");
 	}
-	public void skippedEntity(String name) throws SAXException {
+	@Override
+	public void skippedEntity(String name) {
 		//System.out.println("skippedEntity(" + name + ")");
 	}
 }

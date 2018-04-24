@@ -12,10 +12,10 @@ import java.util.Properties;
  * @author Jonathan Mann
  */
 public interface XMLOutput {
-	public static final int OUTPUT_PROPS_STATIC = 1 << 0;
-	public static final int OUTPUT_PROPS_DYNAMIC = 1 << 1;
-	public String getXMLTag();
-	public void storeAttributes(Properties atts, int flags);
-	public Iterator<XMLOutput> getOutputChildren();
-	public void outputTo(PrintStream out, String indent, int flags) throws IOException;
+	int OUTPUT_PROPS_STATIC = 1 << 0;
+	int OUTPUT_PROPS_DYNAMIC = 1 << 1;
+	String getXMLTag();
+	void storeAttributes(Properties atts, int flags);
+	Iterator<XMLOutput> getOutputChildren();
+	void outputTo(PrintStream out, String indent, int flags) throws IOException;
 }

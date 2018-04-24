@@ -26,21 +26,23 @@ import javax.swing.JPopupMenu;
  */
 public class BlessingList extends AbstractListModel implements Loadable,
 		MouseListener, ActionListener {
-	private ArrayList<Blessing> list = new ArrayList<Blessing>();
+	private ArrayList<Blessing> list = new ArrayList<>();
 
+	@Override
 	public int getSize() {
 		return list.size();
 	}
 
-	public Blessing getBlessing(int i) {
+	private Blessing getBlessing(int i) {
 		return list.get(i);
 	}
 
+	@Override
 	public Object getElementAt(int i) {
 		return getBlessing(i).getDocument();
 	}
 
-	public void addBlessing(Blessing b) {
+	void addBlessing(Blessing b) {
 		int index = list.indexOf(b);
 		if (index >= 0 && b.isPermanent() && !getBlessing(index).isPermanent()) {
 			// Permanent blessing overrides non-permanent one
@@ -54,14 +56,14 @@ public class BlessingList extends AbstractListModel implements Loadable,
 		}
 	}
 
-	public boolean hasBlessing(Blessing b) {
+	boolean hasBlessing(Blessing b) {
 		if (b.getType() == Blessing.MATCHALL_TYPE || b.getType() == Blessing.MATCHANY_TYPE)
 			return (getSize() > 0);
 		else
 			return list.contains(b);
 	}
 
-	public boolean removeBlessing(Blessing b) {
+	boolean removeBlessing(Blessing b) {
 		System.out.println("Removing Blessing " + b.getContentString());
 		if (getSize() == 0) return true; // TODO: there may be cases where we should complain here
 		if (b.getType() == Blessing.MATCHALL_TYPE) {
@@ -99,7 +101,7 @@ public class BlessingList extends AbstractListModel implements Loadable,
 		return false;
 	}
 
-	public void removeAllBlessings(boolean removePermanent) {
+	private void removeAllBlessings(boolean removePermanent) {
 		if (removePermanent) {
 			int size = list.size();
 			if (size > 0) {
@@ -116,18 +118,18 @@ public class BlessingList extends AbstractListModel implements Loadable,
 			}
 		}
 	}
-	
-	public boolean hasAbilityBlessing(int ability) {
+
+	boolean hasAbilityBlessing(int ability) {
 		Blessing b = Blessing.getAbilityBlessing(ability);
 		return hasBlessing(b);
 	}
 
-	public void removeAbilityBlessing(int ability) {
+	void removeAbilityBlessing(int ability) {
 		Blessing b = Blessing.getAbilityBlessing(ability);
 		removeBlessing(b);
 	}
 
-	public int getDefenceBlessingBonus() {
+	int getDefenceBlessingBonus() {
 		int index = list.indexOf(Blessing.DEFENCE);
 		if (index >= 0)
 			return list.get(index).getBonus();
@@ -140,7 +142,7 @@ public class BlessingList extends AbstractListModel implements Loadable,
 
 	private JList configuredList = null;
 
-	public void configureList(JList list) {
+	void configureList(JList list) {
 		if (list.getModel() instanceof BlessingList) {
 			BlessingList oldModel = (BlessingList) list.getModel();
 			list.removeMouseListener(oldModel);
@@ -158,19 +160,24 @@ public class BlessingList extends AbstractListModel implements Loadable,
 
 	private Blessing currentBlessing = null;
 
+	@Override
 	public void mouseEntered(MouseEvent evt) {}
+	@Override
 	public void mouseExited(MouseEvent evt) {}
 
+	@Override
 	public void mousePressed(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			handlePopup(evt);
 	}
 
+	@Override
 	public void mouseReleased(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			handlePopup(evt);
 	}
 
+	@Override
 	public void mouseClicked(MouseEvent evt) {
 		if (evt.getClickCount() == 2 && currentBlessing == null) {
 			int index = getBlessingIndex(evt.getPoint());
@@ -226,13 +233,14 @@ public class BlessingList extends AbstractListModel implements Loadable,
 		menu.show(configuredList, evt.getX(), evt.getY());
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		useBlessing(currentIndex);
 		currentIndex = -1;
 		currentBlessing = null;
 	}
 
-	public static boolean canUseBlessing(Blessing b) {
+	static boolean canUseBlessing(Blessing b) {
 		UndoManager.Creator currentUndoCreator = UndoManager.getCurrent().getCreator();
 		switch (b.getType()) {
 		case Blessing.ABILITY_TYPE:
@@ -282,10 +290,12 @@ public class BlessingList extends AbstractListModel implements Loadable,
 		}
 	}
 
+	@Override
 	public String getFilename() {
 		return "blessings.dat";
 	}
 
+	@Override
 	public boolean loadFrom(InputStream in) throws IOException {
 		DataInputStream din = new DataInputStream(in);
 		int count = din.readByte();
@@ -295,6 +305,7 @@ public class BlessingList extends AbstractListModel implements Loadable,
 		return true;
 	}
 
+	@Override
 	public boolean saveTo(OutputStream out) throws IOException {
 		DataOutputStream dout = new DataOutputStream(out);
 		dout.writeByte(getSize());

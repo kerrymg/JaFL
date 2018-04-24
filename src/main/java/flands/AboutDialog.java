@@ -30,7 +30,7 @@ public class AboutDialog extends JDialog implements ActionListener {
 	};
 
 	private static String title = Resources.GuiText("AboutTitle");
-	public AboutDialog(Frame parent) {
+	AboutDialog(Frame parent) {
 		super(parent, title, true);
 		init(parent);
 	}
@@ -74,6 +74,7 @@ public class AboutDialog extends JDialog implements ActionListener {
 		setLocationRelativeTo(parent);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		setVisible(false);
 	}

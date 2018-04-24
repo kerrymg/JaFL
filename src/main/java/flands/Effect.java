@@ -25,26 +25,26 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class Effect implements Comparable<Effect>, XMLOutput {
-	public static final int TYPE_AURA = 0;
-	public static final int TYPE_WIELDED = 1;
-	public static final int TYPE_USE = 2;
+	static final int TYPE_AURA = 0;
+	static final int TYPE_WIELDED = 1;
+	static final int TYPE_USE = 2;
 	public static final int TYPE_TOOL = 3;
 	// order is relevant - used to sort effects when applying in EffectSet
 	// TODO: Make sure tool effects are applied in right order when negative effects are in place
 
 	int type = TYPE_AURA; // by default
 	protected String description = null;
-	protected StyledTextList styledDescription = null;
+	StyledTextList styledDescription = null;
 	protected Effect next = null;
 
 	public int getType() { return type; }
 	public void setType(int type) { this.type = type; }
 	public String getSimpleDescription() { return description; }
-	public void setStyledDescription(StyledTextList text) {
+	void setStyledDescription(StyledTextList text) {
 		styledDescription = text;
 	}
 
-	public static Effect createEffect(Attributes atts) {
+	static Effect createEffect(Attributes atts) {
 		String type = atts.getValue("type");
 		String abilityStr = atts.getValue("ability");
 		int ability = -1;
@@ -129,13 +129,13 @@ public class Effect implements Comparable<Effect>, XMLOutput {
 	/**
 	 * Get the next effect 
 	 */
-	public Effect nextEffect() { return next; }
+	Effect nextEffect() { return next; }
 
 	/**
 	 * Get the first effect of the given type in the effect chain.
 	 * Returns <code>this</code>, if the type matches.
 	 */
-	public Effect firstEffect(int type) {
+	Effect firstEffect(int type) {
 		Effect e = this;
 		while (e != null) {
 			if (e.getType() == type)
@@ -145,7 +145,7 @@ public class Effect implements Comparable<Effect>, XMLOutput {
 		return e;
 	}
 
-	public void addEffect(Effect e) {
+	void addEffect(Effect e) {
 		addEffect(e, false);
 	}
 
@@ -156,6 +156,7 @@ public class Effect implements Comparable<Effect>, XMLOutput {
 			next.addEffect(e, cumulative);
 	}
 
+	@Override
 	public int compareTo(Effect e) {
 		if (this == e) return 0;
 		if (description != null && e.description != null)
@@ -164,7 +165,7 @@ public class Effect implements Comparable<Effect>, XMLOutput {
 			return type - e.type;
 		return -1;
 	}
-	
+
 	protected void saveProperties(Properties atts) {
 		String typeString = null;
 		switch (type) {
@@ -187,37 +188,41 @@ public class Effect implements Comparable<Effect>, XMLOutput {
 		if (description != null)
 			atts.setProperty("text", description);
 	}
-	
+
+	@Override
 	public String getXMLTag() { return "effect"; }
+	@Override
 	public void storeAttributes(Properties atts, int flags) {
 		saveProperties(atts);
 	}
-	
+
 	protected void addOutputChildren(List<XMLOutput> l) {
 		if (styledDescription != null)
 			l.add(styledDescription);
 	}
-	
+
+	@Override
 	public Iterator<XMLOutput> getOutputChildren() {
-		List<XMLOutput> l = new LinkedList<XMLOutput>();
+		List<XMLOutput> l = new LinkedList<>();
 		addOutputChildren(l);
 		return l.iterator();
 	}
-	
+
+	@Override
 	public void outputTo(PrintStream out, String indent, int flags) throws IOException {
 		Node.output(this, out, indent, flags);
 	}
-	
+
 	public Effect copy() {
 		Effect e = createCopy();
 		copyFieldsTo(e);
 		return e;
 	}
-	
+
 	protected Effect createCopy() {
 		return new Effect();
 	}
-	
+
 	protected void copyFieldsTo(Effect e) {
 		e.type = type;
 		e.description = description;

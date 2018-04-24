@@ -1,7 +1,6 @@
 package flands;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -13,57 +12,57 @@ import java.util.Set;
  * 
  * @author Jonathan Mann
  */
-public class ActiveRuleset {
-	public static String SARVEN = "Sarven";
-	
+class ActiveRuleset {
+	static String SARVEN = "Sarven";
+
 	private Set<String> fixedRules;
 	private Set<String> tempRules;
-	
-	public ActiveRuleset() {
-		fixedRules = new HashSet<String>();
-		tempRules = new HashSet<String>();
+
+	ActiveRuleset() {
+		fixedRules = new HashSet<>();
+		tempRules = new HashSet<>();
 	}
-	
-	public boolean hasRule(String rule) {
+
+	boolean hasRule(String rule) {
 		rule = rule.trim().toLowerCase();
 		return fixedRules.contains(rule) || tempRules.contains(rule);
 	}
-	
-	public void addFixedRule(String rule) {
+
+	private void addFixedRule(String rule) {
 		fixedRules.add(rule.trim().toLowerCase());
 	}
-	
-	public void addFixedRules(String rules) {
+
+	void addFixedRules(String rules) {
 		if (rules == null) return;
 		String[] rs = rules.split(",");
-		for (int r = 0; r < rs.length; r++)
-			addFixedRule(rs[r]);
+		for (String r : rs)
+			addFixedRule(r);
 	}
-	
+
 	/**
 	 * Get a comma-separated list of the fixed rules (for output into a saved game).
 	 */
-	public String getFixedRules() {
-		StringBuffer sb = new StringBuffer();
-		for (Iterator<String> i = fixedRules.iterator(); i.hasNext(); ) {
+	String getFixedRules() {
+		StringBuilder sb = new StringBuilder();
+		for (String fixedRule : fixedRules) {
 			if (sb.length() > 0) sb.append(',');
-			sb.append(i.next());
+			sb.append(fixedRule);
 		}
 		return sb.toString();
 	}
-	
-	public void addTempRule(String rule) {
+
+	private void addTempRule(String rule) {
 		tempRules.add(rule.trim().toLowerCase());
 	}
-	
-	public void addTempRules(String rules) {
+
+	void addTempRules(String rules) {
 		if (rules == null) return;
 		String[] rs = rules.split(",");
-		for (int r = 0; r < rs.length; r++)
-			addTempRule(rs[r]);
+		for (String r : rs)
+			addTempRule(r);
 	}
-	
-	public void clearTempRules() {
+
+	void clearTempRules() {
 		tempRules.clear();
 	}
 }

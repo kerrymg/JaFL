@@ -19,9 +19,9 @@ import javax.swing.text.StyledDocument;
  * Code shamelessly ripped off from {@link javax.swing.DefaultListCellRenderer}.
  */
 public class DocumentCellRenderer extends JTextPane implements ListCellRenderer {
-	protected static Border noFocusBorder;
+	private static Border noFocusBorder;
 
-	public DocumentCellRenderer() {
+	DocumentCellRenderer() {
 		super();
 		if (noFocusBorder == null)
 			noFocusBorder = new EmptyBorder(1, 1, 1, 1);
@@ -34,6 +34,7 @@ public class DocumentCellRenderer extends JTextPane implements ListCellRenderer 
 		return (selected ? list.getSelectionBackground() : list.getBackground());
 	}
 
+	@Override
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		setDocument((StyledDocument)value);
 		setBackground(getBackground(list, index, isSelected));
@@ -61,7 +62,8 @@ public class DocumentCellRenderer extends JTextPane implements ListCellRenderer 
 		return this;
 	}
 
-	public boolean isOpaque() { 
+	@Override
+	public boolean isOpaque() {
 		Color back = getBackground();
 		Component p = getParent(); 
 		if (p != null)
@@ -72,27 +74,43 @@ public class DocumentCellRenderer extends JTextPane implements ListCellRenderer 
 		return !colorMatch && super.isOpaque(); 
 	}
 
+	@Override
 	public void validate() {}
+	@Override
 	public void invalidate() {}
+	@Override
 	public void repaint() {}
+	@Override
 	public void revalidate() {}
+	@Override
 	public void repaint(long tm, int x, int y, int width, int height) {}
+	@Override
 	public void repaint(Rectangle r) {}
+	@Override
 	protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-		if (propertyName=="document") {
+		if (propertyName.equals("document")) {
 			super.firePropertyChange(propertyName, oldValue, newValue);
 		}
 	}
+	@Override
 	public void firePropertyChange(String propertyName, byte oldValue, byte newValue) {}
+	@Override
 	public void firePropertyChange(String propertyName, char oldValue, char newValue) {}
+	@Override
 	public void firePropertyChange(String propertyName, short oldValue, short newValue) {}
+	@Override
 	public void firePropertyChange(String propertyName, int oldValue, int newValue) {}
+	@Override
 	public void firePropertyChange(String propertyName, long oldValue, long newValue) {}
+	@Override
 	public void firePropertyChange(String propertyName, float oldValue, float newValue) {}
+	@Override
 	public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
+	@Override
 	public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {}
 
 	private static int SafeMinHeight = -1;
+	@Override
 	public Dimension getPreferredSize() {
 		Dimension d = super.getPreferredSize();
 		if (d.height > 5 && SafeMinHeight == -1)
@@ -101,5 +119,5 @@ public class DocumentCellRenderer extends JTextPane implements ListCellRenderer 
 			d.height = SafeMinHeight;
 		// System.out.println("Cell preferred height: " + d.height);
 		return d;
-	}	
+	}
 }

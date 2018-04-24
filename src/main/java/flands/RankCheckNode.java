@@ -2,7 +2,6 @@ package flands;
 
 
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -29,12 +28,13 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 	private List<AdjustNode> adjustments = null;
 
 	public static final String ElementName = "rankcheck";
-	static final String AbilityTypeVar = DifficultyNode.AbilityTypeVar;
-	public RankCheckNode(Node parent) {
+	private static final String AbilityTypeVar = DifficultyNode.AbilityTypeVar;
+	RankCheckNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		add = getIntValue(atts, "add", 0);
 		dice = getIntValue(atts, "dice", 1);
@@ -43,6 +43,7 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 		setVariableValue(AbilityTypeVar, Adventurer.ABILITY_RANK);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (add != 0) saveProperty(props, "add", add);
@@ -50,8 +51,9 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 		if (var != null) props.setProperty("var", var);
 		if (!force) saveProperty(props, "force", false);
 	}
-	
+
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0)
 			return;
@@ -69,6 +71,7 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 	}
 
 	private static final String[] numberStrings = {"zero", "one", "two", "three", "four", "five", "six"};
+	@Override
 	public boolean handleEndTag() {
 		if (!hadContent) {
 			String text;
@@ -92,16 +95,17 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 			hadContent = true;
 		}
 		findExecutableGrouper().addExecutable(this);
-		
+
 		return super.handleEndTag();
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
 		if (name.equals(AdjustNode.ElementName)) {
 			AdjustNode an = new AdjustNode(this);
 			if (adjustments == null)
-				adjustments = new LinkedList<AdjustNode>();
+				adjustments = new LinkedList<>();
 			adjustments.add(an);
 			n = an;
 		}
@@ -115,16 +119,14 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 	}
 
 	private boolean callContinue = false;
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (result < 0) {
 			// Set up for user to roll
 			System.out.println("RankCheckNode: ready to roll!");
 			setEnabled(true);
 			callContinue = true;
-			if (force)
-				return false;
-			else
-				return true;
+			return !force;
 		}
 		else {
 			// Already rolled
@@ -133,6 +135,7 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 		}
 	}
 
+	@Override
 	public void resetExecute() {
 		removeVariable(var);
 		result = -1;
@@ -140,6 +143,7 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 	}
 
 	private Roller roller = null;
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (roller != null) return;
 
@@ -152,16 +156,17 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 		roller.startRolling();
 	}
 
-	protected int getAdjustment() {
+	private int getAdjustment() {
 		int delta = add;
 		if (adjustments != null) {
-			for (Iterator<AdjustNode> i = adjustments.iterator(); i.hasNext(); )
-				delta += i.next().getAdjustment();
+			for (AdjustNode adjustment : adjustments)
+				delta += adjustment.getAdjustment();
 			System.out.println("Adjustment for rankcheck=" + delta);
 		}
 		return delta;
 	}
-	
+
+	@Override
 	public void rollerFinished(Roller r) {
 		if (roller == r) {
 			// Remember, it's good to score <= to your rank
@@ -175,21 +180,25 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 		}
 	}
 
+	@Override
 	public void undoOccurred(UndoManager undo) {
 		// Pretend like we've just been called by the cached grouper...
 		execute(findExecutableGrouper());
 	}
-	
+
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		callContinue = getBooleanValue(atts, "continue", false);
 	}
-	
+
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		saveProperty(props, "continue", callContinue);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		String text = "Roll " + getDiceText(dice);
 		int delta = getAdjustment();

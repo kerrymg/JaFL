@@ -1,7 +1,6 @@
 package flands;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,9 +20,9 @@ public class Flag {
 	 * letting it be saved with the rest of the game data.
 	 */
 	public static class Set {
-		private Map<String,Flag> flagMap = new HashMap<String,Flag>();
-		
-		public Flag getFlag(String name) {
+		private Map<String,Flag> flagMap = new HashMap<>();
+
+		Flag getFlag(String name) {
 			Flag f = flagMap.get(name);
 			if (f == null) {
 				f = new Flag(name);
@@ -31,7 +30,7 @@ public class Flag {
 			}
 			return f;
 		}
-		
+
 		// Two shortcut methods
 		public boolean getState(String name) {
 			return getFlag(name).getState();
@@ -39,15 +38,15 @@ public class Flag {
 		public void setState(String name, boolean b) {
 			getFlag(name).setState(b);
 		}
-		
+
 		private void removeFlag(String name) {
 			flagMap.remove(name);
 		}
-		
+
 		public void addListener(String name, Listener l) {
 			getFlag(name).addListener(l);
 		}
-		
+
 		public void removeListener(String name, Listener l) {
 			Flag f = flagMap.get(name);
 			if (f != null) {
@@ -55,7 +54,7 @@ public class Flag {
 					removeFlag(name);
 			}
 		}
-		
+
 		// TODO: Complete the following methods, make them part of the Flag.Map inner class
 		// which is held by Adventurer, change all static refs to Flag to refs to this
 		// Adventurer.getFlags() instance.
@@ -63,14 +62,13 @@ public class Flag {
 			int flagCount = flagMap.size();
 			props.setProperty("FlagCount", Integer.toString(flagCount));
 			flagCount = 0;
-			for (Iterator<Entry<String,Flag> > i = flagMap.entrySet().iterator(); i.hasNext(); ) {
-				Entry<String,Flag> e = i.next();
+			for (Entry<String, Flag> e : flagMap.entrySet()) {
 				props.setProperty("FlagName" + flagCount, e.getKey());
 				props.setProperty("FlagValue" + flagCount, e.getValue().state ? "1" : "0");
 				flagCount++;
 			}
 		}
-		
+
 		public void loadFrom(Properties props) {
 			int flagCount = Integer.parseInt(props.getProperty("FlagCount", "0"));
 			flagMap.clear();
@@ -81,11 +79,11 @@ public class Flag {
 			}
 		}
 	}
-	
-	public static interface Listener {
-		public void flagChanged(String name, boolean state);
+
+	public interface Listener {
+		void flagChanged(String name, boolean state);
 	}
-	
+
 	private final String name;
 	private boolean state;
 	private LinkedList<Listener> listeners;
@@ -93,7 +91,7 @@ public class Flag {
 	public Flag(String name) {
 		this.name = name;
 		this.state = false;
-		listeners = new LinkedList<Listener>();
+		listeners = new LinkedList<>();
 	}
 
 	public String getName() { return name; }
@@ -101,8 +99,8 @@ public class Flag {
 	public void setState(boolean b) {
 		if (state != b) {
 			state = b;
-			for (Iterator<Listener> i = listeners.iterator(); i.hasNext(); )
-				i.next().flagChanged(name, b);
+			for (Listener listener : listeners)
+				listener.flagChanged(name, b);
 		}
 	}
 

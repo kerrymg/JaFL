@@ -19,7 +19,7 @@ import javax.swing.JScrollPane;
  */
 public class ImageWindow extends JDialog {
 	private JLabel imageLabel;
-	
+
 	public ImageWindow(Frame f, Image i, String title) {
 		super(f, title);
 		init(i);
@@ -47,7 +47,7 @@ public class ImageWindow extends JDialog {
 		setLocationRelativeTo(getOwner());
 	}
 
-	public void setImage(Image i, String title) {
+	void setImage(Image i, String title) {
 		imageLabel.setIcon(new ImageIcon(i));
 		setTitle(title);
 	}

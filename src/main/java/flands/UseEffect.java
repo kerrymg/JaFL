@@ -22,8 +22,8 @@ public class UseEffect extends Effect implements ExecutableGrouper {
 	 * this pattern should be used. This pattern will then be replaced by the
 	 * number of charges left.
 	 */
-	public static final String UsesPattern = "{uses}";
-	
+	private static final String UsesPattern = "{uses}";
+
 	private int uses = -1;
 	private int ability = -1;
 	private boolean disposable = true;
@@ -32,11 +32,12 @@ public class UseEffect extends Effect implements ExecutableGrouper {
 	private List<ActionNode> actions = null;
 
 	private UseEffect() { super(); }
-	
-	public UseEffect(Attributes atts) {
+
+	UseEffect(Attributes atts) {
 		init(atts);
 	}
-	
+
+	@Override
 	protected void init(Attributes atts) {
 		super.init(atts);
 		String val = atts.getValue("ability");
@@ -55,6 +56,7 @@ public class UseEffect extends Effect implements ExecutableGrouper {
 		disposable = Node.getBooleanValue(atts, "disposable", disposable);
 	}
 
+	@Override
 	protected void saveProperties(Properties atts) {
 		super.saveProperties(atts);
 		if (ability >= 0)
@@ -66,33 +68,32 @@ public class UseEffect extends Effect implements ExecutableGrouper {
 			atts.setProperty("verb", verb);
 		Node.saveProperty(atts, "disposable", disposable);
 	}
-	
+
+	@Override
 	public int getType() { return TYPE_USE; }
 
 	public String getVerb() { return (verb == null ? "Use" : verb); }
 
-	public void addActionNode(ActionNode n) {
+	void addActionNode(ActionNode n) {
 		if (actions == null)
-			actions = new LinkedList<ActionNode>();
+			actions = new LinkedList<>();
 		actions.add(n);
 	}
-	
-	public boolean canUse() {
+
+	boolean canUse() {
 		if (blessing != null) {
-			if (!BlessingList.canUseBlessing(blessing))
-				return false;
+			return BlessingList.canUseBlessing(blessing);
 		}
 		return true;
 	}
-	
+
 	public boolean use() {
 		if (actions != null) {
 			System.out.println("Trying to use effect " + this);
-			for (Iterator<ActionNode> i = actions.iterator(); i.hasNext(); ) {
-				ActionNode action = i.next();
+			for (ActionNode action : actions) {
 				if (action instanceof Executable) {
 					System.out.println("Executing action first");
-					((Executable)action).execute(this);
+					((Executable) action).execute(this);
 				}
 				System.out.println("Performing action now");
 				action.actionPerformed(null);
@@ -124,7 +125,8 @@ public class UseEffect extends Effect implements ExecutableGrouper {
 			+ uses
 			+ text.substring(index+UsesPattern.length());
 	}
-	
+
+	@Override
 	public boolean addTo(StyledTextList textList, AttributeSet atts) {
 		if (styledDescription != null) {
 			if (uses > 0)
@@ -152,25 +154,31 @@ public class UseEffect extends Effect implements ExecutableGrouper {
 
 		return true;
 	}
-	
+
+	@Override
 	protected void addOutputChildren(List<XMLOutput> l) {
 		super.addOutputChildren(l);
 		if (actions != null) {
-			for (Iterator<ActionNode> i = actions.iterator(); i.hasNext(); )
-				l.add(i.next());
+			l.addAll(actions);
 		}
 	}
-	
+
 	/* ExecutableGrouper methods */
+	@Override
 	public boolean isSeparateThread() { return false; }
+	@Override
 	public void addExecutable(Executable e) {}
+	@Override
 	public void addIntermediateNode(Node n) {}
+	@Override
 	public void continueExecution(Executable e, boolean separateThread) {}
-	
+
+	@Override
 	protected Effect createCopy() {
 		return new UseEffect();
 	}
-	
+
+	@Override
 	protected void copyFieldsTo(Effect e) {
 		UseEffect ue = (UseEffect)e;
 		ue.uses = uses;

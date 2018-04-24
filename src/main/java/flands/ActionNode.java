@@ -4,7 +4,6 @@ package flands;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -32,6 +31,7 @@ public abstract class ActionNode extends Node implements ActionListener {
 		super(name, parent);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		tooltip = atts.getValue("tip");
 		
@@ -40,15 +40,16 @@ public abstract class ActionNode extends Node implements ActionListener {
 	
 	public void addActionListener(ActionListener l) {
 		if (listeners == null)
-			listeners = new LinkedList<ActionListener>();
+			listeners = new LinkedList<>();
 		listeners.add(l);
 	}
 
-	public void removeActionListener(ActionListener l) {
+	void removeActionListener(ActionListener l) {
 		if (listeners != null)
 			listeners.remove(l);
 	}
 
+	@Override
 	protected void enabledStateChange() {
 		super.enabledStateChange();
 		if (highlighted)
@@ -56,20 +57,21 @@ public abstract class ActionNode extends Node implements ActionListener {
 	}
 
 	public boolean isHighlighted() { return highlighted; }
-	public void setHighlighted(boolean b) {
+	void setHighlighted(boolean b) {
 		if (highlighted != b) {
 			highlighted = b;
 			if (isEnabled())
 				doHighlight();
 		}
 	}
-	
+
+	@Override
 	public void enableAll() {
 		super.enableAll();
 		setHighlighted(false);
 	}
 
-	protected boolean gotHighlightElements() { return (highlightElements != null); }
+	boolean gotHighlightElements() { return (highlightElements != null); }
 
 	/** Set the element to be highlighted when the mouse is over the hyperlinked text. */
 	public void setHighlightElement(Element e) {
@@ -108,17 +110,17 @@ public abstract class ActionNode extends Node implements ActionListener {
 
 	protected Color getHighlightColor() { return Color.yellow; }
 
-	protected void doHighlight() {
+	private void doHighlight() {
 		if (highlightElements != null) {
 			getDocument().grabWriteLock();
 
 			Color highlightColor = getHighlightColor();
-			for (int i = 0; i < highlightElements.length; i++) {
-				if (highlightElements[i] instanceof AbstractElement) {
+			for (Element highlightElement : highlightElements) {
+				if (highlightElement instanceof AbstractElement) {
 					if (highlighted && isEnabled())
-						((AbstractElement)highlightElements[i]).addAttribute(StyleConstants.Background, highlightColor);
+						((AbstractElement) highlightElement).addAttribute(StyleConstants.Background, highlightColor);
 					else
-						((AbstractElement)highlightElements[i]).removeAttribute(StyleConstants.Background);
+						((AbstractElement) highlightElement).removeAttribute(StyleConstants.Background);
 				}
 			}
 			getDocument().releaseWriteLock();
@@ -127,18 +129,18 @@ public abstract class ActionNode extends Node implements ActionListener {
 		}
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (super.handleEndTag()) return true;
-		if (highlightElements != null && highlightElements.length > 0) return true;
-		return false;
+		return highlightElements != null && highlightElements.length > 0;
 	}
-	
+
 	private static final String ActionAttribute = "actionListener";
-	protected void addListenerTo(MutableAttributeSet atts) {
+	void addListenerTo(MutableAttributeSet atts) {
 		atts.addAttribute(ActionAttribute, this);
 	}
 
-	public static ActionNode getActionNode(Element e) {
+	static ActionNode getActionNode(Element e) {
 		if (e == null) return null;
 		Object val = e.getAttributes().getAttribute(ActionAttribute);
 		return (val == null ? null : (ActionNode)val);
@@ -152,13 +154,14 @@ public abstract class ActionNode extends Node implements ActionListener {
 	/**
 	 * Default implementation of actionPerformed passes the event to all listeners.
 	 */
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (listeners != null)
-			for (Iterator<ActionListener> i = listeners.iterator(); i.hasNext(); )
-				i.next().actionPerformed(e);
+			for (ActionListener listener : listeners)
+				listener.actionPerformed(e);
 	}
 
-	protected boolean callsContinue;
+	boolean callsContinue;
 	/**
 	 * Called by GroupNode to simulate a button press on each child node.
 	 * This method lets the child notify GroupNode whether it will call
@@ -167,7 +170,7 @@ public abstract class ActionNode extends Node implements ActionListener {
 	 * the price or flag attributes) should return <code>false</code> by setting
 	 * callsContinue to false.
 	 */
-	public boolean doGroupAction(GroupNode group) {
+	boolean doGroupAction(GroupNode group) {
 		callsContinue = true;
 		actionPerformed(new ActionEvent(group, ActionEvent.ACTION_PERFORMED, "groupAction"));
 		return callsContinue;
@@ -200,6 +203,7 @@ public abstract class ActionNode extends Node implements ActionListener {
 			return null;
 	}
 
+	@Override
 	protected String getElementViewType() { return ParagraphViewType; }
 
 	protected MutableAttributeSet createStandardAttributes() {
@@ -210,6 +214,7 @@ public abstract class ActionNode extends Node implements ActionListener {
 		return atts;
 	}
 
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		setHighlighted(getBooleanValue(atts, "highlighted", false));
@@ -219,17 +224,17 @@ public abstract class ActionNode extends Node implements ActionListener {
 		super.saveProperties(props);
 		saveProperty(props, "highlighted", highlighted);
 	}
-	
+
 	/**
 	 * Get the tooltip text explaining what this action does.
 	 * If the result of {@link #getTipText()} is <code>null</code>, the
 	 * value passed in the <code>tip</code> attribute will be returned.
 	 */
-	public String getToolTip() {
+	String getToolTip() {
 		String text = getTipText();
 		if (text == null)
 			text = tooltip;
-		else if (text.indexOf("</") >= 0 && !text.startsWith("<html"))
+		else if (text.contains("</") && !text.startsWith("<html"))
 			text = "<html>" + text + "</html>";
 		return text;
 	}
@@ -242,8 +247,8 @@ public abstract class ActionNode extends Node implements ActionListener {
 	protected String getTipText() {
 		return null;
 	}
-	
-	protected static String getDiceText(int dice) {
+
+	static String getDiceText(int dice) {
 		switch (dice) {
 		case 1:
 			return "one die";

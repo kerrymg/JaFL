@@ -23,12 +23,13 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 	private String shards = null;
 	private Item item = null;
 
-	public PriceNode(Node parent) {
+	PriceNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 		findExecutableGrouper().addExecutable(this);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		flag = atts.getValue("flag");
 		shards = atts.getValue("shards");
@@ -36,8 +37,10 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 		super.init(atts);
 	}
 
+	@Override
 	protected Element createElement() { return null; }
 
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
 
@@ -46,6 +49,7 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 		addHighlightElements(leaves);
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		getFlags().addListener(flag, this);
 		if (shards != null)
@@ -59,6 +63,7 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 		return true;
 	}
 
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
@@ -74,6 +79,7 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 		setEnabled(enable);
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		if (getFlags().getState(flag)) {
 			// Price has been paid - disable for now
@@ -83,7 +89,8 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 
 		doEnable();
 	}
-	
+
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (name.equals(flag)) {
 			if (!state) {
@@ -95,6 +102,7 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 		}
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (item != null) {
 			int[] indices = getItems().findMatches(item);
@@ -110,7 +118,8 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 		getFlags().setState(flag, true); // paid
 	}
 
-	public void dispose() {
+	@Override
+    public void dispose() {
 		getFlags().removeListener(flag, this);
 	}
 }

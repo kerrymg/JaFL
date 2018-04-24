@@ -35,12 +35,12 @@ public class TradeNode extends Node implements Executable {
 	private Item item;
 	private TradeEventNode tradeEvent = null;
 
-	public TradeNode(Node parent) {
+	TradeNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
-	public TradeNode(Node parent, Item item) {
+	TradeNode(Node parent, Item item) {
 		this(parent);
 		this.item = item;
 	}
@@ -61,6 +61,7 @@ public class TradeNode extends Node implements Executable {
 		return null;
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		this.atts = atts; // we'll need them later
 		buy = getIntValue(atts, "buy", -1);
@@ -121,7 +122,7 @@ public class TradeNode extends Node implements Executable {
 			 + (currency == null ? "Shard" : currency)
 			 + (money == 1 ? "" : "s")));
 	}
-	
+
 	/**
 	 * Create a textual cell of this row.
 	 * @param text the text in the cell;
@@ -142,6 +143,7 @@ public class TradeNode extends Node implements Executable {
 		StyleConstants.setAlignment(RightAlignStyle, StyleConstants.ALIGN_RIGHT);
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		if (name.equals(TradeEventNode.BoughtElementName) ||
 			name.equals(TradeEventNode.SoldElementName)) {
@@ -155,8 +157,8 @@ public class TradeNode extends Node implements Executable {
 		else
 			return super.createChild(name);
 	}
-	
-	public void itemTraded(boolean bought, Item traded) {
+
+	private void itemTraded(boolean bought, Item traded) {
 		if (tradeEvent == null) {
 			Node parent = getParent();
 			if (parent instanceof MarketNode)
@@ -166,6 +168,7 @@ public class TradeNode extends Node implements Executable {
 			tradeEvent.itemTraded(bought, traded);
 	}
 
+	@Override
 	public void handleContent(String text) {
 		if (paraNode == null && text.trim().length() == 0) return;
 		
@@ -178,7 +181,8 @@ public class TradeNode extends Node implements Executable {
 		
 		paraNode.handleContent(text);
 	}
-	
+
+	@Override
 	public boolean handleEndTag() {
 		if (paraNode == null) {
 			// Create a default first cell
@@ -195,12 +199,12 @@ public class TradeNode extends Node implements Executable {
 				item.addTo(getDocument(), paraNode.getElement(), null, true);
 			}
 		}
-		
+
 		if (paraNode != null) {
 			paraNode.handleEndTag();
 			paraNode = null;
 		}
-		
+
 		// Add the rest of the cells to this row
 		if (shipType >= 0) {
 			// Ship type / Cost / Capacity
@@ -236,15 +240,17 @@ public class TradeNode extends Node implements Executable {
 		return true;
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		setEnabled(true);
 		return true;
 	}
 
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
-	
+
 	public static class BuyNode extends ActionNode implements Executable, ChangeListener, Flag.Listener {
 		public static final String ElementName = "buy";
 		private boolean inTradeNode;
@@ -261,9 +267,9 @@ public class TradeNode extends Node implements Executable {
 		private String buyTags;
 		private String flag;
 
-		public BuyNode(Node parent) { this(parent, -1); }
+		BuyNode(Node parent) { this(parent, -1); }
 
-		public BuyNode(Node parent, int shards) {
+		BuyNode(Node parent, int shards) {
 			super(ElementName, parent);
 			this.shards = shards;
 			inTradeNode = (parent instanceof TradeNode);//shards > 0;
@@ -275,10 +281,11 @@ public class TradeNode extends Node implements Executable {
 			getItems().addChangeListener(this);
 		}
 
-		public void setCurrency(String currency) {
+		void setCurrency(String currency) {
 			this.currency = currency;
 		}
-		
+
+		@Override
 		public void init(Attributes atts) {
 			if (shards < 0)
 				shards = getIntValue(atts, "shards", -1);
@@ -328,6 +335,7 @@ public class TradeNode extends Node implements Executable {
 			findExecutableGrouper().addExecutable(this);
 		}
 
+		@Override
 		protected Node createChild(String name) {
 			Node n = null;
 			if (name.equals(EffectNode.ElementName))
@@ -341,11 +349,13 @@ public class TradeNode extends Node implements Executable {
 			return n;
 		}
 
+		@Override
 		protected MutableAttributeSet getElementStyle() {
 			return RightAlignStyle;
 		}
 
 		private boolean addedContent = false;
+		@Override
 		public void handleContent(String text) {
 			MutableAttributeSet atts = createStandardAttributes();
 			Element[] leaves = null;
@@ -368,6 +378,7 @@ public class TradeNode extends Node implements Executable {
 			addEnableElements(leaves);
 		}
 
+		@Override
 		public boolean handleEndTag() {
 			if (!addedContent)
 				handleContent(null);
@@ -375,6 +386,7 @@ public class TradeNode extends Node implements Executable {
 		}
 
 		private boolean callContinue = false;
+		@Override
 		public boolean execute(ExecutableGrouper eg) {
 			stateChanged(null); // to set up initial enabled state
 			if (forced && isEnabled()) {
@@ -384,8 +396,10 @@ public class TradeNode extends Node implements Executable {
 			return true;
 		}
 
+		@Override
 		public void resetExecute() { setEnabled(false); }
 
+		@Override
 		public void stateChanged(ChangeEvent evt) {
 			setEnabled(canBuyNow());
 		}
@@ -398,8 +412,8 @@ public class TradeNode extends Node implements Executable {
 				return (moneyIndex < 0 ? 0 : getItems().getItem(moneyIndex).getMoney());
 			}
 		}
-		
-		protected boolean canBuyNow() {
+
+		boolean canBuyNow() {
 			if (!(getParent() instanceof GroupNode) && !getParent().enabled)
 				return false;
 			if (getMoney() < shards)
@@ -412,12 +426,10 @@ public class TradeNode extends Node implements Executable {
 				return false;
 			if (quantity == 0)
 				return false;
-			if (flag != null && !getFlags().getState(flag))
-				return false;
-
-			return true;
+			return flag == null || getFlags().getState(flag);
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			boolean success = true;
 			if (shipType >= 0) {
@@ -492,6 +504,7 @@ public class TradeNode extends Node implements Executable {
 			}
 		}
 
+		@Override
 		public void dispose() {
 			getAdventurer().removeMoneyListener(this);
 			if (cargoType > Ship.NO_CARGO)
@@ -503,21 +516,25 @@ public class TradeNode extends Node implements Executable {
 			if (flag != null)
 				getFlags().removeListener(flag, this);
 		}
-		
+
+		@Override
 		protected void loadProperties(Attributes atts) {
 			super.loadProperties(atts);
 			callContinue = getBooleanValue(atts, "continue", false);
 		}
-		
+
+		@Override
 		protected void saveProperties(Properties props) {
 			super.saveProperties(props);
 			saveProperty(props, "continue", callContinue);
 		}
 
+		@Override
 		public void flagChanged(String name, boolean state) {
 			setEnabled(canBuyNow());
 		}
-		
+
+		@Override
 		protected String getTipText() {
 			String suffix = null;
 			if (shards != 0) {
@@ -558,9 +575,9 @@ public class TradeNode extends Node implements Executable {
 		private int quantity = -1;
 		private String price;
 
-		public SellNode(Node parent) { this(parent, -1); }
+		SellNode(Node parent) { this(parent, -1); }
 
-		public SellNode(Node parent, int shards) {
+		SellNode(Node parent, int shards) {
 			super(ElementName, parent);
 			this.shards = shards;
 			inTradeNode = (parent instanceof TradeNode); //shards > 0;
@@ -569,10 +586,11 @@ public class TradeNode extends Node implements Executable {
 
 		public void setItem(Item i) { this.item = i; }
 
-		public void setCurrency(String currency) { this.currency = currency; }
-		
+		void setCurrency(String currency) { this.currency = currency; }
+
 		public int getPrice() { return shards; }
 
+		@Override
 		public void init(Attributes atts) {
 			if (shards < 0)
 				shards = getIntValue(atts, "shards", -1);
@@ -606,11 +624,13 @@ public class TradeNode extends Node implements Executable {
 			findExecutableGrouper().addExecutable(this);
 		}
 
+		@Override
 		protected MutableAttributeSet getElementStyle() {
 			return RightAlignStyle;
 		}
 
 		private boolean addedContent = false;
+		@Override
 		public void handleContent(String text) {
 			MutableAttributeSet atts = createStandardAttributes();
 			Element[] leaves = null;
@@ -630,29 +650,30 @@ public class TradeNode extends Node implements Executable {
 			addEnableElements(leaves);
 		}
 
+		@Override
 		public boolean execute(ExecutableGrouper eg) {
 			stateChanged(null); // to set up initial enabled state
 			return true;
 		}
 
+		@Override
 		public void stateChanged(ChangeEvent evt) {
 			setEnabled(canSellNow());
 		}
 
+		@Override
 		public void resetExecute() { setEnabled(false); }
 
-		protected boolean canSellNow() {
+		boolean canSellNow() {
 			if (!getParent().enabled)
 				return false;
 			if (quantity == 0) { System.out.println("quantity=0"); return false; }
 			if (price != null && getFlags().getState(price)) { System.out.println(price + " is set"); return false; }
 			if (shipType >= 0) {
-				if (getShips().findShipsOfType(shipType).length > 0)
-					return true;
+				return getShips().findShipsOfType(shipType).length > 0;
 			}
 			else if (cargoType != Ship.NO_CARGO) {
-				if (getShips().findShipsWithCargo(cargoType).length > 0)
-					return true;
+				return getShips().findShipsWithCargo(cargoType).length > 0;
 			}
 			else if (item != null) {
 				int[] matches = getItems().findMatches(item);
@@ -660,14 +681,15 @@ public class TradeNode extends Node implements Executable {
 					System.out.println("Matches found for chained items: " + matches.length);
 				if (matches.length > 0) {
 					// Attach this node to all matched items
-					for (int i = 0; i < matches.length; i++)
-						getItems().getItem(matches[i]).setSellNode(this);
+					for (int match : matches)
+						getItems().getItem(match).setSellNode(this);
 				}
 				return (matches.length > 0);
 			}
 			return false;
 		}
-		
+
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			callsContinue = false;
 			if (shipType >= 0) {
@@ -697,10 +719,10 @@ public class TradeNode extends Node implements Executable {
 							try {
 								doc.insertString(0, Ship.getCargoName(cargoTypes[i]), null);
 							}
-							catch (BadLocationException ble) {}
+							catch (BadLocationException ignored) {}
 							docs[i] = doc;
 						}
-						
+
 						DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), "Choose Cargo Type", docs, false);
 						chooser.setVisible(true);
 						
@@ -711,7 +733,7 @@ public class TradeNode extends Node implements Executable {
 						chosenType = cargoTypes[chooser.getSelectedIndices()[0]];
 					}
 				}
-				
+
 				getShips().removeCargoFrom(ships[0], chosenType);
 			}
 			else if (item != null) {
@@ -746,10 +768,12 @@ public class TradeNode extends Node implements Executable {
 				((TradeNode)getParent()).itemTraded(false, i);
 		}
 		
+		@Override
 		public void flagChanged(String name, boolean state) {
 			setEnabled(canSellNow());
 		}
 
+		@Override
 		public void dispose() {
 			if (shipType >= 0)
 				getShips().removeShipListener(this);
@@ -758,7 +782,8 @@ public class TradeNode extends Node implements Executable {
 			if (price != null)
 				getFlags().removeListener(price, this);
 		}
-		
+
+		@Override
 		protected String getTipText() {
 			String suffix = " for " + shards;
 			if (shards >= 0) {

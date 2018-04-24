@@ -36,7 +36,8 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 			}
 			return -1;
 		}
-		
+
+		@Override
 		public void setSelectedItem(Object anItem) {
 			for (int i = 0; i < getSize(); i++) {
 				Object item = getElementAt(i);
@@ -47,37 +48,38 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 			}
 		}
 
+		@Override
 		public Object getSelectedItem() {
 			return getElementAt(selectedIndex);
 		}
 	}
-	
+
 	private BookChoiceModel bookChoice;
 	private JComboBox bookComboBox;
 	private JScrollPane codewordPane;
 	private JTextArea notesArea;
 	private JTabbedPane tabbedPane;
 	private JPanel codewordPanel, notesPanel;
-	
-	public CodewordWindow(Frame parent) {
+
+	CodewordWindow(Frame parent) {
 		super(parent, "Quest Notes", false);
-		
+
 		bookChoice = new BookChoiceModel();
 		bookComboBox = new JComboBox(bookChoice);
 		bookComboBox.setEditable(false);
 		bookComboBox.setSelectedIndex(bookChoice.getBookIndex(Address.getCurrentBookKey()));
 		bookComboBox.addActionListener(this);
-		
+
 		codewordPane = new JScrollPane();
 		actionPerformed(null);
-		
+
 		notesArea = new JTextArea();
 		resetNotes();
-		
+
 		GridBagLayout gbl = new GridBagLayout();
 		codewordPanel = new JPanel();
 		codewordPanel.setLayout(gbl);
-		
+
 		new GBC(0, 0)
 			.setWeight(0, 0)
 			.setInsets(12, 12, 0, 5)
@@ -93,34 +95,34 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 			.setBothFill()
 			.setInsets(5, 12, 11, 11)
 			.addComp(codewordPanel, codewordPane, gbl);
-		
+
 		notesPanel = new JPanel();
 		notesPanel.setLayout(gbl);
-		
+
 		new GBC(0, 0)
 			.setWeight(1, 1)
 			.setBothFill()
 			.setInsets(12, 12, 11, 11)
 			.addComp(notesPanel, new JScrollPane(notesArea), gbl);
-		
+
 		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Codewords", codewordPanel);
 		tabbedPane.addTab("Notes", notesPanel);
 		getContentPane().add(tabbedPane);
-		
+
 		setDefaultCloseOperation(HIDE_ON_CLOSE);
 		pack();
 		setLocationRelativeTo(parent);
 		getCodewords().addChangeListener(this);
 	}
-	
+
 	private Codewords getCodewords() {
 		return FLApp.getSingle().getAdventurer().getCodewords();
 	}
-	
+
 	private String[] codewords;
 	private JCheckBox[] boxes;
-	
+
 	private JPanel createCodewordPanel(String[] codewords) {
 		this.codewords = codewords;
 		this.boxes = new JCheckBox[codewords.length];
@@ -136,7 +138,7 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 				row = 0;
 				col = 2;
 			}
-			
+
 			// We actually display a checkbox, plus a label.
 			// That way the checkbox can be disabled while the label
 			// colour the normal enabled colour.
@@ -152,6 +154,7 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 		return panel;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		int bookIndex = bookChoice.getSelectedIndex();
 		Books.BookDetails book = bookChoice.getBook(bookIndex);
@@ -163,7 +166,7 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 				validate();
 		}
 	}
-	
+
 	public void refresh() {
 		getCodewords().removeChangeListener(this);
 		getCodewords().addChangeListener(this);
@@ -175,6 +178,7 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 			bookComboBox.setSelectedIndex(bookChoice.getBookIndex(Address.getCurrentBookKey()));
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent e) {
 		String codeword = e.getSource().toString();
 		int index = Arrays.binarySearch(codewords, codeword);
@@ -182,20 +186,20 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 			boxes[index].setSelected(getCodewords().hasCodeword(codeword));
 		}
 	}
-	
-	public void showCodewords() {
+
+	void showCodewords() {
 		tabbedPane.setSelectedComponent(codewordPanel);
 	}
-	public void showNotes() {
+	void showNotes() {
 		tabbedPane.setSelectedComponent(notesPanel);
 	}
-	
-	public void applyNotes() {
+
+	void applyNotes() {
 		System.out.println("Ready to apply notes: " + notesArea.getText());
 		getCodewords().setNotes(notesArea.getText());
 	}
-	
-	public void resetNotes() {
+
+	void resetNotes() {
 		System.out.println("Notes are: " + getCodewords().getNotes());
 		notesArea.setText(getCodewords().getNotes());
 	}

@@ -26,7 +26,7 @@ import org.xml.sax.Attributes;
  */
 public class FightNode extends Node implements Executable, ActionListener, Roller.Listener {
 	public static final String ElementName = "fight";
-	private static List<FightNode> groupFights = new LinkedList<FightNode>();
+	private static List<FightNode> groupFights = new LinkedList<>();
 
 	private static class FightIterator implements Iterator<FightNode> {
 		private String group;
@@ -37,7 +37,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			this.group = group;
 			findNext();
 		}
-		
+
 		private void findNext() {
 			while (i.hasNext()) {
 				current = i.next();
@@ -46,11 +46,13 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			}
 			current = null;
 		}
-		
+
+		@Override
 		public boolean hasNext() {
 			return current != null;
 		}
 
+		@Override
 		public FightNode next() {
 			if (current == null)
 				throw new NoSuchElementException();
@@ -59,17 +61,18 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			return temp;
 		}
 
+		@Override
 		public void remove() {
 			i.remove();
 			findNext();
 		}
 		
 	}
-	
+
 	private static Iterator<FightNode> getFights(String group) {
 		return new FightIterator(groupFights.iterator(), group);
 	}
-	
+
 	private EnemyDetails detailsNode;
 	private AttackNode attackNode;
 	private DefendNode defendNode;
@@ -99,11 +102,12 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 	private int attackDice;
 	private boolean skipping = false;
 
-	public FightNode(Node parent) {
+	FightNode(Node parent) {
 		super(ElementName, parent);
 		findExecutableGrouper().addExecutable(this);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		enemy = atts.getValue("name");
 		combat = getIntValue(atts, "combat", -1);
@@ -140,7 +144,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 
 		super.init(atts);
 
-		Node parentNode = this;
+		Node parentNode;
 		//if (getParent() instanceof SectionNode) {
 			TableNode detailsTable = new TableNode("FightTable", this);
 			addChild(detailsTable);
@@ -174,32 +178,33 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 	}
 
+	@Override
 	protected Element createElement() { return null; }
 
-	public int getPlayerCombat() {
+	private int getPlayerCombat() {
 		if (cachedAttackBonus != 0) {
 			attackBonus = cachedAttackBonus;
 			cachedAttackBonus = 0;
 		}
 		return getAdventurer().getAbilityValue(Adventurer.ABILITY_COMBAT, Adventurer.MODIFIER_AFFECTED) + attackBonus;
 	}
-	public int getPlayerDefence() {
+	private int getPlayerDefence() {
 		if (playerDefence == null)
 			return getAdventurer().getDefence().affected;
 		else
 			return getAttributeValue(playerDefence);
 	}
 
-	public boolean canWin() {
+	private boolean canWin() {
 		return (getPlayerCombat() + attackDice*6 > defence);
 	}
 	private boolean canLoseThisFight() {
 		return (combat + 12 > getPlayerDefence());
 	}
-	public boolean canLose() {
+	private boolean canLose() {
 		if (canLoseThisFight())
 			return true;
-		
+
 		if (group != null) {
 			for (Iterator<FightNode> i = getFights(group); i.hasNext(); ) {
 				FightNode otherFight = i.next();
@@ -209,11 +214,11 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 		return false;
 	}
-	
-	void endFight() {
+
+	private void endFight() {
 		endFight(true);
 	}
-	void endFight(boolean continueExecution) {
+	private void endFight(boolean continueExecution) {
 		endedFight = true;
 		FLApp.getSingle().fireGameEvent(GameEvent.FIGHT_END);
 		if (defenceBonus > 0)
@@ -224,7 +229,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			findExecutableGrouper().continueExecution(this, true);
 	}
 
-	public void damageEnemy(int damage) {
+	private void damageEnemy(int damage) {
 		if (damage > 0) {
 			if (damage > stamina)
 				attackNode.damageDone = damage = stamina;
@@ -275,7 +280,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 	 * @return <code>true</code> if the player is still alive.
 	 * This is only relevant when <code>done</code> is false, so that the node knows whether to proceed.
 	 */
-	public boolean damagePlayer(int damage, boolean done) {
+    private boolean damagePlayer(int damage, boolean done) {
 		System.out.println("damagePlayer(" + done + ") called");
 		boolean death = false;
 		if (damage > 0) {
@@ -298,9 +303,9 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		if (death) {
 			disableFlee();
 			endFight();
-			return false;			
+			return false;
 		}
-		
+
 		if (damage > 0 && damageNode != null) {
 			if (!damageNode.execute(null))
 				return true;
@@ -316,7 +321,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		return true;
 	}
 
-	public void roundNodePerformed(RoundNode round) {
+	private void roundNodePerformed(RoundNode round) {
 		if (getAdventurer().isDead()) {
 			disableFlee();
 			endFight();
@@ -330,7 +335,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		//attackNode.setEnabled(true);
 	}
 
-	public void damageNodePerformed(DamageNode damage) {
+	private void damageNodePerformed(DamageNode damage) {
 		if (roundNode != null)
 			if (!roundNode.execute(null))
 				return;
@@ -345,13 +350,14 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		//attackNode.setEnabled(true);
 	}
 
-	void fleeNodeActivated(FleeNode flee) {
+	private void fleeNodeActivated(FleeNode flee) {
 		// User has chosen to flee - the fight is over
 		resetExecute();
 		enableFlee();
 		endFight(false);
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		// Callback from fleeChoiceNode or fleeGotoNode
 		resetExecute();
@@ -369,7 +375,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			UndoManager.getCurrent().add(fleeGotoNode);	
 		}
 	}
-	
+
 	private void disableFlee() {
 		System.out.println("Disabling Flee gotos");
 		if (fleeChoiceNode != null)
@@ -377,7 +383,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		if (fleeGotoNode != null)
 			fleeGotoNode.setEnabled(false);
 	}
-	
+
 	private void hookupNodes() {
 		if (roundNodes.size() > 0) {
 			roundNode = roundNodes.remove(0);
@@ -402,9 +408,9 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			if (fleeGotoNode != null)
 				fleeGotoNode.addActionListener(this);
 		}
-				
 	}
-	
+
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (getAdventurer().isDead() || endedFight) // ie. either party is already dead
 			return true; // it happens, especially with pre-fight hijinx
@@ -412,10 +418,10 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		detailsNode.setEnabled(true);
 
 		hookupNodes();
-		
+
 		if (staminaLost != null)
 			getCodewords().setValue(staminaLost, 0);
-		
+
 		if (preDamage != null) {
 			// Do this damage now
 			int damage = 0;
@@ -423,7 +429,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 				damage = getCodewords().getValue(preDamage);
 			else if (isVariableDefined(preDamage))
 				damage = getVariableValue(preDamage);
-			
+
 			if (damage != 0) {
 				if (damage > stamina)
 					damage = stamina;
@@ -432,7 +438,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 				if (staminaLost != null)
 					getCodewords().adjustValue(staminaLost, damage);
 			}
-			
+
 			if (stamina == 0 || stamina <= fleeAt) {
 				// Player won fight
 				boolean continueFight = false;
@@ -445,7 +451,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 						break;
 					}
 				}
-				
+
 				if (!continueFight) {
 					disableFlee();
 					endFight(false);
@@ -456,7 +462,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 				return true;
 			}
 		}
-		
+
 		FLApp.getSingle().fireGameEvent(GameEvent.FIGHT_START);
 		if (getBlessings().hasBlessing(Blessing.WRATH)) {
 			int useBlessing = JOptionPane.showConfirmDialog(FLApp.getSingle(), "Do you want to use your\nblessing of Divine Wrath?", "Use Blessing?", JOptionPane.YES_NO_OPTION);
@@ -509,7 +515,8 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 	}
 	
 	/** Callback from Divine Wrath blessing. */
-	public void rollerFinished(Roller r) {
+	@Override
+    public void rollerFinished(Roller r) {
 		if (r != null) {
 			int damage = r.getResult();
 			if (damage > stamina)
@@ -562,16 +569,16 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 	private void executeGroupedFight() {
 		detailsNode.setEnabled(true);
 		hookupNodes();
-		
+
 		if (playerFirst)
 			attackNode.setEnabled(true);
 		else
 			defendNode.setEnabled(true);
-		
+
 		if (skipNode != null && roundNode == null && damageNode == null)
 			skipNode.execute();
 	}
-	
+
 	private void attackClicked() {
 		if (group != null) {
 			for (Iterator<FightNode> i = getFights(group); i.hasNext(); ) {
@@ -592,7 +599,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 					return;
 			}
 		}
-		
+
 		attackNode.setEnabled(true);
 		if (group != null)
 			for (Iterator<FightNode> i = getFights(group); i.hasNext(); ) {
@@ -603,7 +610,8 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		if (skipping)
 			attackNode.actionPerformed(null);
 	}
-	
+
+	@Override
 	public void resetExecute() {
 		// In what context would a fight be repeated?
 		// Possibly the enemy's stamina should be returned to its initial value.
@@ -625,11 +633,12 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 	private class EnemyDetails extends Node {
 		private int staminaOffset, staminaLength;
 
-		public EnemyDetails(Node parent) {
+		EnemyDetails(Node parent) {
 			super("EnemyDetails", parent);
 			setEnabled(false);
 		}
 
+		@Override
 		public void init(Attributes atts) {
 			super.init(atts);
 
@@ -647,21 +656,23 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			addEnableElements(leaves);
 		}
 
-		public void updateStamina() {
+		void updateStamina() {
 			String str = Integer.toString(stamina);
 			while (str.length() < staminaLength)
 				str += " ";
 			getDocument().replaceContent(staminaOffset, staminaLength, str);
 		}
 
+		@Override
 		protected String getElementViewType() { return ParagraphViewType; }
 	}
 
 	private abstract class ActionCell extends ActionNode implements Roller.Listener, UndoManager.Creator {
-		protected ActionCell(String name, Node parent) {
+		ActionCell(String name, Node parent) {
 			super(name, parent);
 		}
 
+		@Override
 		protected MutableAttributeSet createStandardAttributes() {
 			MutableAttributeSet atts = super.createStandardAttributes();
 			setViewType(atts, ParagraphViewType);
@@ -669,6 +680,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			return atts;
 		}
 
+		@Override
 		protected Element createElement() {
 			Element parentElement = getParent().getElement();
 			SectionDocument.Branch branch = getDocument().createBranchElement(parentElement, createStandardAttributes());
@@ -679,15 +691,16 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			return branch;
 		}
 
-		protected void addContent(String text) {
+		void addContent(String text) {
 			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, null);
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}
 
 		protected int getDiceCount() { return 2; }
-		
+
 		protected abstract int getRollAdjustment();
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			setEnabled(false);
 			Roller r = new Roller(getDiceCount(), getRollAdjustment());
@@ -697,6 +710,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			r.startRolling();
 		}
 
+		@Override
 		public void rollerFinished(Roller r) {
 			damageDone = calcDamageDone(r.getResult());
 			if (!r.isInstant())
@@ -705,13 +719,14 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 
 		// The damage done may get modified by the parent FightNode, if it is truncated (ie. would set Stamina to < 0)
-		protected int damageDone;
+        int damageDone;
 		protected abstract int calcDamageDone(int rollResult);
 		protected abstract void undoDamage(int damage);
 		protected String getTipText(int damage) {
 			return (damage > 0 ? " - " + damage + " damage" : " - Miss");
 		}
 
+		@Override
 		public void undoOccurred(UndoManager undo) {
 			undoDamage(damageDone);
 			damageDone = 0;
@@ -731,11 +746,12 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 
 	private static boolean firstDefenceBlessingMessage = true;
 	private class AttackNode extends ActionCell implements Executable {
-		public AttackNode(Node parent) {
+		AttackNode(Node parent) {
 			super("AttackNode", parent);
 			setEnabled(false);
 		}
 
+		@Override
 		public void init(Attributes atts) {
 			super.init(atts);
 			addContent("Attack\n");
@@ -747,6 +763,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		 * AttackNode and go back to that roll. This is not the case for DefendNode.
 		 */
 
+		@Override
 		public boolean execute(ExecutableGrouper grouper) {
 			setEnabled(true);
 			damageDone = 0;
@@ -754,15 +771,20 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			return false;
 		}
 
+		@Override
 		public void resetExecute() {
 			setEnabled(false);
 		}
 
+		@Override
 		protected int getDiceCount() { return attackDice; }
+		@Override
 		protected int getRollAdjustment() { return getPlayerCombat(); }
 
+		@Override
 		protected int calcDamageDone(int rollResult) { return rollResult - defence; }
 
+		@Override
 		protected void undoDamage(int damage) {
 			if (damage > 0) {
 				stamina += damage;
@@ -771,6 +793,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 
 		private boolean firstAttack = true;
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			if (firstAttack) {
 				if (!usingAbilityBonus)
@@ -780,7 +803,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 				if (playerDefence == null) {
 					// Check whether there's already an active Defence blessing
 					defenceBonus = Blessing.findActiveDefenceBlessing();
-					
+
 					// If not, check whether the player has a Defence blessing
 					// they might want to use
 					if (defenceBonus == 0 && getBlessings().hasBlessing(Blessing.DEFENCE) && firstDefenceBlessingMessage) {
@@ -802,16 +825,19 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			super.actionPerformed(evt);
 		}
 
+		@Override
 		public void rollerFinished(Roller r) {
 			super.rollerFinished(r);
 			damageEnemy(damageDone);
 		}
 
+		@Override
 		public void undoOccurred(UndoManager undo) {
 			defendNode.setEnabled(false);
 			super.undoOccurred(undo);
 		}
-		
+
+		@Override
 		protected String getTipText() {
 			String text = "<p>Attack: roll ";
 			text += getDiceText(getDiceCount());
@@ -832,11 +858,12 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		 */
 		private int attackNumber = 0;
 
-		public DefendNode(Node parent) {
+		DefendNode(Node parent) {
 			super("DefendNode", parent);
 			setEnabled(false);
 		}
 
+		@Override
 		public void init(Attributes atts) {
 			attacks = getIntValue(atts, "attacks", 1);
 			super.init(atts);
@@ -850,9 +877,12 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			setEnabled(true);
 		}
 
+		@Override
 		protected int getRollAdjustment() { return combat; }
 
+		@Override
 		protected int calcDamageDone(int rollResult) { return rollResult - getPlayerDefence(); }
+		@Override
 		protected void undoDamage(int damage) {
 			if (damage > 0) {
 				if (abilityDamaged < 0)
@@ -863,6 +893,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 
 		protected boolean isDone() { return (attackNumber == attacks); }
+		@Override
 		public void rollerFinished(Roller r) {
 			super.rollerFinished(r);
 			attackNumber++;
@@ -873,6 +904,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 				actionPerformed(null); // to immediately roll the new attack
 		}
 
+		@Override
 		public void undoOccurred(UndoManager undo) {
 			attackNode.setEnabled(false); // it might be...
 			if (getAdventurer().isDead())
@@ -884,17 +916,20 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			attackNumber = attacks - 1; // if there is more than 1 attack, can only undo the last
 			setEnabled(true);
 		}
-		
+
+		@Override
 		protected void saveProperties(Properties props) {
 			super.saveProperties(props);
 			saveProperty(props, "attackNumber", attackNumber);
 		}
 
+		@Override
 		protected void loadProperties(Attributes atts) {
 			super.loadProperties(atts);
 			attackNumber = getIntValue(atts, "attackNumber", attackNumber);
 		}
-		
+
+		@Override
 		protected String getTipText() {
 			String text = "<p>Defend: roll ";
 			text += getDiceText(getDiceCount());
@@ -904,8 +939,8 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 	}
 
-	static List<RoundNode> roundNodes = new LinkedList<RoundNode>();
-	public static RoundNode createRoundNode(Node parent) {
+	private static List<RoundNode> roundNodes = new LinkedList<>();
+	static RoundNode createRoundNode(Node parent) {
 		RoundNode round = new RoundNode(parent);
 		roundNodes.add(round);
 		return round;
@@ -915,17 +950,20 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		public static final String ElementName = "fightround";
 		private FightNode owner;
 		private boolean preFight;
-		public RoundNode(Node parent) {
+		RoundNode(Node parent) {
 			super(ElementName, parent);
 			setEnabled(false);
 		}
 
+		@Override
 		public void init(Attributes atts) {
 			preFight = getBooleanValue(atts, "pre", false);
 		}
 
+		@Override
 		protected Element createElement() { return null; }
 
+		@Override
 		public void handleContent(String text) {
 			if (text.trim().length() == 0) return;
 
@@ -937,9 +975,10 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			this.owner = owner;
 		}
 
-		public boolean isPreFight() { return preFight; }
+		boolean isPreFight() { return preFight; }
 
 		private ExecutableRunner runner = null;
+		@Override
 		public ExecutableGrouper getExecutableGrouper() {
 			if (runner == null)
 				runner = new ExecutableRunner(ElementName, null);
@@ -949,6 +988,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		/**
 		 * @param grouper expect this to be null
 		 */
+		@Override
 		public boolean execute(ExecutableGrouper grouper) {
 			setEnabled(true);
 			Node parent = getParent();
@@ -961,32 +1001,38 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			UndoManager.getCurrent().add(this);
 
 			if (runner != null) {
-				if (!runner.execute(this))
-					return false;
+				return runner.execute(this);
 			}
 			return true;
 		}
 
+		@Override
 		public void resetExecute() {
 			if (runner != null)
 				runner.resetExecute();
 		}
 
 		/* ExecutableGrouper methods - implemented so we can get a callback once Executable children are done */
+		@Override
 		public void addExecutable(Executable e) {}
+		@Override
 		public void addIntermediateNode(Node n) {}
+		@Override
 		public boolean isSeparateThread() { return false; }
+		@Override
 		public void continueExecution(Executable eDone, boolean inSeparateThread) {
 			System.out.println("FightNode.RoundNode.continueExecution called");
 			owner.roundNodePerformed(this);
 		}
-		
+
+		@Override
 		public void saveProperties(Properties props) {
 			super.saveProperties(props);
 			if (runner != null && runner.willCallContinue())
 				saveProperty(props, "continue", true);
 		}
-		
+
+		@Override
 		public void loadProperties(Attributes atts) {
 			super.loadProperties(atts);
 			if (getBooleanValue(atts, "continue", false))
@@ -994,8 +1040,8 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 	}
 
-	static List<DamageNode> damageNodes = new LinkedList<DamageNode>();
-	public static DamageNode createDamageNode(Node parent) {
+	private static List<DamageNode> damageNodes = new LinkedList<>();
+	static DamageNode createDamageNode(Node parent) {
 		DamageNode damage = new DamageNode(parent);
 		damageNodes.add(damage);
 		return damage;
@@ -1005,13 +1051,14 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		public static final String ElementName = "fightdamage";
 		private FightNode owner;
 		private boolean replace;
-		public DamageNode(Node parent) {
+		DamageNode(Node parent) {
 			super(ElementName, parent);
 			setEnabled(false);
 		}
 
-		public boolean isReplacement() { return replace; }
+		boolean isReplacement() { return replace; }
 
+		@Override
 		public void init(Attributes atts) {
 			String type = atts.getValue("type");
 			if (type == null || type.startsWith("add"))
@@ -1024,8 +1071,10 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			super.init(atts);
 		}
 
+		@Override
 		protected Element createElement() { return null; }
 
+		@Override
 		public void handleContent(String text) {
 			if (text.trim().length() == 0) return;
 
@@ -1038,6 +1087,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 
 		private ExecutableRunner runner = null;
+		@Override
 		public ExecutableGrouper getExecutableGrouper() {
 			if (runner == null)
 				runner = new ExecutableRunner(ElementName, null);
@@ -1047,6 +1097,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		/**
 		 * @param grouper expect this to be null
 		 */
+		@Override
 		public boolean execute(ExecutableGrouper grouper) {
 			setEnabled(true);
 			Node parent = getParent();
@@ -1059,31 +1110,37 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			UndoManager.getCurrent().add(this);
 
 			if (runner != null) {
-				if (!runner.execute(this))
-					return false;
+				return runner.execute(this);
 			}
 			return true;
 		}
 
+		@Override
 		public void resetExecute() {
 			if (runner != null)
 				runner.resetExecute();
 		}
 
 		/* ExecutableGrouper methods - implemented so we can get a callback once Executable children are done */
+		@Override
 		public void addExecutable(Executable e) {}
+		@Override
 		public void addIntermediateNode(Node n) {}
+		@Override
 		public boolean isSeparateThread() { return false; }
+		@Override
 		public void continueExecution(Executable eDone, boolean inSeparateThread) {
 			System.out.println("FightNode.DamageNode.continueExecution called");
 			owner.damageNodePerformed(this);
 		}
+		@Override
 		public void saveProperties(Properties props) {
 			super.saveProperties(props);
 			if (runner != null && runner.willCallContinue())
 				saveProperty(props, "continue", true);
 		}
 
+		@Override
 		public void loadProperties(Attributes atts) {
 			super.loadProperties(atts);
 			if (getBooleanValue(atts, "continue", false))
@@ -1091,8 +1148,8 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 	}
 
-	static List<FleeNode> fleeNodes = new LinkedList<FleeNode>();
-	public static FleeNode createFleeNode(Node parent) {
+	private static List<FleeNode> fleeNodes = new LinkedList<>();
+	static FleeNode createFleeNode(Node parent) {
 		FleeNode flee = new FleeNode(parent);
 		fleeNodes.add(flee);
 		return flee;
@@ -1102,7 +1159,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		public static final String ElementName = "flee";
 		private FightNode owner;
 
-		public FleeNode(Node parent) {
+		FleeNode(Node parent) {
 			super(ElementName, parent);
 			setEnabled(false);
 		}
@@ -1112,12 +1169,14 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 
 		private ExecutableRunner runner = null;
+		@Override
 		public ExecutableGrouper getExecutableGrouper() {
 			if (runner == null)
 				runner = new ExecutableRunner(ElementName, null);
 			return runner;
 		}
 
+		@Override
 		public void handleContent(String text) {
 			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, new AttributeSet[] { StyleNode.createActiveAttributes() });
 			addEnableElements(leaves);
@@ -1140,12 +1199,14 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			}
 		}
 
+		@Override
 		protected Element createElement() { return null; }
 
 		/**
 		 * Previously activated when all child nodes had been activated.
 		 * Now handled 
 		 */
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			owner.fleeNodeActivated(this);
 		}
@@ -1154,10 +1215,12 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		 * ExecutableGrouper methods - added so we can get the right callback
 		 * once all Executable children have been executed
 		 ****************************************************************** */
-		
+		@Override
 		public void addExecutable(Executable e) {}
+		@Override
 		public void addIntermediateNode(Node n) {}
 
+		@Override
 		public void continueExecution(Executable done, boolean inSeparateThread) {
 			if (done == runner)
 				owner.fleeNodeActivated(this);
@@ -1168,6 +1231,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 	}
 
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		props.setProperty("stamina", Integer.toString(stamina));
@@ -1175,6 +1239,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		saveProperty(props, "defenceBonus", defenceBonus);
 	}
 
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		stamina = getIntValue(atts, "stamina", stamina);
@@ -1187,7 +1252,8 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		// a fight may already be in progress.
 		hookupNodes();
 	}
-	
+
+	@Override
 	public void dispose() {
 		if (!endedFight) {
 			// Player skipped out somehow - dispose of any bonuses that may still be in play
@@ -1201,23 +1267,24 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		if (group != null)
 			groupFights.remove(this);
 	}
-	
+
 	private static int cachedAttackBonus = 0;
 	/**
 	 * Add an attack bonus. This will be 'grabbed' by the first AttackNode that occurs
 	 * after this is set.
 	 * @param bonus the amount to add to attack rolls; may be positive or negative.
 	 */
-	public static void setAttackBonus(int bonus) {
+	static void setAttackBonus(int bonus) {
 		cachedAttackBonus = bonus;
 	}
-	
+
 	private class SkipNode extends ActionNode {
-		public SkipNode(Node parent) {
+		SkipNode(Node parent) {
 			super("SkipNode", parent);
 			setEnabled(false);
 		}
-		
+
+		@Override
 		protected MutableAttributeSet createStandardAttributes() {
 			MutableAttributeSet atts = super.createStandardAttributes();
 			setViewType(atts, ParagraphViewType);
@@ -1225,6 +1292,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			return atts;
 		}
 
+		@Override
 		protected Element createElement() {
 			Element parentElement = getParent().getElement();
 			SectionDocument.Branch branch = getDocument().createBranchElement(parentElement, createStandardAttributes());
@@ -1234,16 +1302,18 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			}
 			return branch;
 		}
-		
+
+		@Override
 		public void init(Attributes atts) {
 			super.init(atts);
 			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { "Skip\n" }, null);
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}
-		
+
 		public void execute() { setEnabled(true); }
-		
+
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			boolean killPlayer = false;
 			boolean killEnemy = false;
@@ -1271,7 +1341,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			}
 			// Fallthrough - skipping action will eventually notice that one of
 			// the combatants is now dead!
-			
+
 			skipping = true;
 			setEnabled(false);
 			if (killEnemy) {
@@ -1287,7 +1357,8 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			else
 				defendNode.actionPerformed(null);
 		}
-		
+
+		@Override
 		protected String getTipText() {
 			String text;
 			if (canWin() && canLose())

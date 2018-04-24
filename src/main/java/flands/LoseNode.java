@@ -3,7 +3,6 @@ package flands;
 
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -57,11 +56,12 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 	private boolean forced;
 	private List<AdjustNode> adjustments = null;
 
-	public LoseNode(Node parent) {
+	LoseNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		codeword = atts.getValue("codeword");
 		shards = atts.getValue("shards");
@@ -132,12 +132,13 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		super.init(atts);
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
 		if (name.equals(AdjustNode.ElementName)) {
 			AdjustNode an = new AdjustNode(this);
 			if (adjustments == null)
-				adjustments = new LinkedList<AdjustNode>();
+				adjustments = new LinkedList<>();
 			adjustments.add(an);
 			n = an;
 		}
@@ -154,14 +155,15 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 	private int getAdjustment() {
 		int delta = 0;
 		if (adjustments != null)
-			for (Iterator<AdjustNode> i = adjustments.iterator(); i.hasNext(); )
-				delta += i.next().getAdjustment();
-		
+			for (AdjustNode adjustment : adjustments)
+				delta += adjustment.getAdjustment();
+
 		System.out.println("Adjustment for LoseNode=" + delta);
 		lastAdjustment = delta;
 		return delta;
 	}
-	
+
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (codeword != null) props.setProperty("codeword", codeword);
@@ -194,7 +196,8 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		if (cache != null) props.setProperty("cache", cache);
 		if (!forced) saveProperty(props, "forced", false);
 	}
-	
+
+	@Override
 	public void handleContent(String text) {
 		Element[] leaves = null;
 		MutableAttributeSet atts = createStandardAttributes();
@@ -223,7 +226,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 					int val = Integer.parseInt(shards);
 					text = (val == 1 ? "1 Shard" : val + " Shards");
 				}
-				catch (NumberFormatException nfe) {}
+				catch (NumberFormatException ignored) {}
 			}
 			else if (curse != null) {
 				text = curse.getName();
@@ -232,7 +235,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 				text = title;
 			}
 		}
-		else if (codeword != null && text.indexOf(codeword) >= 0) {
+		else if (codeword != null && text.contains(codeword)) {
 			SimpleAttributeSet wordAtts = new SimpleAttributeSet(atts);
 			StyleConstants.setItalic(wordAtts, true);
 			leaves = getDocument().addStyledText(getElement(), text, codeword, atts, wordAtts);
@@ -245,6 +248,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		addEnableElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		findExecutableGrouper().addExecutable(this);
 		return super.handleEndTag();
@@ -258,6 +262,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 	}
 	
 	private boolean callContinue = false;
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (price != null && price.length() > 0) {
 			flagChanged(price, getFlags().getState(price));
@@ -320,7 +325,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 				 && ((crew > 0 && getShips().getShip(getShips().getSingleShip()).getCrew() > Ship.POOR_CREW) ||
 					 (crew < 0 && getShips().getShip(getShips().getSingleShip()).getCrew() < Ship.EX_CREW))) ||
 				(resurrection && getAdventurer().hasResurrection()) ||
-				ability >= 0);		
+				ability >= 0);
 	}
 	private boolean canPayInFull() {
 		if (!actionDoesAnything()) return false;
@@ -330,15 +335,15 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			if (cost > available)
 				return false;
 		}
-		if (item != null && getAffectedItems().findMatches(item).length < getItemCount())
-			return false;
-		return true;
+		return item == null || getAffectedItems().findMatches(item).length >= getItemCount();
 	}
-	
+
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		setEnabled(false);
 		callsContinue = callContinue;
@@ -351,24 +356,24 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			abilityAffected = ability;
 			if (ability == Adventurer.ABILITY_SINGLE) {
 				ArrayList<Integer>
-					abilities = new ArrayList<Integer>(),
-					values = new ArrayList<Integer>();
+					abilities = new ArrayList<>(),
+					values = new ArrayList<>();
 				for (int a = 0; a < Adventurer.ABILITY_COUNT; a++) {
 					int value = getAdventurer().getAbilityValue(a,  Adventurer.MODIFIER_NATURAL);
 					if (value > 1) {
 						// Don't let the player pick an ability that's already at 1!
-						abilities.add(new Integer(a));
-						values.add(new Integer(value));
+						abilities.add(a);
+						values.add(value);
 					}
 				}
-				
+
 				if (abilities.size() > 0) {
 					int[]
 						abilitiesArr = new int[abilities.size()],
 						valuesArr = new int[abilities.size()];
 					for (int i = 0; i < abilitiesArr.length; i++) {
-						abilitiesArr[i] = abilities.get(i).intValue();
-						valuesArr[i] = values.get(i).intValue();
+						abilitiesArr[i] = abilities.get(i);
+						valuesArr[i] = values.get(i);
 					}
 					DocumentChooser dc = new DocumentChooser(FLApp.getSingle(), "Choose Ability", Adventurer.getAbilityDocuments(abilitiesArr, valuesArr), false);
 					dc.setVisible(true);
@@ -384,7 +389,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 				}
 			}
 		}
-		
+
 		int[] itemIndices = null;
 		int itemCount = getItemCount();
 		if (item != null) {
@@ -421,7 +426,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			}
 			itemIndices = indices;
 		}
-		
+
 		int[] curseIndices = null;
 		if (curse != null) {
 			System.out.println("Looking for curses matching " + curse);
@@ -454,7 +459,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 						try {
 							doc.insertString(0, Ship.getCargoName(cargoTypes[i]), null);
 						}
-						catch (BadLocationException ble) {}
+						catch (BadLocationException ignored) {}
 						docs[i] = doc;
 					}
 					
@@ -536,7 +541,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 				}
 				catch (NumberFormatException nfe) { System.err.println("Couldn't parse 'chance' attribute: " + chance); }
 			}
-			
+
 			if (!doneRemove && cache != null) {
 				// Removing all items from a cache - but money may also be there
 				ItemList items = getAffectedItems();
@@ -663,10 +668,11 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			findExecutableGrouper().continueExecution(this, false);
 	}
 
+	@Override
 	protected String getTipText() {
 		System.out.println("Entering LoseNode.getTipText() method");
-		List<String> lines = new LinkedList<String>();
-		
+		List<String> lines = new LinkedList<>();
+
 		String text = null;
 		boolean allShards = (shards != null && shards.equals(Integer.toString(Integer.MAX_VALUE)));
 		if (allItems) {
@@ -693,7 +699,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 				text += " from the cache [" + cache + "]";
 			lines.add(text);
 		}
-		
+
 		if (ability >= 0) {
 			text = "Lose ";
 			if (Character.isDigit(amount.charAt(0))) {
@@ -785,21 +791,22 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		else if (staminaTo != null) {
 			lines.add("Reduce your Stamina to " + getAttributeValue(staminaTo));
 		}
-		
+
 		if (lines.size() == 0)
 			return null;
 		else if (lines.size() == 1)
 			return lines.get(0);
 		else {
-			StringBuffer sb = new StringBuffer("<ul>");
-			for (Iterator<String> i = lines.iterator(); i.hasNext(); )
-				sb.append("<li>").append(i.next()).append("</li>");
+			StringBuilder sb = new StringBuilder("<ul>");
+			for (String line : lines)
+				sb.append("<li>").append(line).append("</li>");
 			sb.append("</ul>");
 			return sb.toString();
 		}
 	}
-	
+
 	private int staminaLost, damageDone, abilityAffected;
+	@Override
 	public void rollerFinished(Roller r) {
 		// Take damage, but remember the amount in case a reroll occurs
 		r.appendTooltipText(" damage");
@@ -822,7 +829,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		UndoManager.createNew(this).add(this);
 		if (dead)
 			; // TODO: death!
-		
+
 		if (flag != null)
 			getFlags().setState(flag, false);
 		if (price != null)
@@ -834,6 +841,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			findExecutableGrouper().continueExecution(this, true);
 	}
 
+	@Override
 	public void undoOccurred(UndoManager undo) {
 		// Reroll - reset stamina
 		if (damageDone != 0) {
@@ -852,6 +860,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		execute(findExecutableGrouper());
 	}
 
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		if (staminaLost > 0)
@@ -862,6 +871,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		}
 		saveProperty(props, "continue", callContinue);
 	}
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		staminaLost = getIntValue(atts, "staminaLost", 0);
@@ -870,6 +880,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		callContinue = getBooleanValue(atts, "continue", false);
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (price != null && price.equals(name)) {
 			if (state)
@@ -882,6 +893,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		}
 	}
 	
+	@Override
 	public void dispose() {
 		if (flag != null)
 			getFlags().removeListener(flag, this);
@@ -889,6 +901,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			getFlags().removeListener(price, this);
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent e) {
 		// Only called if price != null, shards != null
 		flagChanged(price, getFlags().getState(price));

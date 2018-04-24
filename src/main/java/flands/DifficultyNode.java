@@ -2,7 +2,6 @@ package flands;
 
 
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -35,11 +34,12 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 
 	public static final String ElementName = "difficulty";
 	static final String AbilityTypeVar = "*ability*";
-	public DifficultyNode(Node parent) {
+	DifficultyNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		level = getIntValue(atts, "level", -1);
 		if (level < 0)
@@ -55,6 +55,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 	}
 
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0)
 			return;
@@ -71,6 +72,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		}
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (!hadContent && !getParent().hideChildContent()) {
 			String text;
@@ -95,12 +97,13 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		return super.handleEndTag();
 	}
 
+	@Override
 	protected Node createChild(String name) {
 		Node n = null;
 		if (name.equals(AdjustNode.ElementName)) {
 			AdjustNode an = new AdjustNode(this);
 			if (adjustments == null)
-				adjustments = new LinkedList<AdjustNode>();
+				adjustments = new LinkedList<>();
 			adjustments.add(an);
 			n = an;
 		}
@@ -113,15 +116,13 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		}
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (result < 0 && (flag == null || getFlags().getFlag(flag).getState())) {
 			// Set up for user to roll
 			System.out.println("DifficultyNode: ready to roll!");
 			setEnabled(true);
-			if (force)
-				return false;
-			else
-				return true;
+			return !force;
 		}
 		else {
 			// Already rolled
@@ -130,6 +131,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		}
 	}
 
+	@Override
 	public void resetExecute() {
 		removeVariable(var);
 		result = -1;
@@ -137,6 +139,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 	}
 
 	private Roller roller = null;
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (roller != null) return;
 
@@ -177,8 +180,8 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		// Add any extra adjustments to the roll
 		int delta = 0;
 		if (adjustments != null) {
-			for (Iterator<AdjustNode> i = adjustments.iterator(); i.hasNext(); )
-				delta += i.next().getAdjustment();
+			for (AdjustNode adjustment : adjustments)
+				delta += adjustment.getAdjustment();
 			System.out.println("Adjustment for difficulty=" + delta);
 		}
 
@@ -190,6 +193,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 			getFlags().setState(flag, false);
 	}
 
+	@Override
 	public void rollerFinished(Roller r) {
 		if (roller == r) {
 			setVariableValue(var, r.getResult() - level); // > 0 is success, <= 0 is failure
@@ -220,8 +224,9 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		}
 	}
 
-	public int getAbilityChosen() { return abilityChosen; }
-	
+	int getAbilityChosen() { return abilityChosen; }
+
+	@Override
 	public void undoOccurred(UndoManager undo) {
 		if (usingAbilityBonus) {
 			// Add ability effect back into the mix
@@ -237,26 +242,30 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		execute(findExecutableGrouper());
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		if (flag != null && flag.equals(name))
 			setEnabled(state && result < 0);
 	}
 
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		props.setProperty("abilityChosen", Integer.toString(abilityChosen));
 		props.setProperty("result", Integer.toString(result));
 	}
 
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		abilityChosen = getIntValue(atts, "abilityChosen", -1);
 		result = getIntValue(atts, "result", -1);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		Adventurer adv = getAdventurer();
-		StringBuffer sb = new StringBuffer("Roll " + getDiceText(adv.getDifficultyDice()));
+		StringBuilder sb = new StringBuilder("Roll " + getDiceText(adv.getDifficultyDice()));
 		sb.append(", add your ");
 		int singleAbility = abilityChosen;
 		if (singleAbility < 0 && abilities.length == 1)
@@ -267,8 +276,8 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 			sb.append("ability score");
 		int delta = 0;
 		if (adjustments != null)
-			for (Iterator<AdjustNode> i = adjustments.iterator(); i.hasNext(); )
-				delta += i.next().getAdjustment();
+			for (AdjustNode adjustment : adjustments)
+				delta += adjustment.getAdjustment();
 		if (delta > 0)
 			sb.append(", add ").append(delta);
 		else if (delta < 0)
@@ -276,7 +285,8 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		sb.append(", trying to beat a score of ").append(level);
 		return sb.toString();
 	}
-	
+
+	@Override
 	public void dispose() {
 		if (flag != null)
 			getFlags().removeListener(flag, this);

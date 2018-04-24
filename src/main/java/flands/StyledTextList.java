@@ -1,7 +1,6 @@
 package flands;
 
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -21,18 +20,18 @@ import javax.swing.text.StyleConstants;
  * @author Jonathan Mann
  */
 public class StyledTextList implements XMLOutput {
-	private LinkedList<StyledText> list = new LinkedList<StyledText>();
+	private LinkedList<StyledText> list = new LinkedList<>();
 	private boolean abilityChecked = true;
 
 	public int getSize() { return list.size(); }
-	public StyledText getStyledText(int index) { return list.get(index); }
+	private StyledText getStyledText(int index) { return list.get(index); }
 	public Iterator<StyledText> iterator() { return list.iterator(); }
 
 	public void add(String text, AttributeSet atts) {
 		add(new StyledText(text, atts));
 	}
 
-	public void addAbilityName(String name, AttributeSet atts) {
+	void addAbilityName(String name, AttributeSet atts) {
 		add(new StyledText(name.toUpperCase(), atts)); // and let's see if it works
 		/*
 		boolean temp = abilityChecked;
@@ -67,7 +66,7 @@ public class StyledTextList implements XMLOutput {
 		}
 	}
 
-	public static AttributeSet combine(AttributeSet atts1, AttributeSet atts2) {
+	static AttributeSet combine(AttributeSet atts1, AttributeSet atts2) {
 		if (atts2 == null)
 			return atts1;
 		else if (atts1 == null)
@@ -77,7 +76,7 @@ public class StyledTextList implements XMLOutput {
 		atts.addAttributes(atts2);
 		return atts;
 	}
-	
+
 	public void add(StyledTextList list2, AttributeSet atts) {
 		if (list2.getSize() > 0) {
 			add(list2.getStyledText(0).text, combine(list2.getStyledText(0).atts, atts));
@@ -92,7 +91,7 @@ public class StyledTextList implements XMLOutput {
 	
 	public StyledText getLast() { return list.getLast(); }
 
-	public boolean addEffects(Effect e, AttributeSet atts, boolean startWithComma) {
+	boolean addEffects(Effect e, AttributeSet atts, boolean startWithComma) {
 		boolean addedAnything = false;
 		Effect currentEffect = e;
 		while (currentEffect != null) {
@@ -112,7 +111,7 @@ public class StyledTextList implements XMLOutput {
 			if (st.text.endsWith(", "))
 				st.text = st.text.substring(0, st.text.length() - 2);
 		}
-		catch (NoSuchElementException nsee) {}
+		catch (NoSuchElementException ignored) {}
 
 		return addedAnything;
 	}
@@ -122,26 +121,26 @@ public class StyledTextList implements XMLOutput {
 			String[] abilityNames = SectionDocument.getCapsWords();
 			for (int i = 0; i < list.size(); i++) {
 				StyledText st = list.get(i);
-				for (int j = 0; j < abilityNames.length; j++) {
-					int index = st.text.indexOf(abilityNames[j]);
-					if (st.text.indexOf(abilityNames[j]) >= 0) {
+				for (String abilityName : abilityNames) {
+					int index = st.text.indexOf(abilityName);
+					if (st.text.contains(abilityName)) {
 						AttributeSet atts = st.atts;
 						SimpleAttributeSet smallerAtts = SectionDocument.getSmallerAtts(atts);
-						String remainder = st.text.substring(index + abilityNames[j].length());
-						st.text = st.text.substring(0, index+1);
-						list.add(i+1, new StyledText(abilityNames[j].substring(1), smallerAtts));
-						list.add(i+2, new StyledText(remainder, atts));
+						String remainder = st.text.substring(index + abilityName.length());
+						st.text = st.text.substring(0, index + 1);
+						list.add(i + 1, new StyledText(abilityName.substring(1), smallerAtts));
+						list.add(i + 2, new StyledText(remainder, atts));
 					}
 				}
 			}
 			abilityChecked = true;
 		}
 	}
-	
+
 	public Element[] addTo(SectionDocument doc, Element parent) {
 		if (list.size() > 0) {
 			//formatAbilityNames(); // SectionDocument already does this!
-			StyledText[] stArr = list.toArray(new StyledText[list.size()]);
+			StyledText[] stArr = list.toArray(new StyledText[0]);
 			return doc.addLeavesTo(parent, stArr);
 		}
 		else
@@ -170,10 +169,10 @@ public class StyledTextList implements XMLOutput {
 			System.err.println("StyledTextList.addTo(DSD): insertString error: " + ble);
 		}
 	}
-	
-	public String toXML() {
-		StringBuffer sb = new StringBuffer();
-		
+
+	String toXML() {
+		StringBuilder sb = new StringBuilder();
+
 		boolean bold = false, italic = false, underline = false;
 		for (Iterator<StyledText> it = iterator(); it.hasNext(); ) {
 			StyledText st = it.next();
@@ -214,10 +213,14 @@ public class StyledTextList implements XMLOutput {
 		return sb.toString();
 	}
 	
+	@Override
 	public String getXMLTag() { return "desc"; } // not that it matters
+	@Override
 	public void storeAttributes(Properties atts, int flags) {}
+	@Override
 	public Iterator<XMLOutput> getOutputChildren() { return null; }
-	public void outputTo(PrintStream out, String indent, int flags) throws IOException {
+	@Override
+	public void outputTo(PrintStream out, String indent, int flags) {
 		out.print(indent);
 		out.print("<desc>");
 		out.print(toXML());

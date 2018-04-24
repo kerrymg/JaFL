@@ -23,8 +23,8 @@ public class WindowProperties extends ComponentAdapter {
 		WindowProperties wp = new WindowProperties(name, props);
 		return (wp.getBounds() == null ? null : wp);
 	}
-	
-	public WindowProperties(String name, Properties props) {
+
+	WindowProperties(String name, Properties props) {
 		this.name = name;
 		this.props = props;
 	}
@@ -38,7 +38,7 @@ public class WindowProperties extends ComponentAdapter {
 					return new Point(Integer.parseInt(value.substring(0, index)),
 						Integer.parseInt(value.substring(index+1)));
 				}
-				catch (NumberFormatException nfe) {}
+				catch (NumberFormatException ignored) {}
 			}
 		}
 		return null;
@@ -56,7 +56,7 @@ public class WindowProperties extends ComponentAdapter {
 					return new Dimension(Integer.parseInt(value.substring(0, index)),
 						Integer.parseInt(value.substring(index+1)));
 				}
-				catch (NumberFormatException nfe) {}
+				catch (NumberFormatException ignored) {}
 			}
 		}
 		return null;
@@ -65,7 +65,7 @@ public class WindowProperties extends ComponentAdapter {
 		props.setProperty(name + ".size", d.width + "x" + d.height);
 	}
 
-	public Rectangle getBounds() {
+	private Rectangle getBounds() {
 		Point loc = getLocation();
 		Dimension size = getSize();
 		if (loc == null || size == null)
@@ -73,7 +73,7 @@ public class WindowProperties extends ComponentAdapter {
 		else
 			return new Rectangle(loc, size);
 	}
-	public void setBounds(Rectangle r) {
+	private void setBounds(Rectangle r) {
 		setLocation(r.getLocation());
 		setSize(r.getSize());
 	}
@@ -86,7 +86,7 @@ public class WindowProperties extends ComponentAdapter {
 		props.setProperty(name + ".visible", b ? "1" : "0");
 	}
 
-	public void applyTo(Window w) {
+	void applyTo(Window w) {
 		Rectangle r = getBounds();
 		if (r != null)
 			w.setBounds(r);
@@ -102,22 +102,26 @@ public class WindowProperties extends ComponentAdapter {
 		w.setVisible(isShowing());
 	}
 
-	public void getFrom(Window w) {
+	void getFrom(Window w) {
 		if (w != null) {
 			setBounds(w.getBounds());
 			setShowing(w.isVisible());
 		}
 	}
 
+	@Override
 	public void componentHidden(ComponentEvent e) {
 		setShowing(window.isVisible());
 	}
+	@Override
 	public void componentMoved(ComponentEvent e) {
 		setLocation(window.getLocation());
 	}
+	@Override
 	public void componentResized(ComponentEvent e) {
 		setSize(window.getSize());
 	}
+	@Override
 	public void componentShown(ComponentEvent e) {
 		setShowing(window.isVisible());
 	}

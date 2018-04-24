@@ -58,7 +58,7 @@ public class Codewords implements Loadable {
 	 * Remove the given codeword.
 	 * @return <code>true</code> if it was there to be removed.
 	 */
-	public boolean removeCodeword(String word) {
+	boolean removeCodeword(String word) {
 		refresh();
 		Object val = props.remove(word);
 		if (val != null) {
@@ -69,16 +69,16 @@ public class Codewords implements Loadable {
 			return false;
 	}
 
-	public int getTickCount(String section) {
+	int getTickCount(String section) {
 		return getTickCount(Address.getCurrentBookKey(), section);
 	}
-	public int getTickCount(String book, String section) {
+	int getTickCount(String book, String section) {
 		return getValue(book + "/" + section);
 	}
 	public final void addTick(String section) {
 		addTicks(Address.getCurrentBookKey() + "/" + section, 1);
 	}
-	public void addTicks(String section, int ticks) {
+	void addTicks(String section, int ticks) {
 		adjustValue(Address.getCurrentBookKey() + "/" + section, ticks);
 	}
 
@@ -96,12 +96,12 @@ public class Codewords implements Loadable {
 		return 0;
 	}
 
-	public void adjustValue(String name, int delta) {
+	void adjustValue(String name, int delta) {
 		int val = getValue(name);
 		setValue(name, val + delta);
 	}
 
-	public void setValue(String name, int value) {
+	void setValue(String name, int value) {
 		props.setProperty(name, Integer.toString(value));
 		update(name);
 	}
@@ -126,7 +126,7 @@ public class Codewords implements Loadable {
 		}
 	}
 
-	public void update(String key) {
+	private void update(String key) {
 		if (FLApp.debugging) {
 			if (save(owner.getFolderName()))
 				lastSynch = System.currentTimeMillis();
@@ -181,12 +181,12 @@ public class Codewords implements Loadable {
 	private List<Object> listeners;
 	public void addChangeListener(String key, ChangeListener l) {
 		if (listeners == null)
-			listeners = new ArrayList<Object>();
+			listeners = new ArrayList<>();
 		listeners.add(key);
 		listeners.add(l);
 	}
 	public void addChangeListener(ChangeListener l) { addChangeListener(null, l); }
-	public void removeChangeListener(ChangeListener l) {
+	void removeChangeListener(ChangeListener l) {
 		if (listeners == null) return;
 		for (int i = 1; i < listeners.size(); i += 2) {
 			if (listeners.get(i) == l) {
@@ -196,17 +196,19 @@ public class Codewords implements Loadable {
 			}
 		}
 	}
-	public void fireChangeEvent(String key) {
+	private void fireChangeEvent(String key) {
 		if (listeners != null && key != null)
 			for (int i = 0; i < listeners.size(); i += 2)
 				if (listeners.get(i) == null || listeners.get(i).equals(key))
 					((ChangeListener)listeners.get(i+1)).stateChanged(new ChangeEvent(key));
 	}
 
+	@Override
 	public String getFilename() {
 		return "codewords.ini";
 	}
 
+	@Override
 	public boolean loadFrom(InputStream in) throws IOException {
 		// TODO: Notify any listeners?
 		props.clear();
@@ -216,18 +218,19 @@ public class Codewords implements Loadable {
 		return true;
 	}
 
+	@Override
 	public boolean saveTo(OutputStream out) throws IOException {
 		props.store(out, null);
 		return true;
 	}
 	
 	private static final String NotesKey = "*AdventurerNotes*";
-	public String getNotes() {
+	String getNotes() {
 		refresh();
 		return props.getProperty(NotesKey);
 	}
 	
-	public void setNotes(String text) {
+	void setNotes(String text) {
 		props.setProperty(NotesKey, text);
 		update(NotesKey);
 	}

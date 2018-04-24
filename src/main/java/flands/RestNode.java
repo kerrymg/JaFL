@@ -23,16 +23,17 @@ import flands.UndoManager.Creator;
 public class RestNode extends ActionNode implements Executable, ChangeListener, Roller.Listener, Creator {
 	public static final String ElementName = "rest";
 
-	public String staminaStr;
+	private String staminaStr;
 	public int shards;
-	public boolean useOnce;
+	private boolean useOnce;
 	private boolean used = false;
 
-	public RestNode(Node parent) {
+	RestNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		// Amount of stamina regained
 		staminaStr = atts.getValue("stamina");
@@ -48,13 +49,15 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 		super.init(atts);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		saveVarProperty(props, "stamina", staminaStr);
 		if (shards > 0)
 			saveProperty(props, "shards", shards);
 	}
-	
+
+	@Override
 	public void handleContent(String text) {
 		if (text.length() == 0) {
 			//System.err.println("Empty " + ElementName + " tag: no default text!");
@@ -66,11 +69,13 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 		addEnableElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		findExecutableGrouper().addExecutable(this);
 		return super.handleEndTag();
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (shards > 0)
 			// Listen for money changes - do an initial check on finances/health now
@@ -86,6 +91,7 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 		return true;
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		if (!used && getAdventurer().getMoney() >= shards) {
 			Adventurer.StaminaStat stat = getAdventurer().getStamina();
@@ -97,6 +103,7 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 		setEnabled(false);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (staminaStr != null && Character.isDigit(staminaStr.charAt(0))) {
 			DiceExpression staminaExp = new DiceExpression(staminaStr);
@@ -176,6 +183,7 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 	}
 
 	private int healAmount = 0;
+	@Override
 	public void rollerFinished(Roller r) {
 		Adventurer.StaminaStat stamina = getAdventurer().getStamina();
 		int prevStamina = stamina.current;
@@ -193,10 +201,12 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 		findExecutableGrouper().continueExecution(this, true);
 	}
 
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
 
+	@Override
 	public void undoOccurred(UndoManager undo) {
 		if (healAmount != 0) {
 			getAdventurer().getStamina().damage(healAmount);
@@ -204,7 +214,8 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 		}
 		setEnabled(true);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		int stamina = (staminaStr == null ? -1 : getAttributeValue(staminaStr));
 		String text = "Restore ";

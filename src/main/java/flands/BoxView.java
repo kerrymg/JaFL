@@ -10,10 +10,11 @@ import javax.swing.text.View;
  * @author Jonathan Mann
  */
 public class BoxView extends javax.swing.text.BoxView {
-	public BoxView(Element elem, int axis) {
+	BoxView(Element elem, int axis) {
 		super(elem, axis);
 	}
-	
+
+	@Override
 	protected int getOffset(int axis, int childIndex) {
 		try {
 			return super.getOffset(axis, childIndex);
@@ -23,27 +24,29 @@ public class BoxView extends javax.swing.text.BoxView {
 			return 0;
 		}
 	}
-	
-    protected int getSpan(int axis, int childIndex) {
-    	try {
-    		return super.getSpan(axis, childIndex);
-    	}
+
+	@Override
+	protected int getSpan(int axis, int childIndex) {
+		try {
+			return super.getSpan(axis, childIndex);
+		}
 		catch (ArrayIndexOutOfBoundsException e) {
 			//System.err.println("BoxView.getSpan(" + axis + "," + childIndex + "): threw ArrayException");
 			return 0;
 		}
-    }
-    
-    public View getView(int n) {
-    	try {
-    		return super.getView(n);
-    	}
-    	catch (ArrayIndexOutOfBoundsException e) {
-       		if (FLApp.debugging) {
-       			System.err.println("BoxView.getView(" + n + "): threw ArrayException");
-       			e.printStackTrace();
-       		}
-    		return null;
-    	}
-    }
+	}
+
+	@Override
+	public View getView(int n) {
+		try {
+			return super.getView(n);
+		}
+		catch (ArrayIndexOutOfBoundsException e) {
+			if (FLApp.debugging) {
+				System.err.println("BoxView.getView(" + n + "): threw ArrayException");
+				e.printStackTrace();
+			}
+			return null;
+		}
+	}
 }

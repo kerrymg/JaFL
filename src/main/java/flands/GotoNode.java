@@ -20,7 +20,7 @@ import org.xml.sax.Attributes;
  */
 public class GotoNode extends ActionNode implements Executable, ChangeListener, Flag.Listener {
 	public static final String ElementName = "goto";
-	public static final String SectionAttribute = "section";
+	static final String SectionAttribute = "section";
 
 	private String section;
 	private String book;
@@ -38,19 +38,20 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 	private boolean ignoreFlags = false;
 	private boolean keepEnabled = false;
 
-	public GotoNode(Node parent) {
+	GotoNode(Node parent) {
 		this(parent, true);
 	}
 
-	public GotoNode(Node parent, boolean forced) {
+	GotoNode(Node parent, boolean forced) {
 		super(ElementName, parent);
 		this.forced = forced;
 		setEnabled(false);
 	}
 
 	void ignoreFlags(boolean b) { ignoreFlags = b; }
-	
+
 	private static final String ForcedAttribute = "force";
+	@Override
 	public void init(Attributes atts) {
 		this.book = atts.getValue("book");
 		this.section = atts.getValue(SectionAttribute);
@@ -85,10 +86,11 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 			}
 		}
 		keepEnabled = getBooleanValue(atts, "revisit", false);
-		
+
 		super.init(atts);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
 		if (book != null)
@@ -107,15 +109,15 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 	 * The usual 'turn to X' will be added to the local or parent's paragraph Element.
 	 * This needs to be called before handleContent() is called.
 	 */
-	public void setDescriptionNode(Node node) {
+	void setDescriptionNode(Node node) {
 		if (node != null)
 			descriptionNode = node;
 	}
 
-	protected AttributeSet getElementAttributes(boolean isSection) {
+	private AttributeSet getElementAttributes(boolean isSection) {
 		return getElementAttributes(isSection, false);
 	}
-	protected AttributeSet getElementAttributes(boolean isSection, boolean isBook) {
+	private AttributeSet getElementAttributes(boolean isSection, boolean isBook) {
 		SimpleAttributeSet atts = new SimpleAttributeSet();
 		StyleConstants.setUnderline(atts, true);
 		if (isSection)
@@ -128,6 +130,7 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 	}
 
 	private boolean addedContent = false;
+	@Override
 	public void handleContent(String content) {
 		//content = content.trim();
 		if (content.trim().length() == 0) return;
@@ -145,6 +148,7 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		}
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (descriptionNode != null)
 			descriptionNode.handleEndTag();
@@ -178,18 +182,20 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		return super.handleEndTag();
 	}
 
-	protected void enabledStateChange() {
+	@Override
+    protected void enabledStateChange() {
 		//System.out.println("GotoNode: enabledStateChange() called");
 		super.enabledStateChange();
 	}
 
+	@Override
 	public void setEnabled(boolean b) {
 		super.setEnabled(b);
 		if (descriptionNode != null)
 			descriptionNode.setEnabled(b);
 	}
 	
-	public boolean canUse() {
+	boolean canUse() {
 		if (book != null && !Books.getCanon().getBook(book).hasBook())
 			return false;
 		if (setSail && getShips().findShipsHere().length == 0)
@@ -200,12 +206,11 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 			return false;
 		if (flag != null && !getFlags().getState(flag))
 			return false;
-		if (price != null && getFlags().getState(price))
-			return false;
-		return true;
+		return price == null || !getFlags().getState(price);
 	}
 
 	private boolean callContinue = false;
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		executionReached = true;
 		if (canUse()) {
@@ -227,8 +232,10 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		return true;
 	}
 
+	@Override
 	public void resetExecute() { setEnabled(false); }
 
+	@Override
 	protected Element createElement() {
 		Node parent = getParent();
 		while (parent != null && !(parent instanceof ParagraphNode))
@@ -241,12 +248,13 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 			return null;
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (!canUse()) {
 			setEnabled(false);
 			return;
 		}
-		
+
 		int currentShipIndex = -1;
 		if (setSail) {
 			int[] ships = getShips().findShipsHere();
@@ -275,8 +283,8 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		}
 		if (codewords != null && codewords.length > 0) {
 			boolean proceed = andCodewords;
-			for (int c = 0; c < codewords.length; c++) {
-				boolean hasCodeword = getCodewords().hasCodeword(codewords[c]);
+			for (String codeword : codewords) {
+				boolean hasCodeword = getCodewords().hasCodeword(codeword);
 				if (!hasCodeword && andCodewords)
 					return;
 				else if (hasCodeword && !andCodewords) {
@@ -292,7 +300,7 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 			// rather than just pretending to be enabled and ignoring the click if the
 			// codeword isn't present
 		}
-		
+
 		//super.actionPerformed(e); // original location of this call - did it matter?
 		if (getDockLocation() != null || todock != null) {
 			// ie. we're leaving a dock
@@ -318,7 +326,7 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		if (callContinue)
 			// This makes 'visits' work - but it's not really necessary in the majority of cases
 			findExecutableGrouper().continueExecution(this, false);
-		
+
 		/* Doing this breaks 6.628 (if you immediately revisit it)
 		if (flag != null)
 			Flag.getFlag(flag).setState(false);
@@ -327,11 +335,13 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		*/
 	}
 
+	@Override
 	public void stateChanged(ChangeEvent evt) {
 		// setSail must be true
 		setEnabled(book == null && getShips().findShipsHere().length > 0);
 	}
 
+	@Override
 	public void dispose() {
 		if (setSail)
 			getShips().removeShipListener(this);
@@ -341,20 +351,23 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 			getFlags().removeListener(price, this);
 	}
 	
+	@Override
 	protected void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		callContinue = getBooleanValue(atts, "continue", false);
 		executionReached = getBooleanValue(atts, "reached", false);
 	}
-	
+
+	@Override
 	protected void saveProperties(Properties props) {
 		super.saveProperties(props);
 		saveProperty(props, "continue", callContinue);
 		saveProperty(props, "reached", executionReached);
 	}
-	
+
+	@Override
 	protected String getTipText() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		if (setSail)
 			sb.append("Sail a ship to ");
 		else
@@ -365,6 +378,7 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		return sb.toString();
 	}
 
+	@Override
 	public void flagChanged(String name, boolean state) {
 		// Execution must have reached the goto node in the normal way
 		// before flag/price changes have an effect

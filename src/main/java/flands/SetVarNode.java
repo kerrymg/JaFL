@@ -26,12 +26,13 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 	private Item item = null;
 	private boolean force = true;
 
-	public SetVarNode(Node parent) {
+	SetVarNode(Node parent) {
 		super(ElementName, parent);
 		findExecutableGrouper().addExecutable(this);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		var = atts.getValue("var");
 		value = atts.getValue("value");
@@ -47,8 +48,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 		force = getBooleanValue(atts, "force", true);
 		
 		super.init(atts);
-		hidden = true; // by default
-		if (getParent() instanceof GroupNode) hidden = false; // an exception
+		hidden = !(getParent() instanceof GroupNode);
 	}
 
 	protected void init(Properties props) {
@@ -66,7 +66,8 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 		if (item != null) item.saveProperties(props);
 		if (!force) saveProperty(props, "force", false);
 	}
-	
+
+	@Override
 	public void handleContent(String text) {
 		if (text.length() > 0) {
 			hidden = false;
@@ -87,13 +88,14 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 		return null;
 	}
 	
-	public int resolveIdentifier(String ident) {
+	@Override
+    public int resolveIdentifier(String ident) {
 		if (ident.equals("armour")) {
 			Item.Armour a = null;
 			try {
 				a = (Item.Armour)getSingleItem();
 			}
-			catch (ClassCastException cce) {}
+			catch (ClassCastException ignored) {}
 			if (a == null && cache == null)
 				a = getItems().getWorn();
 			return (a == null ? 0 : a.getBonus());
@@ -103,7 +105,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 			try {
 				w = (Item.Weapon)getSingleItem();
 			}
-			catch (ClassCastException cce) {}
+			catch (ClassCastException ignored) {}
 			if (w == null && cache == null)
 				w = getItems().getWielded();
 			System.out.println("Weapon item=" + w);
@@ -143,18 +145,19 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 		
 		return super.resolveIdentifier(ident);
 	}
-	
+
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (!hidden) {
 			setEnabled(true);
-			if (force)
-				return false;
+			return !force;
 		}
 		else
 			actionPerformed(null);
 		return true;
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (!hidden)
 			setEnabled(false);
@@ -173,19 +176,21 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 
 		if (dock != null) {
 			int[] indices = getShips().findShipsHere();
-			for (int i = 0; i < indices.length; i++)
-				getShips().getShip(indices[i]).setDocked(dock);
+			for (int index : indices)
+				getShips().getShip(index).setDocked(dock);
 			getShips().refresh();
 		}
-		
+
 		if (force && !hidden)
 			findExecutableGrouper().continueExecution(this, false);
 	}
 
+	@Override
 	public void resetExecute() {
 		removeVariable(var);
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		String text = null;
 		if (value != null || codeword != null) {
@@ -201,7 +206,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 				text += " [" + getCodewords().getValue(codeword) + "]";
 			}
 		}
-		
+
 		if (dock != null) {
 			if (text == null)
 				text = "Dock";
@@ -209,7 +214,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 				text += ", and dock";
 		    text += " any ships here at " + dock;
 		}
-		
+
 		return text;
 	}
 }

@@ -14,13 +14,14 @@ import javax.swing.text.Element;
 public class RerollNode extends ActionNode implements Executable {
 	public static final String ElementName = "reroll";
 
-	public RerollNode(Node parent) {
+	RerollNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 		findExecutableGrouper().addExecutable(this);
 	}
 
 	private boolean hadContent = false;
+	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
 		hadContent = true;
@@ -29,6 +30,7 @@ public class RerollNode extends ActionNode implements Executable {
 		addHighlightElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		if (!hadContent && !getParent().hideChildContent()) {
 			String text = (getDocument().isNewSentence() ? "Roll again" : "roll again");
@@ -37,6 +39,7 @@ public class RerollNode extends ActionNode implements Executable {
 		return super.handleEndTag();
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		setEnabled(true);
 
@@ -44,23 +47,28 @@ public class RerollNode extends ActionNode implements Executable {
 		return false;
 	}
 
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
 
+	@Override
 	public void fireActionEvent(Element e) {
 		// Overridden so we can comment out the call below:
 		//UndoManager.createNull();
 		actionPerformed(new ActionEvent(e, ActionEvent.ACTION_PERFORMED, "command?"));
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		setEnabled(false);
 		System.out.println("RerollNode: calling UndoManager.undo");
 		UndoManager.getCurrent().undo();
 	}
 
+	@Override
 	protected Element createElement() { return null; }
-	
+
+	@Override
 	protected String getTipText() { return "Redo the last roll"; }
 }

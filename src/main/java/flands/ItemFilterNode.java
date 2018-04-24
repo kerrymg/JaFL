@@ -12,30 +12,31 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class ItemFilterNode extends Node {
-	public static final String IncludeName = "include";
-	public static final String ExcludeName = "exclude";
+	static final String IncludeName = "include";
+	static final String ExcludeName = "exclude";
 	private final boolean include;
 	private Item item;
 	//private ItemList cache;
 	private String reason;
-	
-	public ItemFilterNode(boolean include, Node parent) {
+
+	ItemFilterNode(boolean include, Node parent) {
 		super(include ? IncludeName : ExcludeName, parent);
 		this.include = include;
 	}
-	
+
 	public boolean isInclude() { return include; }
-	public int[] getMatchedItems() {
+	private int[] getMatchedItems() {
 		return getItems().findMatches(item);
 	}
-	public void filterItems(IndexSet set) {
+	void filterItems(IndexSet set) {
 		int[] matches = getMatchedItems();
 		if (include)
 			set.add(matches);
 		else
 			set.remove(matches, reason);
 	}
-	
+
+	@Override
 	public void init(Attributes atts) {
 		item = Item.createItem(atts);
 		if (item == null) {
@@ -43,9 +44,10 @@ public class ItemFilterNode extends Node {
 			item = new Item("&%"); // match nothing
 		}
 		reason = atts.getValue("reason");
-		
+
 		super.init(atts);
 	}
 
+	@Override
 	protected Element createElement() { return null; }
 }

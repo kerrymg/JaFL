@@ -27,16 +27,17 @@ import javax.swing.text.ViewFactory;
  * @author Jonathan Mann
  */
 public class AdvancedParagraphView extends ParagraphView {
-	public AdvancedParagraphView(Element elem) {
+	AdvancedParagraphView(Element elem) {
 		super(elem);
 		strategy = new AdvancedFlowStrategy();
 	}
 
+	@Override
 	protected View createRow() {
 		return new AdvancedRow(getElement());
 	}
 
-	protected static int getSpaceCount(String content) {
+	private static int getSpaceCount(String content) {
 		int result = 0;
 		int index = content.indexOf(' ');
 		while (index >= 0) {
@@ -46,7 +47,7 @@ public class AdvancedParagraphView extends ParagraphView {
 		return result;
 	}
 
-	protected static int[] getSpaceIndexes(String content, int shift) {
+	private static int[] getSpaceIndexes(String content, int shift) {
 		int cnt = getSpaceCount(content);
 		int[] result = new int[cnt];
 		int counter = 0;
@@ -59,6 +60,7 @@ public class AdvancedParagraphView extends ParagraphView {
 		return result;
 	}
 
+	@Override
 	public int getFlowSpan(int index) {
 		int span = super.getFlowSpan(index);
 		if (index == 0) {
@@ -76,7 +78,7 @@ public class AdvancedParagraphView extends ParagraphView {
 		offsets[0] += firstLineIndent;
 	}
 
-	protected static boolean isContainSpace(View v) {
+	private static boolean isContainSpace(View v) {
 		int startOffset = v.getStartOffset();
 		int len = v.getEndOffset() - startOffset;
 		try {
@@ -88,6 +90,7 @@ public class AdvancedParagraphView extends ParagraphView {
 		}
 	}
 
+	@Override
 	protected int getOffset(int axis, int childIndex) {
 		try {
 			return super.getOffset(axis, childIndex);
@@ -98,6 +101,7 @@ public class AdvancedParagraphView extends ParagraphView {
 		}
 	}
 	static private class AdvancedFlowStrategy extends FlowStrategy {
+		@Override
 		public void layout(FlowView fv) {
 			super.layout(fv);
 
@@ -127,7 +131,7 @@ public class AdvancedParagraphView extends ParagraphView {
 			}
 		}
 
-		protected void restructureRow(View row, int rowNum) {
+		void restructureRow(View row, int rowNum) {
 			int rowStartOffset = row.getStartOffset();
 			int rowEndOffset = row.getEndOffset();
 			String rowContent = "";
@@ -185,14 +189,17 @@ public class AdvancedParagraphView extends ParagraphView {
 			super(elem, View.X_AXIS);
 		}
 
+		@Override
 		protected void loadChildren(ViewFactory f) {
 		}
 
+		@Override
 		public AttributeSet getAttributes() {
 			View p = getParent();
 			return (p != null) ? p.getAttributes() : null;
 		}
 
+		@Override
 		public float getAlignment(int axis) {
 			if (axis == View.X_AXIS) {
 
@@ -215,6 +222,7 @@ public class AdvancedParagraphView extends ParagraphView {
 			return super.getAlignment(axis);
 		}
 
+		@Override
 		public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
 			Rectangle r = a.getBounds();
 			View v = getViewAtPosition(pos, r);
@@ -236,6 +244,7 @@ public class AdvancedParagraphView extends ParagraphView {
 			return r;
 		}
 
+		@Override
 		public int getStartOffset() {
 			int offs = Integer.MAX_VALUE;
 			int n = getViewCount();
@@ -248,6 +257,7 @@ public class AdvancedParagraphView extends ParagraphView {
 			return offs;
 		}
 
+		@Override
 		public int getEndOffset() {
 			int offs = 0;
 			int n = getViewCount();
@@ -260,14 +270,17 @@ public class AdvancedParagraphView extends ParagraphView {
 			return offs;
 		}
 
+		@Override
 		protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 			baselineLayout(targetSpan, axis, offsets, spans);
 		}
 
+		@Override
 		protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
 			return baselineRequirements(axis, r);
 		}
 
+		@Override
 		protected int getViewIndexAtPosition(int pos) {
 			// This is expensive, but are views are not necessarily laid out in model order.
 			if ((pos < getStartOffset()) || (pos >= getEndOffset()))
@@ -282,19 +295,23 @@ public class AdvancedParagraphView extends ParagraphView {
 			return -1;
 		}
 
-        /* Make these 4 protected methods public */
+		/* Make these 4 protected methods public */
+		@Override
 		public short getTopInset() {
 			return super.getTopInset();
 		}
 
+		@Override
 		public short getLeftInset() {
 			return super.getLeftInset();
 		}
 
+		@Override
 		public short getRightInset() {
 			return super.getRightInset();
 		}
 
+		@Override
 		public void setInsets(short topInset, short leftInset, short bottomInset, short rightInset) {
 			super.setInsets(topInset, leftInset, bottomInset, rightInset);
 		}
@@ -306,6 +323,7 @@ public class AdvancedParagraphView extends ParagraphView {
          * implementation of this method
 		 * @param spans the span of each child view; this is a return value and is filled in by the implementation of this method
 		 */
+		@Override
 		protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
 			super.layoutMajorAxis(targetSpan, axis, offsets, spans);
 
@@ -374,7 +392,7 @@ public class AdvancedParagraphView extends ParagraphView {
 			}
 		}
 
-		protected int[] getSpaces(int space, int cnt) {
+		int[] getSpaces(int space, int cnt) {
 			int[] result = new int[cnt];
 
 			if (cnt == 0)
@@ -395,6 +413,7 @@ public class AdvancedParagraphView extends ParagraphView {
 			return result;
 		}
 
+		@Override
 		public float getMinimumSpan(int axis) {
 			if (axis == View.X_AXIS) {
 				AttributeSet attr = getAttributes();
@@ -408,6 +427,7 @@ public class AdvancedParagraphView extends ParagraphView {
 				return super.getMinimumSpan(axis);
 		}
 
+		@Override
 		public float getMaximumSpan(int axis) {
 			if (axis == View.X_AXIS) {
 				AttributeSet attr = getAttributes();
@@ -421,6 +441,7 @@ public class AdvancedParagraphView extends ParagraphView {
 				return super.getMaximumSpan(axis);
 		}
 
+		@Override
 		public float getPreferredSpan(int axis) {
 			if (axis == View.X_AXIS) {
 				AttributeSet attr = getAttributes();
@@ -434,11 +455,11 @@ public class AdvancedParagraphView extends ParagraphView {
 				return super.getPreferredSpan(axis);
 		}
 
-		public void setRowNumber(int value) {
+		void setRowNumber(int value) {
 			rowNumber = value;
 		}
 
-		public int getRowNumber() {
+		int getRowNumber() {
 			return rowNumber;
 		}
 	}

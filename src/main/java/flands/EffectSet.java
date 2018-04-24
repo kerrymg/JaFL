@@ -16,20 +16,20 @@ import javax.swing.text.StyleConstants;
  */
 public class EffectSet {
 	public static class EffectRecord implements Comparable<EffectRecord> {
-		public Object src;
+		Object src;
 		public Effect effect;
 
-		public EffectRecord(Object src) {
+		EffectRecord(Object src) {
 			this(src, null);
 		}
-		public EffectRecord(Object src, Effect e) {
+		EffectRecord(Object src, Effect e) {
 			this.src = src;
 			this.effect = e;
 		}
 
 		public boolean isItem() { return (src instanceof Item); }
 		public Item getItem() { return isItem() ? (Item)src : null; }
-		public boolean isImplicit() { return (effect == null); }
+		boolean isImplicit() { return (effect == null); }
 
 		/**
 		 * For once, sorting is important.
@@ -43,6 +43,7 @@ public class EffectSet {
 		 * - Effects are sorted by description if present
 		 * - Effects are sorted by type (AURA, WIELD, USE, TOOL in order)
 		 */
+		@Override
 		public int compareTo(EffectRecord r) {
 			if ((src == r.src || src.equals(r.src)) && effect == r.effect) return 0;
 
@@ -63,8 +64,8 @@ public class EffectSet {
 			}
 			catch (ClassCastException cce) { return false; }
 		}
-		
-		public StyledTextList getStyledSource(Adventurer owner) {
+
+		StyledTextList getStyledSource(Adventurer owner) {
 			StyledTextList stList = new StyledTextList();
 			if (src == null)
 				stList.add("Unknown source", null);
@@ -82,7 +83,7 @@ public class EffectSet {
 			
 			return stList;
 		}
-		
+
 		public String toString() { return "[src=" + src + ",effect=" + effect + "]"; }
 	}
 
@@ -100,7 +101,7 @@ public class EffectSet {
 
 	public Adventurer getAdventurer() { return owner; }
 
-	public void notifyOwner() {
+	void notifyOwner() {
 		if (updatedAbilities[Adventurer.ABILITY_COMBAT] || updatedAbilities[Adventurer.ABILITY_RANK])
 			updatedAbilities[Adventurer.ABILITY_DEFENCE] = true;
 		if (owner == null) return;
@@ -111,7 +112,7 @@ public class EffectSet {
 			}
 	}
 
-	private final void abilityUpdated(int a) {
+	private void abilityUpdated(int a) {
 		updatedAbilities[a] = true;
 	}
 
@@ -123,7 +124,7 @@ public class EffectSet {
 	public void addStatRelated(int ability, Object src, Effect e) {
 		addStatRelated(ability, new EffectRecord(src, e));
 	}
-	public void addAbilityPotionBonus(int ability) {
+	void addAbilityPotionBonus(int ability) {
 		addStatRelated(ability, Item.AbilityPotionSource, AbilityEffect.createAbilityBonus(ability, 1));
 	}
 
@@ -152,9 +153,8 @@ public class EffectSet {
 	 * the effect is compared on a field-by-field basis.
 	 * This method is used to check for potion bonuses, which are added with a <code>null</code> source.
 	 */
-	public boolean hasStatRelated(int ability, Object src, Effect e) {
-		for (Iterator<EffectRecord> i = getStatRelated(ability).iterator(); i.hasNext(); ) {
-			EffectRecord er = i.next();
+	private boolean hasStatRelated(int ability, Object src, Effect e) {
+		for (EffectRecord er : getStatRelated(ability)) {
 			if (er.src == src) {
 				if (e.compareTo(er.effect) == 0)
 					return true;
@@ -170,12 +170,11 @@ public class EffectSet {
 	 * @param src the effect source.
 	 * @return <code>0</code> if a related adjust effect can't be found.
 	 */
-	public int getStatRelatedBonus(int ability, Object src) {
-		for (Iterator<EffectRecord> i = getStatRelated(ability).iterator(); i.hasNext(); ) {
-			EffectRecord er = i.next();
+	int getStatRelatedBonus(int ability, Object src) {
+		for (EffectRecord er : getStatRelated(ability)) {
 			if (er.src == src) {
 				if (er.effect instanceof AbilityEffect) {
-					AbilityEffect ae = (AbilityEffect)er.effect;
+					AbilityEffect ae = (AbilityEffect) er.effect;
 					if (ae.getModifyType() == AbilityEffect.ADJUST_ABILITY)
 						return ae.getValue();
 				}
@@ -183,15 +182,15 @@ public class EffectSet {
 		}
 		return 0;
 	}
-	
-	public boolean hasAbilityPotionBonus(int ability) {
+
+	boolean hasAbilityPotionBonus(int ability) {
 		return hasStatRelated(ability, Item.AbilityPotionSource, AbilityEffect.createAbilityBonus(ability, 1));
 	}
 
-	public void notifyEffectsUpdated(Object src) {
+	void notifyEffectsUpdated(Object src) {
 		for (int a = 0; a < statRelated.length; a++) {
-			for (Iterator<EffectRecord> i = getStatRelated(a).iterator(); i.hasNext(); ) {
-				if (i.next().src == src) {
+			for (EffectRecord effectRecord : getStatRelated(a)) {
+				if (effectRecord.src == src) {
 					abilityUpdated(a);
 					break;
 				}
@@ -200,16 +199,16 @@ public class EffectSet {
 		notifyOwner();
 	}
 
-	public void removeStatRelated(int ability, Object src) {
+	void removeStatRelated(int ability, Object src) {
 		removeStatRelated(ability, new EffectRecord(src));
 	}
-	public void removeStatRelated(int ability, Object src, Effect e) {
+	void removeStatRelated(int ability, Object src, Effect e) {
 		removeStatRelated(ability, new EffectRecord(src, e));
 	}
-	public void removeAbilityPotionBonus(int ability) {
+	void removeAbilityPotionBonus(int ability) {
 		removeStatRelated(ability, Item.AbilityPotionSource, AbilityEffect.createAbilityBonus(ability, 1));
 	}
-	public void removeAllItems() {
+	void removeAllItems() {
 		for (int a = 0; a < statRelated.length; a++) {
 			for (Iterator<EffectRecord> i = getStatRelated(a).iterator(); i.hasNext(); ) {
 				if (i.next().isItem())
@@ -232,8 +231,8 @@ public class EffectSet {
 	public int adjustAbility(int ability, int value) {
 		return adjustAbility(ability, value, Adventurer.MODIFIER_AFFECTED);
 	}
-	
-	public int adjustAbility(int ability, int value, int modifier) {
+
+	int adjustAbility(int ability, int value, int modifier) {
 		boolean applyTool = true, applyArmour = true, applyAura = true;
 		switch (modifier) {
 		case Adventurer.MODIFIER_NATURAL:
@@ -246,36 +245,35 @@ public class EffectSet {
 			applyTool = false;
 			break;
 		}
-		
+
 		int bestToolBonus = 0;
-		for (Iterator<EffectRecord> i = getStatRelated(ability).iterator(); i.hasNext(); ) {
-			EffectRecord r = i.next();
+		for (EffectRecord r : getStatRelated(ability)) {
 			if (r.isImplicit()) {
 				if (r.isItem()) {
 					Item item = r.getItem();
 					switch (item.getType()) {
-						case Item.WEAPON_TYPE:
-						case Item.TOOL_TYPE:
-							if (((Item.Weapon)item).affectsAbility(ability) && applyTool)
-								bestToolBonus = Math.max(bestToolBonus, item.getBonus());
-								//value += item.getBonus();
-							break;
-						case Item.ARMOUR_TYPE:
-							if (ability == Adventurer.ABILITY_DEFENCE && applyArmour)
-								value += item.getBonus();
-							break;
+					case Item.WEAPON_TYPE:
+					case Item.TOOL_TYPE:
+						if (((Item.Weapon) item).affectsAbility(ability) && applyTool)
+							bestToolBonus = Math.max(bestToolBonus, item.getBonus());
+						//value += item.getBonus();
+						break;
+					case Item.ARMOUR_TYPE:
+						if (ability == Adventurer.ABILITY_DEFENCE && applyArmour)
+							value += item.getBonus();
+						break;
 					}
 				}
 			}
 			else {
 				Effect e = r.effect;
 				if ((e.getType() == Effect.TYPE_AURA && applyAura) ||
-					(e.getType() == Effect.TYPE_TOOL && applyTool) ||
-					(e.getType() == Effect.TYPE_WIELDED && r.isItem() && ((Item.Weapon)r.getItem()).isWielded()) && applyTool) {
+						(e.getType() == Effect.TYPE_TOOL && applyTool) ||
+						(e.getType() == Effect.TYPE_WIELDED && r.isItem() && ((Item.Weapon) r.getItem()).isWielded()) && applyTool) {
 					if (e instanceof AbilityEffect) {
-						AbilityEffect ae = (AbilityEffect)e;
+						AbilityEffect ae = (AbilityEffect) e;
 						if (ae.getAbility() == ability ||
-							(ae.getAbility() == Adventurer.ABILITY_ALL && ability < Adventurer.ABILITY_COUNT)) {
+								(ae.getAbility() == Adventurer.ABILITY_ALL && ability < Adventurer.ABILITY_COUNT)) {
 							if (e.getType() == Effect.TYPE_TOOL) {
 								if (ae.getModifyType() != AbilityEffect.ADJUST_ABILITY)
 									System.err.println("Tool type Effect has unhandled adjustment type: " + ae.getModifyType());
@@ -299,41 +297,40 @@ public class EffectSet {
 		// TODO: Does this screw anything else up?
 		return Math.max(1, value);
 	}
-	
-	public String getAbilityAdjustments(int ability, int natural) {
-		StringBuffer html = new StringBuffer("<html><table><tr><td>Natural Score</td><td align=right>" + natural + "</td></tr>");
-		for (Iterator<EffectRecord> i = getStatRelated(ability).iterator(); i.hasNext(); ) {
-			EffectRecord r = i.next();
+
+	String getAbilityAdjustments(int ability, int natural) {
+		StringBuilder html = new StringBuilder("<html><table><tr><td>Natural Score</td><td align=right>" + natural + "</td></tr>");
+		for (EffectRecord r : getStatRelated(ability)) {
 			AbilityEffect ae = null;
 			if (r.isImplicit()) {
 				if (r.isItem()) {
 					Item item = r.getItem();
 					switch (item.getType()) {
-						case Item.WEAPON_TYPE:
-						case Item.TOOL_TYPE:
-							if (((Item.Weapon)item).affectsAbility(ability))
-								ae = AbilityEffect.createAbilityBonus(ability, item.getBonus());
-							break;
-						case Item.ARMOUR_TYPE:
-							if (ability == Adventurer.ABILITY_DEFENCE)
-								ae = AbilityEffect.createAbilityBonus(ability, item.getBonus());
-							break;
+					case Item.WEAPON_TYPE:
+					case Item.TOOL_TYPE:
+						if (((Item.Weapon) item).affectsAbility(ability))
+							ae = AbilityEffect.createAbilityBonus(ability, item.getBonus());
+						break;
+					case Item.ARMOUR_TYPE:
+						if (ability == Adventurer.ABILITY_DEFENCE)
+							ae = AbilityEffect.createAbilityBonus(ability, item.getBonus());
+						break;
 					}
 				}
 			}
 			else {
 				Effect e = r.effect;
 				if (e.getType() == Effect.TYPE_AURA ||
-					(e.getType() == Effect.TYPE_WIELDED && r.isItem() && ((Item.Weapon)r.getItem()).isWielded())) {
+						(e.getType() == Effect.TYPE_WIELDED && r.isItem() && ((Item.Weapon) r.getItem()).isWielded())) {
 					if (e instanceof AbilityEffect) {
-						ae = (AbilityEffect)e;
+						ae = (AbilityEffect) e;
 						if (ae.getAbility() != ability &&
-							(ae.getAbility() != Adventurer.ABILITY_ALL || ability >= Adventurer.ABILITY_COUNT))
+								(ae.getAbility() != Adventurer.ABILITY_ALL || ability >= Adventurer.ABILITY_COUNT))
 							ae = null;
 					}
 				}
 			}
-			
+
 			if (ae != null) {
 				html.append("<tr><td>");
 				html.append(r.getStyledSource(owner).toXML());
@@ -342,12 +339,12 @@ public class EffectSet {
 				html.append("</td></tr>");
 			}
 		}
-		
+
 		//return doc;
 		html.append("</table></html>");
 		return html.toString();
 	}
-	
+
 	public static AttributeSet createColumnAtts(int align) {
 		SimpleAttributeSet atts = new SimpleAttributeSet();
 		Node.setViewType(atts, Node.ParagraphViewType);

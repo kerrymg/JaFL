@@ -30,23 +30,23 @@ public class Resurrection {
 	public String getSection() { return section; }
 	public String getText() { return text; }
 	public String getGod() { return god; }
-	public boolean isGod(String god) { return (this.god != null && this.god.equalsIgnoreCase(god)); }
+	boolean isGod(String god) { return (this.god != null && this.god.equalsIgnoreCase(god)); }
 	public void setGod(String god) { this.god = god; }
-	public boolean isSupplemental() { return supplemental; }
-	public void setSupplemental(boolean b) { this.supplemental = b; }
-	
+	boolean isSupplemental() { return supplemental; }
+	void setSupplemental(boolean b) { this.supplemental = b; }
+
 	/**
 	 * Activate the resurrection.
 	 * Heals the player entirely, and triggers a goto to the resurrection location.
 	 */
-	public void activate() {
+	void activate() {
 		FLApp app = FLApp.getSingle();
 		app.getAdventurer().getStamina().heal(-1);
 		app.getAdventurer().removeResurrection(this);
 		app.gotoAddress(new Address(getBook(), getSection()));
 	}
-	
-	public StyledTextList getContent(AttributeSet atts) {
+
+	StyledTextList getContent(AttributeSet atts) {
 		StyledTextList list = new StyledTextList();
 		if (text != null)
 			list.add(text + " - ", atts);
@@ -60,7 +60,7 @@ public class Resurrection {
 		list.add(section, boldAtts);
 		return list;
 	}
-	
+
 	static Resurrection loadResurrection(Properties props, int key) {
 		String book = props.getProperty("ResBook" + key);
 		String section = props.getProperty("ResSection" + key);
@@ -73,7 +73,7 @@ public class Resurrection {
 		else
 			return null;
 	}
-	
+
 	/**
 	 * Internal output method - used when saving character stats.
 	 */
@@ -87,7 +87,7 @@ public class Resurrection {
 		if (supplemental)
 			props.setProperty("ResSupp" + key, "1");
 	}
-	
+
 	/**
 	 * Public output method - used when saving as part of a ResurrectionNode.
 	 * @see ResurrectionNode#outit(Properties)

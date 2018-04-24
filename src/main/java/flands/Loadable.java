@@ -11,7 +11,7 @@ import java.io.OutputStream;
  * @author Jonathan Mann
  */
 public interface Loadable {
-	public String getFilename();
-	public boolean loadFrom(InputStream in) throws IOException;
-	public boolean saveTo(OutputStream out) throws IOException;
+	String getFilename();
+	boolean loadFrom(InputStream in) throws IOException;
+	boolean saveTo(OutputStream out) throws IOException;
 }

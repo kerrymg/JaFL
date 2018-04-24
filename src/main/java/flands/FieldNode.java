@@ -20,10 +20,11 @@ public class FieldNode extends Node implements ChangeListener {
 	private String label;
 	private JTextField field;
 
-	public FieldNode(Node parent) {
+	FieldNode(Node parent) {
 		super(ElementName, parent);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		name = atts.getValue("name");
 		label = atts.getValue("label");
@@ -47,13 +48,16 @@ public class FieldNode extends Node implements ChangeListener {
 		getDocument().addLeavesTo(getElement(), new String[] { "\n" }, null);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		getCodewords().addChangeListener(name, this);
 		return true;
 	}
-	
+
+	@Override
 	protected String getElementViewType() { return ParagraphViewType; }
 
+	@Override
 	protected MutableAttributeSet getElementStyle() {
 		SimpleAttributeSet atts = new SimpleAttributeSet();
 		StyleConstants.setAlignment(atts, StyleConstants.ALIGN_JUSTIFIED);
@@ -65,8 +69,9 @@ public class FieldNode extends Node implements ChangeListener {
 		if (e.getSource().equals(name))
 			field.setText(Integer.toString(getCodewords().getValue(name)));
 	}
-	
-	public void dispose() {
+
+	@Override
+    public void dispose() {
 		getCodewords().removeChangeListener(this);
 		SectionDocument.removeComponentFontUser(field);
 	}

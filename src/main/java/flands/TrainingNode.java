@@ -25,11 +25,12 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 	private int add;
 	private String var;
 
-	public TrainingNode(Node parent) {
+	TrainingNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
 
+	@Override
 	public void init(Attributes atts) {
 		abilities = Adventurer.getAbilityTypes(atts.getValue("ability"));
 		if (abilities.length == 1) {
@@ -44,10 +45,11 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 		super.init(atts);
 	}
 
+	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
-		
-		StringBuffer abilityString = new StringBuffer();
+
+		StringBuilder abilityString = new StringBuilder();
 		if (ability >= 0)
 			abilityString.append(Adventurer.getAbilityName(ability));
 		else {
@@ -62,7 +64,8 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 		if (add != 0) saveProperty(props, "add", add);
 		if (var != null) props.setProperty("var", var);
 	}
-	
+
+	@Override
 	public void handleContent(String text) {
 		if (text.length() == 0) {
 			// end tag without any content
@@ -82,18 +85,22 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 		addEnableElements(leaves);
 	}
 
+	@Override
 	public boolean handleEndTag() {
 		findExecutableGrouper().addExecutable(this);
 		return super.handleEndTag();
 	}
 
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		setEnabled(true);
 		return false;
 	}
 
+	@Override
 	public void resetExecute() { setEnabled(false); }
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (abilities != null) {
 			// More than one ability - do a popup dialog to choose one
@@ -107,7 +114,7 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 
 			if (dc.getSelectedIndices() == null)
 				return; // failure
-			System.out.println("Selected indices has length " + dc.getSelectedIndices());
+			System.out.println("Selected indices has length " + dc.getSelectedIndices().length);
 			ability = abilities[dc.getSelectedIndices()[0]];
 		}
 		setEnabled(false);
@@ -118,6 +125,7 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 	}
 
 	private boolean success;
+	@Override
 	public void rollerFinished(Roller r) {
 		Adventurer adv = getAdventurer();
 		setVariableValue("exp", r.getResult() - adv.getAbility(ability).natural); // might need this result
@@ -137,13 +145,15 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 		findExecutableGrouper().continueExecution(this, true);
 	}
 
+	@Override
 	public void undoOccurred(UndoManager undo) {
 		if (success)
 			// Don't know exactly why you'd want to undo this, but anyway...
 			getAdventurer().adjustAbility(ability, -1);
 		execute(findExecutableGrouper());
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		String text = "Roll " + getDiceText(dice);
 		if (add > 0)

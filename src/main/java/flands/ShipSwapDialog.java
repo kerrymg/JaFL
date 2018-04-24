@@ -238,18 +238,21 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 		private int selectedIndex;
 		public int getIndex() { return selectedIndex; }
 		public Ship getShip() { return ships.getShip(getIndex()); }
-		public void nameChanged(int index) {
+		void nameChanged(int index) {
 			fireContentsChanged(this, index, index);
 		}
-		
+
+		@Override
 		public int getSize() {
 			return ships.getShipCount();
 		}
 
+		@Override
 		public Object getElementAt(int index) {
 			return ships.getShip(index).getName();
 		}
 
+		@Override
 		public void setSelectedItem(Object anItem) {
 			for (int i = 0; i < getSize(); i++)
 				if (getElementAt(i).equals(anItem)) {
@@ -258,6 +261,7 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 				}
 		}
 
+		@Override
 		public Object getSelectedItem() {
 			return getElementAt(selectedIndex);
 		}
@@ -275,15 +279,17 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 				fireIntervalAdded(this, 0, getSize() - 1);
 			}
 		}
-		
+
 		public void refresh() {
 			fireContentsChanged(this, 0, getSize() - 1);
 		}
-		
+
+		@Override
 		public int getSize() {
 			return (ship != null ? ship.getCapacity() : 0);
 		}
 
+		@Override
 		public Object getElementAt(int index) {
 			int cargoType = ship.getCargo(index);
 			if (cargoType >= 0)
@@ -292,7 +298,8 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 				return "Empty";
 		}
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object src = e.getSource();
 		if (src == ship1Choice)
@@ -315,38 +322,38 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 			int cargo1Count = 0, cargo2Count = 0;
 			int[] selection1 = ship1Cargo.getSelectedIndices();
 			int[] selection2 = ship2Cargo.getSelectedIndices();
-			for (int i = 0; i < selection1.length; i++)
-				if (ship1.getShip().getCargo(selection1[i]) != Ship.NO_CARGO)
+			for (int aSelection11 : selection1)
+				if (ship1.getShip().getCargo(aSelection11) != Ship.NO_CARGO)
 					cargo1Count++;
-			for (int i = 0; i < selection2.length; i++)
-				if (ship2.getShip().getCargo(selection2[i]) != Ship.NO_CARGO)
+			for (int aSelection21 : selection2)
+				if (ship2.getShip().getCargo(aSelection21) != Ship.NO_CARGO)
 					cargo2Count++;
-			
+
 			if (ship1.getShip().getFreeSpace() - cargo2Count + cargo1Count < 0 ||
 				ship2.getShip().getFreeSpace() - cargo1Count + cargo2Count < 0) {
 				getToolkit().beep();
 				return;
 			}
-			
+
 			int[] moveCargo1 = new int[cargo1Count];
 			int[] moveCargo2 = new int[cargo2Count];
 			int j = 0;
-			for (int i = 0; i < selection1.length; i++) {
-				int cargo = ship1.getShip().getCargo(selection1[i]);
+			for (int aSelection1 : selection1) {
+				int cargo = ship1.getShip().getCargo(aSelection1);
 				if (cargo != Ship.NO_CARGO) {
 					moveCargo1[j++] = cargo;
 					ship1.getShip().removeCargo(cargo);
 				}
 			}
 			j = 0;
-			for (int i = 0; i < selection2.length; i++) {
-				int cargo = ship2.getShip().getCargo(selection2[i]);
+			for (int aSelection2 : selection2) {
+				int cargo = ship2.getShip().getCargo(aSelection2);
 				if (cargo != Ship.NO_CARGO) {
 					moveCargo2[j++] = cargo;
 					ship2.getShip().removeCargo(cargo);
 				}
 			}
-			
+
 			for (int i = 0; i < cargo1Count; i++)
 				ship2.getShip().addCargo(moveCargo1[i]);
 			for (int i = 0; i < cargo2Count; i++)
@@ -359,13 +366,13 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 			close();
 		}
 	}
-	
+
 	public void close() {
 		setVisible(false);
 		ships.refresh();
 		dispose();
 	}
-	
+
 	private void setShipName(boolean isShip1) {
 		int index = (isShip1 ? ship1 : ship2).getIndex();
 		JTextField sourceField = (isShip1 ? ship1Name : ship2Name);
@@ -377,7 +384,7 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 			getToolkit().beep();
 			return;
 		}
-		
+
 		// Check that no other ship is using this name
 		for (int s = 0; s < ships.getShipCount(); s++) {
 			if (s == index)
@@ -388,7 +395,7 @@ public class ShipSwapDialog extends JDialog implements ActionListener {
 				return;
 			}
 		}
-		
+
 		ships.getShip(index).setName(name);
 		ship1.nameChanged(index);
 		ship2.nameChanged(index);

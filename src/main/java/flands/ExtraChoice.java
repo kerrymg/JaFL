@@ -36,8 +36,8 @@ public class ExtraChoice extends ActionNode implements Executable {
 	protected String key;
 	private String remove;
 	private int flashes = 3;
-	
-	public ExtraChoice(Node parent) {
+
+	ExtraChoice(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
 	}
@@ -53,8 +53,9 @@ public class ExtraChoice extends ActionNode implements Executable {
 	public StyledTextList getStyledText() { return styledText; }
 	public String getBook() { return book; }
 	public String getSection() { return section; }
-	
+
 	/** Loading from section XML. */
+	@Override
 	public void init(Attributes atts) {
 		book      = atts.getValue("book");
 		section   = atts.getValue("section");
@@ -67,7 +68,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 		
 		super.init(atts);
 	}
-	
+
 	/** Loading from saved game file. */
 	public void loadFrom(ExtProperties props, int i) {
 		book      = props.getProperty(i + ".book");
@@ -78,7 +79,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 		tag       = props.getProperty(i + ".tag");
 		key       = props.getProperty(i + ".key");
 	}
-	
+
 	/** Saving to saved game file. */
 	public void saveTo(ExtProperties props, int i) {
 		// TODO: Doesn't save styledText to file - no code for this (yet)
@@ -90,7 +91,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 		props.setProperty(i + ".tag",       tag);
 		props.setProperty(i + ".key",       key);
 	}
-	
+
 	private static boolean equal(String s1, String s2) {
 		return (s1 != null && s2 != null ? s1.equals(s2) : s1 == s2);
 	}
@@ -106,6 +107,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 		}
 		catch (ClassCastException cce) { return false; }
 	}
+	@Override
 	public void handleContent(String text) {
 		if (text.length() == 0) return;
 		if (styledText == null)
@@ -115,7 +117,8 @@ public class ExtraChoice extends ActionNode implements Executable {
 		addHighlightElements(leaves);
 		addEnableElements(leaves);
 	}
-	
+
+	@Override
 	public boolean handleEndTag() {
 		if (styledText == null) {
 			if (text == null)
@@ -130,7 +133,8 @@ public class ExtraChoice extends ActionNode implements Executable {
 		
 		return super.handleEndTag();
 	}
-	
+
+	@Override
 	public boolean execute(ExecutableGrouper grouper) {
 		if (hidden) {
 			actionPerformed(null);
@@ -149,7 +153,8 @@ public class ExtraChoice extends ActionNode implements Executable {
 		//setEnabled(true);
 		//return (getAdventurer().getExtraChoices().contains(this));
 	}
-	
+
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (menuItem != null && evt.getSource() == menuItem)
 			activate();
@@ -164,31 +169,32 @@ public class ExtraChoice extends ActionNode implements Executable {
 				findExecutableGrouper().continueExecution(this, false);
 		}
 	}
-	
+
+	@Override
 	public void resetExecute() {
 		setEnabled(false);
 	}
-	
+
 	public boolean isChoiceEnabled() {
 		if (atbook != null && atsection != null) {
 			if (atbook.equals(Address.getCurrentBookKey()) && atsection.equals(FLApp.getSingle().getCurrentSection()))
 				return true;
 		}
 		if (tag != null) {
-			if (((SectionNode)FLApp.getSingle().getRootNode()).hasTag(tag))
-				return true;
+			return ((SectionNode) FLApp.getSingle().getRootNode()).hasTag(tag);
 		}
 		
 		return false;
 	}
-	
-	public void activate() {
+
+	private void activate() {
 		FLApp.getSingle().gotoAddress(new Address(getBook(), getSection()));
 	}
-	
+
+	@Override
 	protected String getTipText() {
 		if (remove == null) {
-			StringBuffer sb = new StringBuffer("Gain extra choice [");
+			StringBuilder sb = new StringBuilder("Gain extra choice [");
 			sb.append(key);
 			sb.append("]");
 			if (atbook != null && atsection != null)
@@ -206,7 +212,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 	}
 	
 	private JMenuItem menuItem = null;
-	protected JMenuItem getMenuItem() {
+	JMenuItem getMenuItem() {
 		if (menuItem == null) {
 			menuItem = new JMenuItem(getText());
 			menuItem.setEnabled(isChoiceEnabled());
@@ -214,31 +220,36 @@ public class ExtraChoice extends ActionNode implements Executable {
 		}
 		return menuItem;
 	}
-	
+
 	protected boolean showInMenu() {
 		return (isChoiceEnabled() || (atbook != null && atbook.equals(Address.getCurrentBookKey())));
 	}
-	
-	public static Death DeathChoice = new Death();
+
+	private static Death DeathChoice = new Death();
 	public final static class Death extends ExtraChoice {
 		private Death() {
 			super(null);
 			key = text = "Death";
 		}
+		@Override
 		public String getBook() { return Address.getCurrentBookKey(); }
+		@Override
 		public String getSection() {
 			return Address.getCurrentBook().getDeathSection();
 		}
+		@Override
 		public boolean isChoiceEnabled() {
 			return getAdventurer().getStamina().current <= 0;
 		}
+		@Override
 		protected boolean showInMenu() { return true; }
 	}
-	
+
 	public static class List extends LinkedList<ExtraChoice> implements Loadable {
 		private JMenu choiceMenu = null;
-		public void setMenu(JMenu menu) { choiceMenu = menu; }
-		
+		void setMenu(JMenu menu) { choiceMenu = menu; }
+
+		@Override
 		public boolean add(ExtraChoice choice) {
 			if (choice.key != null)
 				// Only one choice with a particular key can be present
@@ -246,7 +257,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 			super.add(choice);
 			return true;
 		}
-		
+
 		public void remove(String key) {
 			for (Iterator<ExtraChoice> i = iterator(); i.hasNext(); ) {
 				ExtraChoice choice = i.next();
@@ -256,8 +267,8 @@ public class ExtraChoice extends ActionNode implements Executable {
 				}
 			}
 		}
-		
-		public void checkMenu() {
+
+		void checkMenu() {
 			if (choiceMenu == null) {
 				System.out.println("ExtraChoice.List.checkMenu() called, menu has not yet been set");
 				return;
@@ -266,8 +277,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 			choiceMenu.removeAll();
 			boolean enabledItem = false;
 			int flashes = 1;
-			for (Iterator<ExtraChoice> i = iterator(); i.hasNext(); ) {
-				ExtraChoice choice = i.next();
+			for (ExtraChoice choice : this) {
 				if (choice.showInMenu()) {
 					JMenuItem item = choice.getMenuItem();
 					boolean enabled = choice.isChoiceEnabled();
@@ -280,25 +290,27 @@ public class ExtraChoice extends ActionNode implements Executable {
 					}
 				}
 			}
-			
+
 			if (choiceMenu.getItemCount() > 0)
 				choiceMenu.addSeparator();
 			JMenuItem deathItem = DeathChoice.getMenuItem();
 			deathItem.setEnabled(DeathChoice.isChoiceEnabled());
 			choiceMenu.add(deathItem);
-			
+
 			if (enabledItem)
 				// 'Flash' the menu
 				new Thread(new MenuFlasher(choiceMenu, flashes)).start();
-			
+
 			if (!choiceMenu.isVisible())
 				choiceMenu.setVisible(true);
 		}
-		
+
+		@Override
 		public String getFilename() {
 			return "extrachoices.ini";
 		}
 
+		@Override
 		public boolean loadFrom(InputStream in) throws IOException {
 			ExtProperties props = new ExtProperties();
 			props.load(in);
@@ -312,6 +324,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 			return true;
 		}
 
+		@Override
 		public boolean saveTo(OutputStream out) throws IOException {
 			ExtProperties props = new ExtProperties();
 			props.set("size", size());
@@ -322,18 +335,19 @@ public class ExtraChoice extends ActionNode implements Executable {
 			return true;
 		}
 	}
-	
+
 	private static class MenuFlasher implements Runnable, MenuListener {
 		private JMenu menu;
 		private boolean cancelled = false;
 		private int flashes;
-		
+
 		private MenuFlasher(JMenu menu, int flashes) {
 			this.menu = menu;
 			menu.addMenuListener(this);
 			this.flashes = flashes;
 		}
-		
+
+		@Override
 		public void run() {
 			for (int i = 0; i < (flashes*2)-1; i++) {
 				if (cancelled)
@@ -342,13 +356,16 @@ public class ExtraChoice extends ActionNode implements Executable {
 				try {
 					Thread.sleep(500);
 				}
-				catch (InterruptedException e) {}
+				catch (InterruptedException ignored) {}
 			}
 			menu.setArmed(false);
 		}
 
+		@Override
 		public void menuSelected(MenuEvent e) { cancelled = true; }
+		@Override
 		public void menuDeselected(MenuEvent e) { cancelled = true; }
+		@Override
 		public void menuCanceled(MenuEvent e) { cancelled = true; }
 	}
 }

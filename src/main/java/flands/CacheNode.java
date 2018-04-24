@@ -40,19 +40,18 @@ import org.xml.sax.Attributes;
  * @author Jonathan
  */
 public class CacheNode extends Node implements ActionListener, MouseListener, ChangeListener {
-	public static final String ItemElementName = "itemcache";
-	public static final String MoneyElementName = "moneycache";
+	static final String ItemElementName = "itemcache";
+	static final String MoneyElementName = "moneycache";
 	private static Map<String,ItemList> loadedItemCaches;
 	private static Map<String,Integer> loadedMoneyCaches;
-	private static Map<String, List<ChangeListener> > cacheListeners =
-		new HashMap<String, List<ChangeListener> > ();
+	private static Map<String, List<ChangeListener> > cacheListeners = new HashMap<> ();
 	
 	static ItemList getItemCache(String name) {
 		return getItemCache(name, true);
 	}
 	private static ItemList getItemCache(String name, boolean create) {
 		if (loadedItemCaches == null)
-			loadedItemCaches = new HashMap<String,ItemList>();
+			loadedItemCaches = new HashMap<>();
 		ItemList items = loadedItemCaches.get(name);
 		if (items == null && create) {
 			items = new ItemList(name);
@@ -62,7 +61,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 	}
 	static Iterator<ItemList> getItemCaches() {
 		if (loadedItemCaches == null)
-			loadedItemCaches = new HashMap<String,ItemList>();
+			loadedItemCaches = new HashMap<>();
 		return loadedItemCaches.values().iterator();
 	}
 
@@ -75,13 +74,13 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 		
 		if (loadedMoneyCaches == null)
-			loadedMoneyCaches = new HashMap<String,Integer>();
+			loadedMoneyCaches = new HashMap<>();
 		Integer shards = loadedMoneyCaches.get(name);
 		if (shards == null) {
-			shards = Integer.valueOf(0);
+			shards = 0;
 			loadedMoneyCaches.put(name, shards);
 		}
-		return shards.intValue();
+		return shards;
 	}
 	static void setMoneyCache(String name, int amount) {
 		// Check if there's an ItemCache of the same name - it takes priority
@@ -100,25 +99,25 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 
 		if (loadedMoneyCaches == null)
-			loadedMoneyCaches = new HashMap<String,Integer>();
-		loadedMoneyCaches.put(name, Integer.valueOf(amount));
-		for (Iterator<ChangeListener> i = getCacheListeners(name).iterator(); i.hasNext(); )
-			i.next().stateChanged(new ChangeEvent(name));
+			loadedMoneyCaches = new HashMap<>();
+		loadedMoneyCaches.put(name, amount);
+		for (ChangeListener changeListener : getCacheListeners(name))
+			changeListener.stateChanged(new ChangeEvent(name));
 	}
 	static Iterator<Map.Entry<String,Integer>> getMoneyCaches() {
 		if (loadedMoneyCaches == null)
-			loadedMoneyCaches = new HashMap<String,Integer>();
+			loadedMoneyCaches = new HashMap<>();
 		return loadedMoneyCaches.entrySet().iterator();
 	}
 	
 	private static Set<String> frozenCaches = null;
 	private static boolean isCacheFrozen(String name) {
-		return (frozenCaches == null ? false : frozenCaches.contains(name));
+		return (frozenCaches != null && frozenCaches.contains(name));
 	}
 	static void setCacheFrozen(String name, boolean b) {
 		if (b) {
 			if (frozenCaches == null)
-				frozenCaches = new HashSet<String>();
+				frozenCaches = new HashSet<>();
 			frozenCaches.add(name);
 		}
 		else if (frozenCaches != null)
@@ -139,23 +138,23 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			frozenCaches.clear();
 	}
 	
-	public static void addCacheListener(String cache, ChangeListener l) {
+	private static void addCacheListener(String cache, ChangeListener l) {
 		getCacheListeners(cache).add(l);
 	}
-	public static void removeCacheListener(String cache, ChangeListener l) {
+	private static void removeCacheListener(String cache, ChangeListener l) {
 		getCacheListeners(cache).remove(l);
 	}
 	private static List<ChangeListener> getCacheListeners(String name) {
 		List<ChangeListener> l = cacheListeners.get(name);
 		if (l == null) {
-			l = new LinkedList<ChangeListener>();
+			l = new LinkedList<>();
 			cacheListeners.put(name, l);
 		}
 		return l;
 	}
 
-	public static final int ITEM_CACHE = 0;
-	public static final int MONEY_CACHE = 1;
+	private static final int ITEM_CACHE = 0;
+	private static final int MONEY_CACHE = 1;
 	private int cacheType;
 	private String name;
 	private String text;
@@ -175,8 +174,9 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			cacheType = MONEY_CACHE;
 	}
 
-	public ItemList getCachedItems() { return items; }
+	ItemList getCachedItems() { return items; }
 
+	@Override
 	public void init(Attributes xmlAtts) {
 		name = xmlAtts.getValue("name");
 		text = xmlAtts.getValue("text");
@@ -214,7 +214,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		StyleConstants.setAlignment(labelAtts, StyleConstants.ALIGN_CENTER);
 		setViewType(labelAtts, ParagraphViewType);
 		SectionDocument.Branch labelBranch = getDocument().createBranchElement(element, labelAtts);
-		getDocument().addLeavesTo(labelBranch, new String[] { new String(text + "\n") }, null);
+		getDocument().addLeavesTo(labelBranch, new String[] {text + "\n"}, null);
 		element.addChild(labelBranch);
 
 		Component cacheComp = null;
@@ -253,8 +253,8 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 	}
 
 	public boolean isFrozen() { return isCacheFrozen(name); }
-	
-	public IndexSet getLegalItems() {
+
+	IndexSet getLegalItems() {
 		IndexSet itemMatches = findItemMatches();
 		if (moneyLimit == 0) {
 			ItemList items = getItems();
@@ -264,7 +264,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 		return itemMatches;
 	}
-	
+
 	private static final String withdrawCommand = "w";
 	private static final String depositCommand = "d";
 	private void handlePopupEvent(MouseEvent evt) {
@@ -286,20 +286,25 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 		menu.show(shardsField, evt.getX(), evt.getY());
 	}
+	@Override
 	public void mouseEntered(MouseEvent evt) {}
+	@Override
 	public void mouseExited(MouseEvent evt) {}
 
 	private boolean doingPopup = false;
+	@Override
 	public void mousePressed(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			handlePopupEvent(evt);
 	}
+	@Override
 	public void mouseReleased(MouseEvent evt) {
 		if (evt.isPopupTrigger())
 			handlePopupEvent(evt);
 		else
 			doingPopup = false;
 	}
+	@Override
 	public void mouseClicked(MouseEvent evt) {
 		if (evt.getClickCount() == 1 && !doingPopup) {
 			if (isFrozen()) return;
@@ -311,6 +316,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 				doDeposit();
 		}
 	}
+	@Override
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(withdrawCommand))
 			doWithdraw();
@@ -365,6 +371,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 	}
 
 	/** Notification of a change to a money cache. */
+	@Override
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource().equals(name)) {
 			shards = getMoneyCache(name);
@@ -375,6 +382,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 	}
 	
+	@Override
 	public void dispose() {
 		if (items != null)
 			getItems().removeItemCache(this);
@@ -383,7 +391,9 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			SectionDocument.removeComponentFontUser(shardsField);
 	}
 
+	@Override
 	protected String getElementViewType() { return BoxYViewType; }
+	@Override
 	protected MutableAttributeSet getElementStyle() {
 		return new SimpleAttributeSet();
 	}
@@ -401,11 +411,12 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		private float multiplier = 1f;
 		private boolean forced;
 
-		public AdjustMoneyNode(Node parent) {
+		AdjustMoneyNode(Node parent) {
 			super(ElementName, parent);
 			setEnabled(false);
 		}
 
+		@Override
 		public void init(Attributes atts) {
 			name = atts.getValue("name");
 			if (name == null)
@@ -423,11 +434,13 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			super.init(atts);
 		}
 
+		@Override
 		public void handleContent(String text) {
 			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}
+		@Override
 		public boolean handleEndTag() {
 			findExecutableGrouper().addExecutable(this);
 			return super.handleEndTag();
@@ -447,6 +460,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 		
 		private boolean callContinue = false;
+		@Override
 		public boolean execute(ExecutableGrouper grouper) {
 			if (grouper != findExecutableGrouper())
 				System.err.println("AdjustMoneyNode.execute(): non-matching groupers");
@@ -464,6 +478,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 
 		private int undoAmount = -1;
+		@Override
 		public void actionPerformed(ActionEvent evt) {
 			setEnabled(false);
 			int amount = getMoney();
@@ -478,6 +493,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 				callsContinue = false;
 		}
 
+		@Override
 		public void resetExecute() {
 			if (undoAmount >= 0) {
 				System.out.println("Undoing adjustmoney, multiply=" + multiplier);
@@ -487,16 +503,19 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			setEnabled(false);
 		}
 
+		@Override
 		protected void loadProperties(Attributes atts) {
 			super.loadProperties(atts);
 			callContinue = getBooleanValue(atts, "continue", false);
 		}
-		
+
+		@Override
 		protected void saveProperties(Properties props) {
 			super.saveProperties(props);
 			saveProperty(props, "continue", callContinue);
 		}
-		
+
+		@Override
 		protected String getTipText() {
 			String text = "Multiplies ";
 			if (name == null)
