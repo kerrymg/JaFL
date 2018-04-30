@@ -10,7 +10,6 @@ import java.util.Properties;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Element;
@@ -242,7 +241,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		}
 
 		if (leaves == null)
-			leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, new AttributeSet[] { atts });
+			leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, atts));
 
 		addHighlightElements(leaves);
 		addEnableElements(leaves);
@@ -406,11 +405,9 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 					StyledDocument[] itemDocs = new StyledDocument[indices.length];
 					for (int i = 0; i < itemDocs.length; i++)
 						itemDocs[i] = items.getItem(indices[i]).getDocument();
-					
+
 					String chooserTitle = (itemCount == 1 ? "Choose an item to lose" : "Choose " + itemCount + " items to lose");
-					DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), chooserTitle, itemDocs, itemCount > 1);
-					chooser.setVisible(true);
-					int[] selections = chooser.getSelectedIndices();
+					int[] selections = DocumentChooser.showChooser(FLApp.getSingle(), chooserTitle, itemDocs, itemCount > 1);
 					if (selections == null) selections = new int[0];
 					if (selections.length > itemCount || (selections.length < itemCount && selections.length < items.getItemCount())) {
 						String errorTitle = (selections.length > itemCount ? "Too many items" : "Not enough items");

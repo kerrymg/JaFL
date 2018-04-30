@@ -4,7 +4,6 @@ package flands;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
 import java.util.Properties;
 
 import javax.swing.text.AttributeSet;
@@ -106,12 +105,11 @@ public class StyledTextList implements XMLOutput {
 			currentEffect = currentEffect.nextEffect();
 		}
 
-		try {
+		if (getSize() > 0) {
 			StyledText st = getLast();
 			if (st.text.endsWith(", "))
 				st.text = st.text.substring(0, st.text.length() - 2);
 		}
-		catch (NoSuchElementException ignored) {}
 
 		return addedAnything;
 	}
@@ -123,7 +121,7 @@ public class StyledTextList implements XMLOutput {
 				StyledText st = list.get(i);
 				for (String abilityName : abilityNames) {
 					int index = st.text.indexOf(abilityName);
-					if (st.text.contains(abilityName)) {
+					if (index >= 0) {
 						AttributeSet atts = st.atts;
 						SimpleAttributeSet smallerAtts = SectionDocument.getSmallerAtts(atts);
 						String remainder = st.text.substring(index + abilityName.length());
@@ -199,7 +197,7 @@ public class StyledTextList implements XMLOutput {
 			if (!u && underline)
 				sb.append("</u>");
 			bold = b; italic = i; underline = u;
-			
+
 			sb.append(st.text);
 		}
 
@@ -212,7 +210,7 @@ public class StyledTextList implements XMLOutput {
 
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String getXMLTag() { return "desc"; } // not that it matters
 	@Override

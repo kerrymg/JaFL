@@ -373,7 +373,7 @@ public class TradeNode extends Node implements Executable {
 				return;
 			addedContent = true;
 			if (leaves == null)
-				leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, atts) });
+				leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, atts));
 			addHighlightElements(leaves);
 			addEnableElements(leaves);
 		}
@@ -645,7 +645,7 @@ public class TradeNode extends Node implements Executable {
 
 			addedContent = true;
 			if (leaves == null)
-				leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+				leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 			addHighlightElements(leaves);
 			addEnableElements(leaves);
 		}
@@ -725,7 +725,7 @@ public class TradeNode extends Node implements Executable {
 
 						DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), "Choose Cargo Type", docs, false);
 						chooser.setVisible(true);
-						
+
 						if (chooser.getSelectedIndices() == null) {
 							setEnabled(true);
 							return;

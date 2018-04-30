@@ -50,7 +50,7 @@ public class ImageNode extends ActionNode {
 		if (!hadContent && text.trim().length() == 0) return;
 		
 		hadContent = true;
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}
@@ -60,7 +60,7 @@ public class ImageNode extends ActionNode {
 		if (!hadContent && !getParent().hideChildContent()) {
 			MutableAttributeSet atts = createStandardAttributes();
 			StyleConstants.setItalic(atts, true);
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText("[illustration]", atts) });
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText("[illustration]", atts));
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}

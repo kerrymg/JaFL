@@ -203,7 +203,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 			// fall-through so that remaining text gets added below
 		}
 
-		addEnableElements(getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, StyleNode.createActiveAttributes()) }));
+		addEnableElements(getDocument().addLeavesTo(getElement(), new StyledText(text, StyleNode.createActiveAttributes())));
 	}
 
 	@Override

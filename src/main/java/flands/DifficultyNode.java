@@ -64,7 +64,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 		if (!hadContent)
 			atts = createStandardAttributes();
 
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, atts) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, atts));
 		addEnableElements(leaves);
 		if (!hadContent) {
 			setHighlightElements(leaves);
@@ -84,7 +84,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 				text += Adventurer.getAbilityName(abilities[0]).toUpperCase();
 			text += " roll at Difficulty " + level;
 
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 			addEnableElements(leaves);
 			setHighlightElements(leaves);
 			hadContent = true;
@@ -160,10 +160,8 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 				scores[a] = adv.getAbilityValue(abilities[a], abilityModifier, Adventurer.PURPOSE_VALUE);
 
 			StyledDocument[] choices = Adventurer.getAbilityDocuments(abilities, scores);
-			DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), "Choose ability", choices, false);
-			chooser.setVisible(true);
 
-			int[] selected = chooser.getSelectedIndices();
+			int[] selected = DocumentChooser.showChooser(FLApp.getSingle(), "Choose ability", choices, false);
 			if (selected == null || selected.length == 0) {
 				setEnabled(true);
 				return;

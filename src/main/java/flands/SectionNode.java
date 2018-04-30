@@ -16,7 +16,6 @@ import java.util.Properties;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -186,7 +185,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 					setViewType(imageAtts, ImageViewType);
 					setImage(imageAtts, image);
 					SectionDocument.Branch branch = doc.createBranchElement(root, imageAtts);
-					doc.addLeavesTo(branch, new String[] {"\n"}, null);
+					doc.addLeavesTo(branch, new StyledText("\n", null));
 					root.addChild(branch);
 				}
 			}
@@ -225,7 +224,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 			StyleConstants.setAlignment(nameAtts, StyleConstants.ALIGN_CENTER);
 			setViewType(nameAtts, ParagraphViewType);
 			SectionDocument.Branch branch = doc.createBranchElement(root, nameAtts);
-			doc.addLeavesTo(branch, new String[] { name + (boxes >= 1 ? "" : "\n") }, null);
+			doc.addLeavesTo(branch, new StyledText(name + (boxes >= 1 ? "" : "\n"), null));
 
 			if (boxes >= 1) {
 				// Display some checkboxes for the number of ticks associated with this section
@@ -243,7 +242,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 					tickBox.setAlignmentY(SectionDocument.getFontVerticalAlignment());
 					SimpleAttributeSet thisTickAtts = new SimpleAttributeSet(tickAtts);
 					StyleConstants.setComponent(thisTickAtts, tickBox);
-					doc.addLeavesTo(branch, new String[] { "." /*+ (t == boxes - 1 ? "\n" : "")*/ }, new AttributeSet[] { thisTickAtts });
+					doc.addLeavesTo(branch, new StyledText("." /*+ (t == boxes - 1 ? "\n" : "")*/, thisTickAtts));
 					tickBoxes[t] = tickBox;
 				}
 				/*doc.addLeavesTo(branch, new String[] { "\n" }, null);*/

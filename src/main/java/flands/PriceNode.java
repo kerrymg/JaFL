@@ -44,7 +44,7 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
 
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}

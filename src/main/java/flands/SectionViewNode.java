@@ -39,7 +39,7 @@ public class SectionViewNode extends ActionNode implements Executable {
 
 	@Override
 	public void handleContent(String text) {
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}

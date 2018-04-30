@@ -24,7 +24,7 @@ import javax.swing.event.ChangeListener;
  * @author Jonathan Mann
  */
 public class CodewordWindow extends JDialog implements ActionListener, ChangeListener {
-	private class BookChoiceModel extends Books.BookListModel implements ComboBoxModel {
+	private class BookChoiceModel extends Books.BookListModel implements ComboBoxModel<String> {
 		private int selectedIndex;
 		private int getSelectedIndex() { return selectedIndex; }
 
@@ -65,7 +65,7 @@ public class CodewordWindow extends JDialog implements ActionListener, ChangeLis
 		super(parent, "Quest Notes", false);
 
 		bookChoice = new BookChoiceModel();
-		bookComboBox = new JComboBox(bookChoice);
+		bookComboBox = new JComboBox<>(bookChoice);
 		bookComboBox.setEditable(false);
 		bookComboBox.setSelectedIndex(bookChoice.getBookIndex(Address.getCurrentBookKey()));
 		bookComboBox.addActionListener(this);

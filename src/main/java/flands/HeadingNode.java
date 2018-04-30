@@ -43,7 +43,7 @@ public class HeadingNode extends Node {
 	@Override
 	public void handleContent(String text) {
 		MutableAttributeSet atts = StyleNode.createActiveAttributes();
-		getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, atts) });
+		getDocument().addLeavesTo(getElement(), new StyledText(text, atts));
 	}
 
 	@Override

@@ -39,7 +39,7 @@ public class WhileNode extends Node implements Executable, ExecutableGrouper {
 	@Override
 	public void handleContent(String text) {
 		if (text.trim().length() == 0) return;
-		addEnableElements(getDocument().addLeavesTo(getElement(), new String[] { text }, null));
+		addEnableElements(getDocument().addLeavesTo(getElement(), new StyledText(text, null)));
 	}
 
 	@Override

@@ -31,7 +31,7 @@ public class RowNode extends Node {
 
 		@Override
 		public void handleContent(String text) {
-			getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, StyleNode.createActiveAttributes()) });
+			getDocument().addLeavesTo(getElement(), new StyledText(text, StyleNode.createActiveAttributes()));
 		}
 
 		@Override

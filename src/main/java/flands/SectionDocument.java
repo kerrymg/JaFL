@@ -216,22 +216,9 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 
 	/**
 	 * Utility method: add a set of LeafElements to the given BranchElement.
-	 * @param attrs this array may be null, rather than passing an array of nulls.
-	 * @return an array of the leaves created
-	 * @see {#addLeavesTo(Element,StyledText[])}
-	 */
-	Element[] addLeavesTo(Element parentElement, String[] contents, AttributeSet[] attrs) {
-		StyledText[] styledText = new StyledText[contents.length];
-		for (int i = 0; i < styledText.length; i++)
-			styledText[i] = new StyledText(contents[i], attrs == null ? null : attrs[i]);
-		return addLeavesTo(parentElement, styledText);
-	}
-
-	/**
-	 * Utility method: add a set of LeafElements to the given BranchElement.
 	 * @return an array of the leaves created
 	 */
-	Element[] addLeavesTo(Element parentElement, StyledText[] styledText) {
+	Element[] addLeavesTo(Element parentElement, StyledText... styledText) {
 		if (!parentElement.isLeaf()) {
 			BranchElement branch = (BranchElement)parentElement;
 			if (branch.getElementCount() == 0)
@@ -240,8 +227,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			List<Element> leafList = new LinkedList<>();
 			for (StyledText aStyledText : styledText)
 				addLeavesTo(branch, aStyledText, leafList);
-			Element[] leaves = new Element[leafList.size()];
-			leaves = leafList.toArray(leaves);
+			Element[] leaves = leafList.toArray(new Element[0]);
 			branch.replace(branch.getElementCount(), 0, leaves);
 			return leaves;
 		}
@@ -258,14 +244,14 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		leafList.add(createLeafElement(parentElement, styledText.atts, startOffset, getLength()));
 	}
 
-	private static String[] capsWords = null;
+	private static final String[] capsWords;
+	static {
+		capsWords = new String[Adventurer.ABILITY_COUNT];
+		for (int a = 0; a < Adventurer.ABILITY_COUNT; a++)
+			capsWords[a] = Adventurer.getAbilityName(a).toUpperCase();
+	}
 	/** Get a list of words that should be 'capitalized'. */
 	static String[] getCapsWords() {
-		if (capsWords == null) {
-			capsWords = new String[Adventurer.ABILITY_COUNT];
-			for (int a = 0; a < Adventurer.ABILITY_COUNT; a++)
-				capsWords[a] = Adventurer.getAbilityName(a).toUpperCase();
-		}
 		return capsWords;
 	}
 
@@ -303,7 +289,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 					for (; j < text.length(); j++)
 						if (!Character.isLetter(text.charAt(j)) || !Character.isUpperCase(text.charAt(j)))
 							break;
-								
+
 					// See if this matches any known words
 					String capsString = text.substring(i, j);
 					String[] words = getCapsWords();
@@ -356,61 +342,64 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	Element[] addCapsText(Element parentElement, String text, String capsWord, AttributeSet textAtts) {
 		int index = text.indexOf(capsWord);
 		if (index < 0)
-			return addLeavesTo(parentElement, new String[] { text }, new AttributeSet[] { textAtts });
+			return addLeavesTo(parentElement, new StyledText(text, textAtts));
 		else {
 			SimpleAttributeSet capsAtts = getSmallerAtts(textAtts);
 
-			String[] contents;
-			AttributeSet[] atts;
 			if (text.length() == index + capsWord.length()) {
-				contents = new String[] { text.substring(0, index+1), text.substring(index+1) };
-				atts = new AttributeSet[] { textAtts, capsAtts };
+				return addLeavesTo(parentElement,
+					new StyledText(text.substring(0, index+1), textAtts),
+					new StyledText(text.substring(index+1), capsAtts)
+				);
 			}
 			else {
-				contents = new String[] { text.substring(0, index+1), capsWord.substring(1), text.substring(index+capsWord.length()) };
-				atts = new AttributeSet[] { textAtts, capsAtts, textAtts };
+				return addLeavesTo(parentElement,
+					new StyledText(text.substring(0, index+1), textAtts),
+					new StyledText(capsWord.substring(1), capsAtts),
+					new StyledText(text.substring(index+capsWord.length()), textAtts)
+				);
 			}
-
-			return addLeavesTo(parentElement, contents, atts);
 		}
 	}
 
 	Element[] addStyledText(Element parentElement, String text, String special, AttributeSet textAtts, AttributeSet specialAtts) {
-		String[] contents;
-		AttributeSet[] atts;
 		int index = text.indexOf(special);
 		if (index < 0 || (text.length() == special.length())) {
 			// Only one leaf here - special not found, or it occupies the whole text
-			contents = new String[] { text };
-			atts = new AttributeSet[] { (index < 0 ? textAtts : specialAtts) };
+			return addLeavesTo(parentElement, new StyledText(text, (index < 0 ? textAtts : specialAtts)));
 		}
 		else if (index == 0) {
 			// No text before special
-			contents = new String[] { special, text.substring(special.length()) };
-			atts = new AttributeSet[] { specialAtts, textAtts };
+			return addLeavesTo(parentElement,
+				new StyledText(special, specialAtts),
+				new StyledText(text.substring(special.length()), textAtts)
+			);
 		}
 		else if (text.length() == index + special.length()) {
 			// No text after special
-			contents = new String[] { text.substring(0, index), special };
-			atts = new AttributeSet[] { textAtts, specialAtts };
+			return addLeavesTo(parentElement,
+				new StyledText(text.substring(0, index), textAtts),
+				new StyledText(special, specialAtts)
+			);
 		}
 		else {
-			contents = new String[] { text.substring(0, index), special, text.substring(index + special.length()) };
-			atts = new AttributeSet[] { textAtts, specialAtts, textAtts };
+			return addLeavesTo(parentElement,
+				new StyledText(text.substring(0, index), textAtts),
+				new StyledText(special, specialAtts),
+				new StyledText(text.substring(index + special.length()), textAtts)
+			);
 		}
-
-		return addLeavesTo(parentElement, contents, atts);
 	}
 
 	/** Copied from DefaultStyledDocument. */
 	@Override
 	public Element getParagraphElement(int pos) {
 		Element e = getDefaultRootElement();
-		while (!e.isLeaf()) {
+		while (e != null && !e.isLeaf()) {
 			int index = e.getElementIndex(pos);
 			e = e.getElement(index);
 		}
-		
+
 		return (e != null ? e.getParentElement() : null);
 	}
 
@@ -428,16 +417,15 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 	/** Copied from DefaultStyledDocument. */
 	@Override
 	public Style getLogicalStyle(int pos) {
-		Style s = null;
 		Element paragraph = getParagraphElement(pos);
 		if (paragraph != null) {
 			AttributeSet a = paragraph.getAttributes();
 			AttributeSet parent = a.getResolveParent();
 			if (parent instanceof Style) {
-				s = (Style) parent;
+				return (Style)parent;
 			}
 		}
-		return s;
+		return null;
 	}
 	@Override
 	public void setLogicalStyle(int pos, Style s) {}
@@ -768,7 +756,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 		@Override
 		public boolean getAllowsChildren() { return false; }
 		@Override
-		public java.util.Enumeration children() { return null; }
+		public java.util.Enumeration<javax.swing.tree.TreeNode> children() { return null; }
 
 		// --- serialization (may as well copy these methods) ------------
 		private void writeObject(java.io.ObjectOutputStream s) throws IOException {

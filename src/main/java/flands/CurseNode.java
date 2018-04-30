@@ -52,7 +52,7 @@ public class CurseNode extends ActionNode implements Executable {
 
 	private boolean hadContent = false;
 	private void addContent(String text) {
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 		addEnableElements(leaves);
 		setHighlightElements(leaves);
 	}

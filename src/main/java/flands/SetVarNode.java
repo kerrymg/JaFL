@@ -71,7 +71,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 	public void handleContent(String text) {
 		if (text.length() > 0) {
 			hidden = false;
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes())});
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}
@@ -81,15 +81,15 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 		if (item != null) {
 			ItemList items = (cache == null ? getItems() : CacheNode.getItemCache(cache));
 			int[] matches = items.findMatches(item);
-			System.out.println("SetVarNode: found " + matches + " item matches");
+			System.out.println("SetVarNode: found " + matches.length + " item matches");
 			if (matches.length == 1)
 				return items.getItem(matches[0]);
 		}
 		return null;
 	}
-	
+
 	@Override
-    public int resolveIdentifier(String ident) {
+	public int resolveIdentifier(String ident) {
 		if (ident.equals("armour")) {
 			Item.Armour a = null;
 			try {
@@ -142,7 +142,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 				return getAdventurer().getAbilityValue(ability, abilityModifier, Adventurer.PURPOSE_VALUE);
 			}
 		}
-		
+
 		return super.resolveIdentifier(ident);
 	}
 

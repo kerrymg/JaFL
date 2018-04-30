@@ -342,9 +342,10 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 		if (xmlAtts != null) {
 			String val = xmlAtts.getValue(name);
 			if (val != null) {
-				if (val.toLowerCase().startsWith("t") || val.startsWith("1"))
+				final char c = val.charAt(0);
+				if (c == 't' || c == '1' || c == 'T')
 					return true;
-				else if (val.toLowerCase().startsWith("f") || val.startsWith("0"))
+				else if (c == 'f' || c == '0' || c == 'F')
 					return false;
 				else
 					System.out.println("Unrecognised attribute value for " + name + ": " + val);
@@ -395,7 +396,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 		}
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Always called between elements, with a string that may be empty
 	 * but always contains all accumulated content between two tags.
@@ -490,18 +491,18 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 			switch (viewType) {
 			case ParagraphViewType:
 				/*System.out.println("Node creating AdvancedParagraphView for " + e);*/
-				return new AdvancedParagraphView(e);
+				return new javax.swing.text.ParagraphView(e);
 			case BoxYViewType:
 				/*System.out.println("Node creating BoxYView for " + e);*/
-				return new BoxView(e, View.Y_AXIS);
+				return new javax.swing.text.BoxView(e, View.Y_AXIS);
 			case BoxXViewType:
-				return new BoxView(e, View.X_AXIS);
+				return new javax.swing.text.BoxView(e, View.X_AXIS);
 			case TableViewType:
 				/*System.out.println("Node creating TableView for " + e);*/
 				return new TableView(e);
 			case ComponentViewType:
 				/*System.out.println("Node creating ComponentView for " + e);*/
-				return new ComponentView(e) {
+				return new javax.swing.text.ComponentView(e) {
 					@Override
 					public float getMaximumSpan(int axis) {
 						return super.getPreferredSpan(axis);
@@ -783,7 +784,7 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 		Properties atts = new Properties();
 		obj.storeAttributes(atts, flags);
 		outputAttributes(out, atts);
-		
+
 		Iterator<XMLOutput> i = obj.getOutputChildren();
 		if (i != null && i.hasNext()) {
 			out.println(">");

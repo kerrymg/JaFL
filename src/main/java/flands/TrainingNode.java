@@ -80,7 +80,7 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 		StyleConstants.setUnderline(atts, true);
 		addListenerTo(atts);
 
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, atts) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, atts));
 		addHighlightElements(leaves);
 		addEnableElements(leaves);
 	}

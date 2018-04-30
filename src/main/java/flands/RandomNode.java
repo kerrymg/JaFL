@@ -8,7 +8,6 @@ import java.util.Properties;
 import java.util.Random;
 
 import javax.swing.text.Element;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -74,7 +73,7 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 			return;
 		addedContent = true;
 		System.out.println("Adding RandomNode content: " + content);
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { content }, new AttributeSet[] { createStandardAttributes() });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(content, createStandardAttributes()));
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}

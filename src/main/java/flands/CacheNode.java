@@ -45,7 +45,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 	private static Map<String,ItemList> loadedItemCaches;
 	private static Map<String,Integer> loadedMoneyCaches;
 	private static Map<String, List<ChangeListener> > cacheListeners = new HashMap<> ();
-	
+
 	static ItemList getItemCache(String name) {
 		return getItemCache(name, true);
 	}
@@ -72,7 +72,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			int moneyIndex = items.getMoneyItem();
 			return (moneyIndex < 0 ? 0 : items.getItem(moneyIndex).getMoney());
 		}
-		
+
 		if (loadedMoneyCaches == null)
 			loadedMoneyCaches = new HashMap<>();
 		Integer shards = loadedMoneyCaches.get(name);
@@ -109,7 +109,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			loadedMoneyCaches = new HashMap<>();
 		return loadedMoneyCaches.entrySet().iterator();
 	}
-	
+
 	private static Set<String> frozenCaches = null;
 	private static boolean isCacheFrozen(String name) {
 		return (frozenCaches != null && frozenCaches.contains(name));
@@ -122,12 +122,12 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 		else if (frozenCaches != null)
 			frozenCaches.remove(name);
-		
+
 		ItemList items = getItemCache(name, false);
 		if (items != null)
 			items.setFrozen(b);
 	}
-	
+
 	static void clearCaches() {
 		if (loadedItemCaches != null)
 			loadedItemCaches.clear();
@@ -137,7 +137,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		if (frozenCaches != null)
 			frozenCaches.clear();
 	}
-	
+
 	private static void addCacheListener(String cache, ChangeListener l) {
 		getCacheListeners(cache).add(l);
 	}
@@ -214,7 +214,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		StyleConstants.setAlignment(labelAtts, StyleConstants.ALIGN_CENTER);
 		setViewType(labelAtts, ParagraphViewType);
 		SectionDocument.Branch labelBranch = getDocument().createBranchElement(element, labelAtts);
-		getDocument().addLeavesTo(labelBranch, new String[] {text + "\n"}, null);
+		getDocument().addLeavesTo(labelBranch, new StyledText(text + "\n", null));
 		element.addChild(labelBranch);
 
 		Component cacheComp = null;
@@ -248,7 +248,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		StyleConstants.setComponent(compAtts, cacheComp);
 		setViewType(compAtts, ComponentViewType);
 		SectionDocument.Branch compBranch = getDocument().createBranchElement(element, compAtts);
-		getDocument().addLeavesTo(compBranch, new StyledText[] { new StyledText("x\n", compAtts) });
+		getDocument().addLeavesTo(compBranch, new StyledText("x\n", compAtts));
 		element.addChild(compBranch);
 	}
 
@@ -269,7 +269,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 	private static final String depositCommand = "d";
 	private void handlePopupEvent(MouseEvent evt) {
 		if (isFrozen()) return;
-		
+
 		doingPopup = true;
 		JPopupMenu menu = new JPopupMenu();
 		if (shards > 0) {
@@ -308,7 +308,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 	public void mouseClicked(MouseEvent evt) {
 		if (evt.getClickCount() == 1 && !doingPopup) {
 			if (isFrozen()) return;
-			
+
 			if (shards > 0)
 				// Withdraw
 				doWithdraw();
@@ -375,13 +375,11 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource().equals(name)) {
 			shards = getMoneyCache(name);
-			if (shardsField == null)
-				;
-			else
+			if (shardsField != null)
 				shardsField.setText(Integer.toString(shards));
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
 		if (items != null)
@@ -430,13 +428,13 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 					System.err.println("Bad value for multiply: " + val);
 				}
 			forced = getBooleanValue(atts, "force", true);
-			
+
 			super.init(atts);
 		}
 
 		@Override
 		public void handleContent(String text) {
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}
@@ -458,7 +456,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			else
 				getAdventurer().setMoney(amount);
 		}
-		
+
 		private boolean callContinue = false;
 		@Override
 		public boolean execute(ExecutableGrouper grouper) {
@@ -468,7 +466,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			int amount = getMoney();
 			if (amount == 0)
 				return true;
-			
+
 			if (forced) {
 				callContinue = true;
 				return false;
@@ -486,7 +484,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			amount = (int)(multiplier * amount);
 			setMoney(amount);
 			UndoManager.getCurrent().add(this);
-			
+
 			if (callContinue)
 				findExecutableGrouper().continueExecution(this, false);
 			else

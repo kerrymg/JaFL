@@ -59,7 +59,7 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 		if (text.trim().length() == 0)
 			return;
 
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 		addHighlightElements(leaves);
 		addEnableElements(leaves);
 	}

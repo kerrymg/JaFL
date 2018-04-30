@@ -9,7 +9,6 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -652,15 +651,15 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 
 		private void addContent(String text) {
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, null);
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, null));
 			addEnableElements(leaves);
 		}
 
 		void updateStamina() {
-			String str = Integer.toString(stamina);
-			while (str.length() < staminaLength)
-				str += " ";
-			getDocument().replaceContent(staminaOffset, staminaLength, str);
+			StringBuilder sb = new StringBuilder(Integer.toString(stamina));
+			while (sb.length() < staminaLength)
+				sb.append(" ");
+			getDocument().replaceContent(staminaOffset, staminaLength, sb.toString());
 		}
 
 		@Override
@@ -692,7 +691,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		}
 
 		void addContent(String text) {
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, null);
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, null));
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}
@@ -967,7 +966,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		public void handleContent(String text) {
 			if (text.trim().length() == 0) return;
 
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, null);
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, null));
 			addEnableElements(leaves);
 		}
 
@@ -1078,7 +1077,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		public void handleContent(String text) {
 			if (text.trim().length() == 0) return;
 
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, null);
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, null));
 			addEnableElements(leaves);
 		}
 
@@ -1178,7 +1177,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 
 		@Override
 		public void handleContent(String text) {
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, new AttributeSet[] { StyleNode.createActiveAttributes() });
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, StyleNode.createActiveAttributes()));
 			addEnableElements(leaves);
 		}
 
@@ -1306,7 +1305,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		@Override
 		public void init(Attributes atts) {
 			super.init(atts);
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { "Skip\n" }, null);
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText("Skip\n", null));
 			addEnableElements(leaves);
 			addHighlightElements(leaves);
 		}

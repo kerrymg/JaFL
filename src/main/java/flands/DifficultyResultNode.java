@@ -4,7 +4,6 @@ package flands;
 import java.awt.Color;
 import java.util.Properties;
 
-import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.StyleConstants;
 
@@ -73,11 +72,11 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 				addChild(textNode);
 				setHighlighted(true);
 			}
-			Element[] leaves = getDocument().addLeavesTo(textNode.getElement(), new String[] { content }, new AttributeSet[] { StyleNode.createActiveAttributes() });
+			Element[] leaves = getDocument().addLeavesTo(textNode.getElement(), new StyledText(content, StyleNode.createActiveAttributes()));
 			addHighlightElements(leaves);
 		}
 		else {
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(content, StyleNode.createActiveAttributes()) });
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(content, StyleNode.createActiveAttributes()));
 			addEnableElements(leaves);
 		}
 	}
@@ -96,7 +95,7 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 				if (abilityStr != null)
 					text += " " + abilityStr.toUpperCase();
 				text += " roll";
-				Element[] leaves = getDocument().addLeavesTo(textNode.getElement(), new String[] { text }, null);
+				Element[] leaves = getDocument().addLeavesTo(textNode.getElement(), new StyledText(text , null));
 				setHighlightElements(leaves);
 				setHighlighted(true); // will highlight as soon as it is enabled
 			}
@@ -134,8 +133,7 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 	private boolean meetsConditions() {
 		if (isVariableDefined(var)) {
 			if (ability == null || Adventurer.getAbilityType(ability) == getVariableValue(DifficultyNode.AbilityTypeVar)) {
-				if (success == getVariableValue(var) > 0)
-					return true;
+				return success == getVariableValue(var) > 0;
 			}
 		}
 		return false;

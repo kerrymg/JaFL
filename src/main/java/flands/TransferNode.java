@@ -11,6 +11,8 @@ import javax.swing.text.StyledDocument;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.AttributesImpl;
 
+import static flands.DocumentChooser.showChooser;
+
 /**
  * Action node to automatically transfer items between caches and the character.
  * Convenient when we want possessions to be temporarily removed from the character.
@@ -99,8 +101,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 			return;
 		hadContent = true;
 
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] {
-			new StyledText(content, createStandardAttributes()) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(content, createStandardAttributes()));
 		addEnableElements(leaves);
 		addHighlightElements(leaves);
 	}
@@ -221,9 +222,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 					itemDocs[i] = fromItems.getItem(indices[i]).getDocument();
 
 				String chooserTitle = (itemCount == 1 ? "Choose an item to lose" : "Choose " + itemCount + " items to lose");
-				DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), chooserTitle, itemDocs, itemCount > 1);
-				chooser.setVisible(true);
-				int[] selections = chooser.getSelectedIndices();
+				int[] selections = showChooser(FLApp.getSingle(), chooserTitle, itemDocs, itemCount > 1);
 				if (selections.length > itemCount || (selections.length < itemCount && selections.length < fromItems.getItemCount())) {
 					String errorTitle = (selections.length > itemCount ? "Too many items" : "Not enough items");
 					JOptionPane.showMessageDialog(FLApp.getSingle(), new String[] {"You must select exactly " + itemCount + " item" + (itemCount>1 ? "s":"") + "."}, errorTitle, JOptionPane.INFORMATION_MESSAGE);

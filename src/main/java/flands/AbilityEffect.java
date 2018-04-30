@@ -69,6 +69,7 @@ public class AbilityEffect extends Effect {
 		}
 	}
 
+	@Override
 	public void addEffect(Effect e, boolean cumulative) {
 		if (cumulative) {
 			if (e == this) {
@@ -102,6 +103,7 @@ public class AbilityEffect extends Effect {
 		return "";
 	}
 
+	@Override
 	public boolean addTo(StyledTextList textList, AttributeSet atts) {
 		switch (modifyType) {
 			case ADJUST_ABILITY:
@@ -163,12 +165,14 @@ public class AbilityEffect extends Effect {
 		}
 		return "AbilityEffect: unknown type";
 	}
-	
+
+	@Override
 	protected void init(Attributes atts) {
 		super.init(atts);
 		multiplier = Node.getIntValue(atts, "multiplier", 1);
 	}
 
+	@Override
 	protected void saveProperties(Properties atts) {
 		super.saveProperties(atts);
 		
@@ -233,9 +237,11 @@ public class AbilityEffect extends Effect {
 		return null;
 	}
 
+	@Override
 	protected Effect createCopy() {
 		return new AbilityEffect();
 	}
+	@Override
 	protected void copyFieldsTo(Effect e) {
 		AbilityEffect ae = (AbilityEffect)e;
 		ae.ability = ability;

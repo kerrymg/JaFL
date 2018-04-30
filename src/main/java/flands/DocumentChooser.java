@@ -21,7 +21,7 @@ import javax.swing.text.StyledDocument;
  * @author Jonathan Mann
  */
 public class DocumentChooser extends JDialog implements java.awt.event.ActionListener {
-	private JList list;
+	private JList<StyledDocument> list;
 	private int[] selectedIndices = null;
 
 	static int[] showChooser(Window w, String title, StyledDocument[] documents, boolean multipleSelection) {
@@ -30,7 +30,7 @@ public class DocumentChooser extends JDialog implements java.awt.event.ActionLis
 			chooser = new DocumentChooser((Frame)w, title, documents, multipleSelection);
 		else
 			chooser = new DocumentChooser((Dialog)w, title, documents, multipleSelection);
-		
+
 		chooser.setVisible(true);
 		return chooser.getSelectedIndices();
 	}
@@ -39,13 +39,13 @@ public class DocumentChooser extends JDialog implements java.awt.event.ActionLis
 		super(f, title, true);
 		init(f, documents, multipleSelection);
 	}
-	public DocumentChooser(Dialog d, String title, StyledDocument[] documents, boolean multipleSelection) {
+	private DocumentChooser(Dialog d, String title, StyledDocument[] documents, boolean multipleSelection) {
 		super(d, title, true);
 		init(d, documents, multipleSelection);
 	}
 
 	private void init(Window parent, StyledDocument[] documents, boolean multipleSelection) {
-		list = new JList(documents);
+		list = new JList<>(documents);
 		list.setSelectionMode(multipleSelection ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION : ListSelectionModel.SINGLE_SELECTION);
 		list.setCellRenderer(new DocumentCellRenderer());
 

@@ -75,22 +75,19 @@ public class TextNode extends Node {
 
 		hadAnyContent = true;
 		SimpleAttributeSet atts;
-		StyledText textUnit;
-		
+
 		// Add the unit of styled text to the document
 		if (isTextNode) {
 			atts = (defaultAtts == null ? new SimpleAttributeSet() : new SimpleAttributeSet(defaultAtts));
 			StyleNode.applyActiveStyles(atts);
-			textUnit = new StyledText(text, atts);
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { textUnit });
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, atts));
 			Collections.addAll(elementList, leaves);
 		}
 
 		// Also add a copy to our cached text list, without any default attributes
 		atts = new SimpleAttributeSet();
 		StyleNode.applyActiveStyles(atts);
-		textUnit = new StyledText(text, atts);
-		styledTextList.add(textUnit);
+		styledTextList.add(new StyledText(text, atts));
 	}
 
 	@Override

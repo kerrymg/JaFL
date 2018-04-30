@@ -330,7 +330,7 @@ public class Books {
 	/**
 	 * List model of the available books.
 	 */
-	public static class BookListModel extends AbstractListModel {
+	public static class BookListModel extends AbstractListModel<String> {
 		private ArrayList<BookDetails> books;
 		BookListModel() {
 			SortedSet<BookDetails> sortedBooks = new TreeSet<>();
@@ -340,7 +340,7 @@ public class Books {
 				if (book.hasBook())
 					sortedBooks.add(book);
 			}
-			
+
 			books = new ArrayList<>();
 			books.addAll(sortedBooks);
 		}
@@ -355,7 +355,7 @@ public class Books {
 		}
 
 		@Override
-		public Object getElementAt(int index) {
+		public String getElementAt(int index) {
 			BookDetails book = getBook(index);
 			return book.getKey() + ": " + book.getTitle();
 		}
@@ -417,7 +417,7 @@ public class Books {
 				System.out.println("Error in reading book listing file '" + listingFile + "'");
 				e.printStackTrace();
 			}
-			
+
 			if (canon == null) {
 				canon = new Books();
 				canon.addBook(new BookDetails("1", "The War-Torn Kingdom", "book1"));

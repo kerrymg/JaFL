@@ -35,7 +35,7 @@ public class FieldNode extends Node implements ChangeListener {
 
 		super.init(atts);
 
-		getDocument().addLeavesTo(getElement(), new String[] { label + " " }, null);
+		getDocument().addLeavesTo(getElement(), new StyledText(label + " " , null));
 		field = new JTextField(Integer.toString(getCodewords().getValue(name)), 3);
 		field.setFont(SectionDocument.getPreferredFont());
 		field.setEditable(false);
@@ -44,8 +44,8 @@ public class FieldNode extends Node implements ChangeListener {
 		SimpleAttributeSet fieldAtts = new SimpleAttributeSet();
 		StyleConstants.setComponent(fieldAtts, field);
 		setViewType(fieldAtts, ComponentViewType);
-		getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(" ", fieldAtts) });
-		getDocument().addLeavesTo(getElement(), new String[] { "\n" }, null);
+		getDocument().addLeavesTo(getElement(), new StyledText(" ", fieldAtts));
+		getDocument().addLeavesTo(getElement(), new StyledText("\n" , null));
 	}
 
 	@Override

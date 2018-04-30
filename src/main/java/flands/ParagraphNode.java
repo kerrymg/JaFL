@@ -49,7 +49,7 @@ public class ParagraphNode extends Node {
 				return;
 			}
 		}
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new String[] { content }, new AttributeSet[] { StyleNode.createActiveAttributes() });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(content, StyleNode.createActiveAttributes()));
 		addEnableElements(leaves);
 	}
 

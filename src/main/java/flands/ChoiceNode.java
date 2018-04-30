@@ -118,7 +118,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 			if (index > 0)
 				// Add text before the checkbox
 				descriptionNode.handleContent(content.substring(0, index));
-			
+
 			// Add the checkbox
 			box = new JCheckBox();
 			box.setSelected(getCodewords().hasCodeword(boxword));
@@ -130,14 +130,14 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 			setViewType(tickAtts, ComponentViewType);
 			//StyleConstants.setSpaceBelow(tickAtts, 6);
 			StyleConstants.setComponent(tickAtts, box);
-			getDocument().addLeavesTo(descriptionNode.getElement(), new StyledText[] { new StyledText("q", tickAtts) });
-			
+			getDocument().addLeavesTo(descriptionNode.getElement(), new StyledText("q", tickAtts));
+
 			if (index + BoxString.length() == content.length())
 				return;
 			else
 				content = content.substring(index + BoxString.length());
 		}
-		
+
 		descriptionNode.handleContent(content);
 	}
 

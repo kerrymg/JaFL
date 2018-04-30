@@ -62,7 +62,7 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 		if (!hadContent)
 			atts = createStandardAttributes();
 
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, atts) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, atts));
 		addEnableElements(leaves);
 		if (!hadContent) {
 			setHighlightElements(leaves);
@@ -89,7 +89,7 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 			else if (add < 0)
 				text += " and subtract " + numberStrings[-add];
 
-			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+			Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 			addEnableElements(leaves);
 			setHighlightElements(leaves);
 			hadContent = true;

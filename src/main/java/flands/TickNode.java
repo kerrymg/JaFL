@@ -7,7 +7,6 @@ import java.awt.event.ItemListener;
 import java.util.Iterator;
 import java.util.Properties;
 
-import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Element;
@@ -168,7 +167,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		return n;
 	}
 
-	private AttributeSet getElementAttributes(boolean italic) {
+	private SimpleAttributeSet getElementAttributes(boolean italic) {
 		SimpleAttributeSet atts = new SimpleAttributeSet();
 		StyleConstants.setUnderline(atts, true);
 		if (italic)
@@ -190,7 +189,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 			leaves = getDocument().addStyledText(getElement(), text, codeword, getElementAttributes(false), getElementAttributes(true));
 		}
 		else
-			leaves = getDocument().addLeavesTo(getElement(), new String[] { text }, new AttributeSet[] { getElementAttributes(false) });
+			leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, getElementAttributes(false)));
 
 		addHighlightElements(leaves);
 		addEnableElements(leaves);
@@ -482,9 +481,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 						itemDocs[i] = items.getItem(indices[i]).getDocument();
 					while (true) {
 						String chooserTitle = "Choose an item to modify";
-						DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), chooserTitle, itemDocs, false);
-						chooser.setVisible(true);
-						int[] selections = chooser.getSelectedIndices();
+						int[] selections = DocumentChooser.showChooser(FLApp.getSingle(), chooserTitle, itemDocs, false);
 						if (selections != null && selections.length == 1) {
 							index = indices[selections[0]];
 							break;
@@ -531,9 +528,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 				}
 
 				while (true) {
-					DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), "Choose Profession", docs, false);
-					chooser.setVisible(true);
-					int[] selections = chooser.getSelectedIndices();
+					int[] selections = DocumentChooser.showChooser(FLApp.getSingle(), "Choose Profession", docs, false);
 					if (selections != null && selections.length == 1) {
 						profChosen = profs[selections[0]];
 						break;

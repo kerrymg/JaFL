@@ -18,7 +18,7 @@ import javax.swing.text.StyledDocument;
  * Custom renderer to handle the StyledDocument created by each Item.
  * Code shamelessly ripped off from {@link javax.swing.DefaultListCellRenderer}.
  */
-public class DocumentCellRenderer extends JTextPane implements ListCellRenderer {
+public class DocumentCellRenderer extends JTextPane implements ListCellRenderer<StyledDocument> {
 	private static Border noFocusBorder;
 
 	DocumentCellRenderer() {
@@ -35,8 +35,8 @@ public class DocumentCellRenderer extends JTextPane implements ListCellRenderer 
 	}
 
 	@Override
-	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-		setDocument((StyledDocument)value);
+	public Component getListCellRendererComponent(JList list, StyledDocument value, int index, boolean isSelected, boolean cellHasFocus) {
+		setDocument(value);
 		setBackground(getBackground(list, index, isSelected));
 		if (isSelected) {
 			setForeground(list.getSelectionForeground());

@@ -113,7 +113,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 		if (styledText == null)
 			styledText = new StyledTextList();
 		styledText.add(text, StyleNode.createActiveAttributes());
-		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+		Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 		addHighlightElements(leaves);
 		addEnableElements(leaves);
 	}
@@ -124,7 +124,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 			if (text == null)
 				hidden = true;
 			else {
-				Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText[] { new StyledText(text, createStandardAttributes()) });
+				Element[] leaves = getDocument().addLeavesTo(getElement(), new StyledText(text, createStandardAttributes()));
 				setHighlightElements(leaves);
 				addEnableElements(leaves);
 			}

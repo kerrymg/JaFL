@@ -151,7 +151,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		if (range != null) {
 			rangeNode = new ParagraphNode(this, StyleConstants.ALIGN_LEFT);
 			super.addChild(rangeNode);
-			Element[] leaves = getDocument().addLeavesTo(rangeNode.getElement(), new String[] { "Score " + getRange() + "\n" }, null);
+			Element[] leaves = getDocument().addLeavesTo(rangeNode.getElement(), new StyledText("Score " + getRange() + "\n", null));
 			setHighlightElements(leaves);
 			rangeNode.setEnabled(true);
 		}
