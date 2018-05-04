@@ -28,7 +28,7 @@ import javax.swing.JPopupMenu;
  * @see Curse
  * @author Jonathan Mann
  */
-public class CurseList extends AbstractListModel implements MouseListener, ActionListener, XMLOutput {
+public class CurseList extends AbstractListModel<Curse> implements MouseListener, ActionListener, XMLOutput {
 	private List<Curse> curses;
 	private Adventurer owner;
 
@@ -44,7 +44,7 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 	public int getSize() { return curses.size(); }
 	private Curse getCurse(int i) { return curses.get(i); }
 	@Override
-	public Object getElementAt(int i) { return getCurse(i); }
+	public Curse getElementAt(int i) { return getCurse(i); }
 
 	void addCurse(Curse c) {
 		if (!curses.contains(c)) {
@@ -136,8 +136,8 @@ public class CurseList extends AbstractListModel implements MouseListener, Actio
 		return matches;
 	}
 
-	private JList configuredList = null;
-	void configureList(JList list) {
+	private JList<Curse> configuredList = null;
+	void configureList(JList<Curse> list) {
 		if (list.getModel() instanceof CurseList) {
 			CurseList oldModel = (CurseList)list.getModel();
 			list.removeMouseListener(oldModel);

@@ -37,7 +37,7 @@ import javax.swing.text.StyledDocument;
  * 
  * @author Jonathan Mann
  */
-public class ItemList extends AbstractListModel implements GameListener, XMLOutput {
+public class ItemList extends AbstractListModel<StyledDocument> implements GameListener, XMLOutput {
 	private Adventurer owner;
 	private EffectSet effects = null;
 	private CacheNode itemCache = null;
@@ -112,7 +112,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	void setItemLimit(int limit) {
 		if (getAdventurer() == null) {
 			itemLimit = limit;
-			
+
 			// Make sure any money items present don't count towards this limit
 			for (int i = 0; i < getItemCount(); i++) {
 				Item item = getItem(i);
@@ -146,7 +146,7 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 	}
 
 	@Override
-	public Object getElementAt(int i) { return getItemDocument(i); }
+	public StyledDocument getElementAt(int i) { return getItemDocument(i); }
 	private StyledDocument getItemDocument(int i) {
 		Item item = getItem(i);
 		return (item == null ? getEmptyDocument() : item.getDocument());
@@ -769,9 +769,9 @@ public class ItemList extends AbstractListModel implements GameListener, XMLOutp
 		}
 	}
 
-	private JList configuredList = null;
+	private JList<StyledDocument> configuredList = null;
 	private MouseListener listListener = null;
-	void configureList(JList list) {
+	void configureList(JList<StyledDocument> list) {
 		if (list.getModel() instanceof ItemList) {
 			ItemList oldModel = (ItemList)list.getModel();
 			list.removeMouseListener(oldModel.listListener);

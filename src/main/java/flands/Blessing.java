@@ -238,13 +238,10 @@ public class Blessing {
 	}
 
 	public boolean equals(Object o) {
-		try {
+		if (o instanceof Blessing) {
 			Blessing b = (Blessing)o;
 			if (type != b.type) return false;
 			return type != ABILITY_TYPE || ability == b.ability;
-		}
-		catch (ClassCastException cce) {
-			cce.printStackTrace();
 		}
 		return false;
 	}
@@ -272,7 +269,7 @@ public class Blessing {
 		
 		if (str.endsWith(",1"))
 			b.setPermanent(true);
-		
+
 		return b;
 	}
 }

@@ -28,6 +28,7 @@ import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import org.xml.sax.Attributes;
 
@@ -223,7 +224,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 				JLabel hackLabel = new JLabel("Splint armour (Defence +4)"); // a nice length
 				hackLabel.setFont(SectionDocument.getPreferredFont());
 
-				JList itemList = new JList(items);
+				JList<StyledDocument> itemList = new JList<>(items);
 				itemList.setFont(SectionDocument.getPreferredFont());
 				items.configureList(itemList);
 				//itemList.setToolTipText("Double-click to take item; double-click in your Possessions to leave an item here");

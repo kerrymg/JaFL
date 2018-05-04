@@ -37,7 +37,7 @@ import javax.swing.text.StyledDocument;
  */
 public class FontChooser extends JDialog
   implements ListSelectionListener, ChangeListener, ActionListener {
-	private JList fontList;
+	private JList<String> fontList;
 	private SpinnerNumberModel sizeModel, smallerSizeModel;
 	private Font currentFont;
 	private JTextPane displayPane;
@@ -48,7 +48,7 @@ public class FontChooser extends JDialog
 		this.currentFont = initialFont;
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		String[] fontNames = ge.getAvailableFontFamilyNames();
-		fontList = new JList(fontNames);
+		fontList = new JList<>(fontNames);
 		String initialFontName = initialFont.getFamily();
 		int selectedFontIndex = -1;
 		for (int i = 0; i < fontNames.length; i++)

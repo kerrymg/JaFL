@@ -27,7 +27,7 @@ public class StartPanel extends JPanel
 implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectionListener {
 	private FLApp parent;
 	private Books.BookListModel bookModel;
-	private JList bookList;
+	private JList<String> bookList;
 	private JButton newButton, hardcoreButton, loadButton, quitButton;
 
 	StartPanel(FLApp parent) {
@@ -46,7 +46,7 @@ implements ActionListener, MouseListener, SectionDocument.FontUser, ListSelectio
 		quitButton.addActionListener(this);
 
 		bookModel = new Books.BookListModel();
-		bookList = new JList(bookModel);
+		bookList = new JList<>(bookModel);
 		bookList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		bookList.addMouseListener(this);
 		bookList.addListSelectionListener(this);

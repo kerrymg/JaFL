@@ -17,6 +17,7 @@ import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.text.StyledDocument;
 
 /**
  * List of all blessings on the character. Contains extra methods to deal with
@@ -24,7 +25,7 @@ import javax.swing.JPopupMenu;
  * blessings when double-clicked.
  * @author Jonathan Mann
  */
-public class BlessingList extends AbstractListModel implements Loadable,
+public class BlessingList extends AbstractListModel<StyledDocument> implements Loadable,
 		MouseListener, ActionListener {
 	private ArrayList<Blessing> list = new ArrayList<>();
 
@@ -38,7 +39,7 @@ public class BlessingList extends AbstractListModel implements Loadable,
 	}
 
 	@Override
-	public Object getElementAt(int i) {
+	public StyledDocument getElementAt(int i) {
 		return getBlessing(i).getDocument();
 	}
 
@@ -140,9 +141,9 @@ public class BlessingList extends AbstractListModel implements Loadable,
 		}
 	}
 
-	private JList configuredList = null;
+	private JList<StyledDocument> configuredList = null;
 
-	void configureList(JList list) {
+	void configureList(JList<StyledDocument> list) {
 		if (list.getModel() instanceof BlessingList) {
 			BlessingList oldModel = (BlessingList) list.getModel();
 			list.removeMouseListener(oldModel);

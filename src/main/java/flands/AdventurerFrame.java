@@ -30,6 +30,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.StyledDocument;
 
 /**
  * Displays all the character's attributes. The Documents being displayed will
@@ -48,7 +49,8 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 	private JTextField rankField, defenceField, staminaField; // Single Stats
 	private JTextPane abilityPane, resurrectionPane;
 	private JTextArea titlesArea;
-	private JList itemList, curseList, blessingList;
+	private JList<StyledDocument> itemList, blessingList;
+	private JList<Curse> curseList;
 
 	private JPanel godGenderPanel, genderPanel;
 	private GBC genderPanelGBC;
@@ -120,9 +122,9 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		titlesArea = new JTextArea();
 		titlesArea.setEditable(false);
 		setFont(titlesArea);
-		itemList = new JList();
-		blessingList = new JList();
-		curseList = new JList();
+		itemList = new JList<>();
+		blessingList = new JList<>();
+		curseList = new JList<>();
 
 		gbl = new GridBagLayout();
 		Container pane = getContentPane();
@@ -134,8 +136,8 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 
 		GBC labelGBC = new GBC().setSpan(2, 1).setWeight(0.5f, 0).setAnchor(GBC.WEST).setInsets(0, 0, 3, 12);
 		GBC fieldGBC = new GBC().setSpan(2, 1).setWeight(0.5f, 0).setBothFill().setInsets(0, 0, 5, 11);
-		GBC halfLabelGBC = ((GBC)labelGBC.clone()).setWeight(0.25f, 0).setSpan(1, 1).setInsets(0, 0, 3, 6);
-		GBC halfFieldGBC = ((GBC)fieldGBC.clone()).setWeight(0.25f, 0).setSpan(1, 1).setInsets(0, 0, 5, 5);
+		GBC halfLabelGBC = labelGBC.clone().setWeight(0.25f, 0).setSpan(1, 1).setInsets(0, 0, 3, 6);
+		GBC halfFieldGBC = fieldGBC.clone().setWeight(0.25f, 0).setSpan(1, 1).setInsets(0, 0, 5, 5);
 
 		// Handle the God/Gender panel - Gender is missing most of the time, so this is tricky
 		godGenderPanel = new JPanel();
@@ -181,16 +183,16 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 			.addComp(left, godGenderPanel, gbl, 0, row);
 		row += 2;
 		halfLabelGBC.addComp(left, new JLabel("Ability"), gbl, 0, row);
-		((GBC)halfLabelGBC.clone()).setAnchor(GBC.EAST).setInsets(0, 0, 3, 12).addComp(left, new JLabel("Score"), gbl, 1, row++);
+		halfLabelGBC.clone().setAnchor(GBC.EAST).setInsets(0, 0, 3, 12).addComp(left, new JLabel("Score"), gbl, 1, row++);
 		fieldGBC.addComp(left, abilityPane/*new JScrollPane(abilityPane)*/, gbl, 0, row++);
 		labelGBC.addComp(left, new JLabel("Stamina"), gbl, 0, row++);
 		fieldGBC.addComp(left, staminaField, gbl, 0, row++);
 		labelGBC.addComp(left, new JLabel("Resurrection Arrangements"), gbl, 0, row++);
 		fieldGBC.addComp(left, new JScrollPane(resurrectionPane), gbl, 0, row++);
 		labelGBC.addComp(left, new JLabel("Titles and Honours"), gbl, 0, row++);
-		((GBC)fieldGBC.clone()).setWeight(0.5f, 1.0f).addComp(left, new JScrollPane(titlesArea), gbl, 0, row++);
+		fieldGBC.clone().setWeight(0.5f, 1.0f).addComp(left, new JScrollPane(titlesArea), gbl, 0, row++);
 		labelGBC.addComp(left, new JLabel("Curses"), gbl, 0, row++);
-		((GBC)fieldGBC.clone()).setWeight(0.5f, 1.0f).addComp(left, new JScrollPane(curseList), gbl, 0, row);
+		fieldGBC.clone().setWeight(0.5f, 1.0f).addComp(left, new JScrollPane(curseList), gbl, 0, row);
 
 		row = 0;
 		labelGBC.addComp(right, new JLabel("Profession"), gbl, 0, row++);
@@ -200,11 +202,11 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		halfFieldGBC.addComp(right, rankField, gbl, 0, row);
 		halfFieldGBC.addComp(right, defenceField, gbl, 1, row++);
 		labelGBC.addComp(right, new JLabel("Possessions (maximum of 12)"), gbl, 0, row++);
-		((GBC)fieldGBC.clone()).setWeight(0.5f, 1.0f).addComp(right, new JScrollPane(itemList), gbl, 0, row++);
+		fieldGBC.clone().setWeight(0.5f, 1.0f).addComp(right, new JScrollPane(itemList), gbl, 0, row++);
 		labelGBC.addComp(right, new JLabel("Money"), gbl, 0, row++);
 		fieldGBC.addComp(right, moneyField, gbl, 0, row++);
 		labelGBC.addComp(right, new JLabel("Blessings"), gbl, 0, row++);
-		((GBC)fieldGBC.clone()).setWeight(0.5f, 0.5f).addComp(right, new JScrollPane(blessingList), gbl, 0, row);
+		fieldGBC.clone().setWeight(0.5f, 0.5f).addComp(right, new JScrollPane(blessingList), gbl, 0, row);
 
 		pane.add(left);
 		pane.add(right);
@@ -212,7 +214,7 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		getRootPane().setBorder(new EmptyBorder(12, 12, 6, 0));
 		getRootPane().setOpaque(true);
 		getRootPane().setBackground(godField.getBackground());
-		
+
 		SectionDocument.addFontUser(this);
 	}
 
@@ -240,7 +242,6 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		}
 	}
 
-	private javax.swing.text.StyledDocument abilityDocument;
 	public void reset() {
 		nameField.setText(adv.getName());
 		professionField.setText(adv.getProfessionName());
@@ -253,8 +254,7 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 		defenceField.setDocument(adv.getDefence().getDocument());
 		staminaField.setDocument(adv.getStamina().getDocument());
 
-		abilityDocument = adv.getAbilityDocument();
-		abilityPane.setDocument(abilityDocument);
+		abilityPane.setDocument(adv.getAbilityDocument());
 
 		godField.setDocument(adv.getGodDocument());
 		godField.setVisible(!adv.isGodless());
@@ -278,7 +278,7 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 	private static final String dropCommand = "D", transferCommand = "T";
 	private void handlePopup(MouseEvent evt) {
 		if (adv.getMoney() == 0) return;
-		
+
 		JPopupMenu popup = new JPopupMenu("Money Options");
 		ItemList cache = adv.getItems().getItemCache();
 		if (cache != null && !adv.getItems().getItemCacheNode().isFrozen()) {

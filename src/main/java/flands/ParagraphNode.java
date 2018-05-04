@@ -14,7 +14,7 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class ParagraphNode extends Node {
-	public static String ElementName = "p";
+	public static final String ElementName = "p";
 
 	private int alignment;
 
