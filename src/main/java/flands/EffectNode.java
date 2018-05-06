@@ -37,7 +37,7 @@ public class EffectNode extends Node {
 
 	private ExecutableRunner runner = null;
 	@Override
-	public ExecutableGrouper getExecutableGrouper() {
+	public ExecutableRunner getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner();
 		return runner;
@@ -94,6 +94,6 @@ public class EffectNode extends Node {
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))
-			((ExecutableRunner)getExecutableGrouper()).setCallback(findExecutableGrouper());
+			findExecutableGrouper().ifPresent(e -> getExecutableGrouper().setCallback(e));
 	}
 }

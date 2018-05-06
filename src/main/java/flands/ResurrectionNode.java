@@ -25,7 +25,7 @@ public class ResurrectionNode extends ActionNode implements Executable, ChangeLi
 	ResurrectionNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	@Override

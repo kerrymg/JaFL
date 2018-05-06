@@ -65,7 +65,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 		tag       = atts.getValue("tag");
 		key       = atts.getValue("key");
 		remove    = atts.getValue("remove");
-		
+
 		super.init(atts);
 	}
 
@@ -96,7 +96,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 		return (s1 != null && s2 != null ? s1.equals(s2) : s1 == s2);
 	}
 	public boolean equals(Object o) {
-		try {
+		if (o instanceof ExtraChoice) {
 			ExtraChoice choice = (ExtraChoice)o;
 			return (equal(book, choice.book) &&
 					equal(section, choice.section) &&
@@ -105,7 +105,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 					equal(tag, choice.tag) &&
 					equal(key, choice.key));
 		}
-		catch (ClassCastException cce) { return false; }
+		return false;
 	}
 	@Override
 	public void handleContent(String text) {
@@ -129,8 +129,8 @@ public class ExtraChoice extends ActionNode implements Executable {
 				addEnableElements(leaves);
 			}
 		}
-		findExecutableGrouper().addExecutable(this);
-		
+		addExecutableNode(this);
+
 		return super.handleEndTag();
 	}
 
@@ -166,7 +166,7 @@ public class ExtraChoice extends ActionNode implements Executable {
 				getAdventurer().getExtraChoices().remove(remove);
 			
 			if (!hidden)
-				findExecutableGrouper().continueExecution(this, false);
+				continueNodeExecution(this, false);
 		}
 	}
 

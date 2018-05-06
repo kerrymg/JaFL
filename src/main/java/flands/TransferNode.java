@@ -108,7 +108,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 
 	@Override
 	public boolean handleEndTag() {
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		return super.handleEndTag();
 	}
 
@@ -269,7 +269,7 @@ public class TransferNode extends ActionNode implements Executable, Flag.Listene
 
 		if (callContinue) {
 			callContinue = false;
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 		}
 		else
 			callsContinue = false;

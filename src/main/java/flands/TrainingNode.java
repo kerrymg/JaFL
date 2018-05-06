@@ -87,7 +87,7 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 
 	@Override
 	public boolean handleEndTag() {
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		return super.handleEndTag();
 	}
 
@@ -142,7 +142,7 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 		}
 
 		UndoManager.createNew(this).add(this);
-		findExecutableGrouper().continueExecution(this, true);
+		continueNodeExecution(this, true);
 	}
 
 	@Override
@@ -150,7 +150,7 @@ public class TrainingNode extends ActionNode implements Executable, Roller.Liste
 		if (success)
 			// Don't know exactly why you'd want to undo this, but anyway...
 			getAdventurer().adjustAbility(ability, -1);
-		execute(findExecutableGrouper());
+		findExecutableGrouper().ifPresent(this::execute);
 	}
 
 	@Override

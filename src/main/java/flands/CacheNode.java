@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 
@@ -441,7 +442,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		}
 		@Override
 		public boolean handleEndTag() {
-			findExecutableGrouper().addExecutable(this);
+			addExecutableNode(this);
 			return super.handleEndTag();
 		}
 
@@ -461,7 +462,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 		private boolean callContinue = false;
 		@Override
 		public boolean execute(ExecutableGrouper grouper) {
-			if (grouper != findExecutableGrouper())
+			if (!Optional.of(grouper).equals(findExecutableGrouper()))
 				System.err.println("AdjustMoneyNode.execute(): non-matching groupers");
 			setEnabled(true);
 			int amount = getMoney();
@@ -487,7 +488,7 @@ public class CacheNode extends Node implements ActionListener, MouseListener, Ch
 			UndoManager.getCurrent().add(this);
 
 			if (callContinue)
-				findExecutableGrouper().continueExecution(this, false);
+				continueNodeExecution(this, false);
 			else
 				callsContinue = false;
 		}

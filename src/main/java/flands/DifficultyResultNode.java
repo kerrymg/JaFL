@@ -36,7 +36,7 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 
 	private ExecutableRunner runner = null;
 	@Override
-	public ExecutableGrouper getExecutableGrouper() {
+	public ExecutableRunner getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner("DifficultyResult/" + success, this);
 		return runner;
@@ -99,7 +99,7 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 				setHighlightElements(leaves);
 				setHighlighted(true); // will highlight as soon as it is enabled
 			}
-		
+
 			// Add the next cell - goto
 			addChild(gotoParagraph);
 			gotoNode.handleEndTag();
@@ -107,8 +107,8 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 		}
 
 		System.out.println("DifficultyResultNode adding itself as Executable child");
-		findExecutableGrouper().addExecutable(this);
-		
+		addExecutableNode(this);
+
 		return super.handleEndTag();
 	}
 
@@ -167,6 +167,6 @@ public class DifficultyResultNode extends ActionNode implements Executable {
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))
-			((ExecutableRunner)getExecutableGrouper()).setCallback(findExecutableGrouper());
+			findExecutableGrouper().ifPresent(e -> getExecutableGrouper().setCallback(e));
 	}
 }

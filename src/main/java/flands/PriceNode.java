@@ -26,7 +26,7 @@ public class PriceNode extends ActionNode implements Executable, ChangeListener,
 	PriceNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	@Override

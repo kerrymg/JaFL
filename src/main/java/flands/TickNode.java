@@ -217,7 +217,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 			}
 			handleContent(text);
 		}
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		return super.handleEndTag();
 	}
 
@@ -552,7 +552,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 
 		// Notify the grouper that we're ready to continue
 		if (callContinue)
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 		else
 			callsContinue = false;
 	}
@@ -572,7 +572,7 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 			if (flag != null)
 				getFlags().setState(flag, false);
 			if (callContinue)
-				findExecutableGrouper().continueExecution(this, false);
+				continueNodeExecution(this, false);
 		}
 	}
 
@@ -591,10 +591,10 @@ public class TickNode extends ActionNode implements Executable, ItemListener, Fl
 		//int preScore = getAdventurer().getAbility(abilityChosen).natural;
 		gainAmount = getAdventurer().adjustAbility(abilityChosen, r.getResult());
 		//gainAmount = getAdventurer().getAbility(abilityChosen).natural - preScore;
-		
+
 		UndoManager.createNew(this).add(this);
-		
-		findExecutableGrouper().continueExecution(this, true);
+
+		continueNodeExecution(this, true);
 	}
 
 	@Override

@@ -22,7 +22,7 @@ public class WhileNode extends Node implements Executable, ExecutableGrouper {
 	WhileNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class WhileNode extends Node implements Executable, ExecutableGrouper {
 	public void continueExecution(Executable eDone, boolean inSeparateThread) {
 		// Called by runner
 		if (runWhileLoop())
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 	}
 
 	@Override

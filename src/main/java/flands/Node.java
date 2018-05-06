@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import javax.swing.text.AbstractDocument.AbstractElement;
@@ -143,15 +144,23 @@ public abstract class Node implements XMLOutput, Expression.Resolver {
 	 * Travel up the tree until a parent Node is found that returns a non-null
 	 * ExecutableGrouper.  This is a utility method.
 	 */
-	protected final ExecutableGrouper findExecutableGrouper() {
+	protected final Optional<ExecutableGrouper> findExecutableGrouper() {
 		Node n = getParent();
 		while (n != null) {
 			ExecutableGrouper grouper = n.getExecutableGrouper();
 			if (grouper != null)
-				return grouper;
+				return Optional.of(grouper);
 			n = n.getParent();
 		}
-		return null;
+		return Optional.empty();
+	}
+
+	final void addExecutableNode(Executable executable) {
+		findExecutableGrouper().ifPresent(e -> e.addExecutable(executable));
+	}
+
+	final void continueNodeExecution(Executable executable, boolean inSeparateThread) {
+		findExecutableGrouper().ifPresent(e -> e.continueExecution(executable, inSeparateThread));
 	}
 
 	/**

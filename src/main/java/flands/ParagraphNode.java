@@ -1,7 +1,6 @@
 package flands;
 
 
-import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -25,7 +24,7 @@ public class ParagraphNode extends Node {
 		super(ElementName, parent);
 		this.alignment = alignment;
 		setEnabled(false);
-		findExecutableGrouper().addIntermediateNode(this);
+		findExecutableGrouper().ifPresent(e -> e.addIntermediateNode(this));
 	}
 
 	@Override

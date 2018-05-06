@@ -28,7 +28,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 
 	SetVarNode(Node parent) {
 		super(ElementName, parent);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		setEnabled(false);
 	}
 
@@ -182,7 +182,7 @@ public class SetVarNode extends ActionNode implements Executable, Expression.Res
 		}
 
 		if (force && !hidden)
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 	}
 
 	@Override

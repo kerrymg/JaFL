@@ -89,11 +89,11 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 			setHighlightElements(leaves);
 			hadContent = true;
 		}
-		findExecutableGrouper().addExecutable(this);
-		
+		addExecutableNode(this);
+
 		if (flag != null)
 			getFlags().addListener(flag, this);
-		
+
 		return super.handleEndTag();
 	}
 
@@ -218,7 +218,7 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 				effects.notifyOwner();
 			}
 
-			findExecutableGrouper().continueExecution(this, true);
+			continueNodeExecution(this, true);
 		}
 	}
 
@@ -235,9 +235,9 @@ public class DifficultyNode extends ActionNode implements Executable, Roller.Lis
 
 		if (flag != null && !getFlags().getState(flag))
 			getFlags().setState(flag, true);
-		
+
 		// Pretend like we've just been called by the cached grouper...
-		execute(findExecutableGrouper());
+		findExecutableGrouper().ifPresent(this::execute);
 	}
 
 	@Override

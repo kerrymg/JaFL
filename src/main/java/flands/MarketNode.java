@@ -39,7 +39,7 @@ public class MarketNode extends TableNode implements Executable {
 
 	@Override
 	public boolean handleEndTag() {
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		return true;
 	}
 	

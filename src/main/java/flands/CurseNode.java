@@ -69,7 +69,7 @@ public class CurseNode extends ActionNode implements Executable {
 	@Override
 	public boolean handleEndTag() {
 		if (!(getParent() instanceof ItemNode)) {
-			findExecutableGrouper().addExecutable(this);
+			addExecutableNode(this);
 			if (!hadContent)
 				addContent(curse.getName());
 			return hadContent;
@@ -94,7 +94,7 @@ public class CurseNode extends ActionNode implements Executable {
 		getCurses().addCurse(curse);
 		if (callContinue) {
 			callContinue = false;
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 		}
 	}
 

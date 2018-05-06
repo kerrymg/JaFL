@@ -20,7 +20,7 @@ public class ReturnNode extends ActionNode implements Executable {
 	private boolean forced;
 	ReturnNode(Node parent) {
 		super(ElementName, parent);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		setEnabled(false);
 	}
 

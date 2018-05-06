@@ -71,7 +71,7 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 
 	@Override
 	public boolean handleEndTag() {
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		return super.handleEndTag();
 	}
 
@@ -195,10 +195,10 @@ public class RestNode extends ActionNode implements Executable, ChangeListener, 
 		}
 		stamina.heal(healAmount);
 		healAmount = stamina.current - prevStamina;
-		
+
 		UndoManager.createNew(this).add(this);
-		
-		findExecutableGrouper().continueExecution(this, true);
+
+		continueNodeExecution(this, true);
 	}
 
 	@Override

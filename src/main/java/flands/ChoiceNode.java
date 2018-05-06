@@ -177,7 +177,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 
 		if (shards != null || item != null || profession >= 0 || god != null || emptyvar != null) {
 			setEnabled(false);
-			findExecutableGrouper().addExecutable(this);
+			addExecutableNode(this);
 		}
 		if (boxword != null) {
 			setEnabled(getCodewords().hasCodeword(boxword));

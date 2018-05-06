@@ -73,7 +73,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 	}
 
 	@Override
-	public ExecutableGrouper getExecutableGrouper() {
+	public ExecutableRunner getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner("if", this);
 		return runner;
@@ -209,7 +209,7 @@ public class IfNode extends Node implements Executable, ChangeListener {
 	@Override
 	public boolean handleEndTag() {
 		System.out.println("IfNode adding itself as Executable child");
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		if (type == IF_TYPE || type == ELSEIF_TYPE)
 			// Pass on our var name so any following elseifs or elses can use it.
 			getRoot().setElseVarName(ifElseVarName);
@@ -497,6 +497,6 @@ public class IfNode extends Node implements Executable, ChangeListener {
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))
-			((ExecutableRunner)getExecutableGrouper()).setCallback(findExecutableGrouper());
+			findExecutableGrouper().ifPresent(e -> getExecutableGrouper().setCallback(e));
 	}
 }

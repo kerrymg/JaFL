@@ -75,8 +75,8 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 			addEnableElements(textLeaves);
 		}
 
-		findExecutableGrouper().addExecutable(this);
-		
+		addExecutableNode(this);
+
 		return super.handleEndTag();
 	}
 
@@ -277,7 +277,7 @@ public class GroupNode extends ActionNode implements Executable, ExecutableGroup
 		currentNode = null;
 		isEnabled();
 		separateThread = false;
-		findExecutableGrouper().continueExecution(this, inSeparateThread);
+		continueNodeExecution(this, inSeparateThread);
 	}
 
 	private boolean separateThread = false;

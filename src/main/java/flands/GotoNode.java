@@ -177,8 +177,8 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		}
 
 		System.out.println("Goto(" + section + ") adding itself as child");
-		findExecutableGrouper().addExecutable(this);
-		
+		addExecutableNode(this);
+
 		return super.handleEndTag();
 	}
 
@@ -194,7 +194,7 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 		if (descriptionNode != null)
 			descriptionNode.setEnabled(b);
 	}
-	
+
 	boolean canUse() {
 		if (book != null && !Books.getCanon().getBook(book).hasBook())
 			return false;
@@ -325,7 +325,7 @@ public class GotoNode extends ActionNode implements Executable, ChangeListener, 
 			setEnabled(false);
 		if (callContinue)
 			// This makes 'visits' work - but it's not really necessary in the majority of cases
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 
 		/* Doing this breaks 6.628 (if you immediately revisit it)
 		if (flag != null)

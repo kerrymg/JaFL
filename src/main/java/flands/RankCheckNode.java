@@ -94,7 +94,7 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 			setHighlightElements(leaves);
 			hadContent = true;
 		}
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 
 		return super.handleEndTag();
 	}
@@ -176,14 +176,14 @@ public class RankCheckNode extends ActionNode implements Executable, Roller.List
 			roller = null;
 			UndoManager.createNew(this).add(this);
 			if (callContinue)
-				findExecutableGrouper().continueExecution(this, true);
+				continueNodeExecution(this, true);
 		}
 	}
 
 	@Override
 	public void undoOccurred(UndoManager undo) {
 		// Pretend like we've just been called by the cached grouper...
-		execute(findExecutableGrouper());
+		findExecutableGrouper().ifPresent(this::execute);
 	}
 
 	@Override

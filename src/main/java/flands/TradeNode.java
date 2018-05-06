@@ -83,7 +83,7 @@ public class TradeNode extends Node implements Executable {
 
 		super.init(atts);
 
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	/**
@@ -332,7 +332,7 @@ public class TradeNode extends Node implements Executable {
 
 			super.init(atts);
 
-			findExecutableGrouper().addExecutable(this);
+			addExecutableNode(this);
 		}
 
 		@Override
@@ -497,7 +497,7 @@ public class TradeNode extends Node implements Executable {
 					getFlags().setState(flag, false);
 				if (callContinue) {
 					callContinue = false;
-					findExecutableGrouper().continueExecution(this, false);
+					continueNodeExecution(this, false);
 				}
 				else
 					callsContinue = false;
@@ -621,7 +621,7 @@ public class TradeNode extends Node implements Executable {
 
 			super.init(atts);
 
-			findExecutableGrouper().addExecutable(this);
+			addExecutableNode(this);
 		}
 
 		@Override

@@ -32,7 +32,7 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 		super(item.getTypeName(), parent);
 		this.item = item;
 		setEnabled(false);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 		}
 		else if (getItems().addItem(item))
 			taken = true;
-		
+
 		if (taken) {
 			if (quantity-- > 0)
 				// Copy the item so we don't add the same object multiple times
@@ -182,7 +182,7 @@ public class ItemNode extends ActionNode implements Executable, ChangeListener, 
 		}
 
 		if (callContinue && (!forced || taken)) {
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 		}
 	}
 

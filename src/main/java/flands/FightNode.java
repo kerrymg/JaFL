@@ -103,7 +103,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 
 	FightNode(Node parent) {
 		super(ElementName, parent);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	@Override
@@ -225,7 +225,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 		if (usingAbilityBonus)
 			getAdventurer().getEffects().removeAbilityPotionBonus(Adventurer.ABILITY_COMBAT);
 		if (continueExecution)
-			findExecutableGrouper().continueExecution(this, true);
+			continueNodeExecution(this, true);
 	}
 
 	private void damageEnemy(int damage) {
@@ -540,7 +540,7 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 					break;
 				}
 			}
-			
+
 			if (!continueFight) {
 				disableFlee();
 				endFight(false);
@@ -548,16 +548,16 @@ public class FightNode extends Node implements Executable, ActionListener, Rolle
 			else
 				endedFight = true;
 
-			findExecutableGrouper().continueExecution(this, true);
+			continueNodeExecution(this, true);
 			return;
 		}
-		
+
 		if (roundNode != null && roundNode.isPreFight()) {
 			if (!roundNode.execute(null))
 				return;
 			if (getAdventurer().isDead()) {
 				endFight();
-				findExecutableGrouper().continueExecution(this, true);
+				continueNodeExecution(this, true);
 				return;
 			}
 		}

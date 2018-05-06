@@ -95,8 +95,8 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 			handleContent(content);
 		}
 		System.out.println("Adding RandomNode(" + dice + "D) as Executable child");
-		findExecutableGrouper().addExecutable(this);
-		
+		addExecutableNode(this);
+
 		return super.handleEndTag();
 	}
 
@@ -178,10 +178,10 @@ public class RandomNode extends ActionNode implements Executable, Roller.Listene
 			System.out.println("RandomNode: result is " + r.getResult());
 			roller = null;
 			UndoManager.createNew(this).add(this);
-			
+
 			// Keep a pointer to it - we'll need it for rerolls
 			System.out.println("RandomNode: calling parent to continue execution");
-			findExecutableGrouper().continueExecution(this, true);
+			continueNodeExecution(this, true);
 		}
 	}
 

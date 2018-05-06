@@ -249,7 +249,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 
 	@Override
 	public boolean handleEndTag() {
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 		return super.handleEndTag();
 	}
 
@@ -459,21 +459,21 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 						catch (BadLocationException ignored) {}
 						docs[i] = doc;
 					}
-					
+
 					DocumentChooser chooser = new DocumentChooser(FLApp.getSingle(), "Choose Cargo Type", docs, false);
 					chooser.setVisible(true);
-					
+
 					if (chooser.getSelectedIndices() == null) {
 						setEnabled(true);
 						return;
 					}
 					chosenType = cargoTypes[chooser.getSelectedIndices()[0]];
 				}
-				
+
 				removeCargoType = chosenType;
 			}
 		}
-		
+
 		Resurrection removeResurrection = null;
 		if (resurrection && getAdventurer().hasResurrection()) {
 			Resurrection r = getAdventurer().chooseResurrection("Lose Resurrection");
@@ -483,7 +483,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			}
 			removeResurrection = r;
 		}
-		
+
 		// Last cancellable action - if it doesn't cancel, it immediately occurs
 		// (maybe should split the method into two)
 		if (blessing != null) {
@@ -550,7 +550,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 					doneRemove = true;
 				}
 			}
-			
+
 			if (!doneRemove)
 				getAffectedItems().removeAll();
 		}
@@ -563,7 +563,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			if (index < items.getItemCount() && !items.getItem(index).hasKeepTag())
 				items.removeItem(index);
 		}
-		
+
 		if (curse != null) {
 			// curseIndices selected above
 			CurseList curses = getCurses();
@@ -582,10 +582,10 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 
 		if (title != null)
 			getAdventurer().removeTitle(title);
-		
+
 		if (god != null)
 			getAdventurer().removeGod(god);
-		
+
 		// Handle all ship-related losses here
 		if (ship || cargo != Ship.NO_CARGO || crew != 0) {
 			int[] indices = getShips().findShipsHere();
@@ -608,10 +608,10 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 				getShips().refresh();
 			}
 		}
-		
+
 		if (resurrection)
 			getAdventurer().removeResurrection(removeResurrection);
-		
+
 		// Leave roller-connected actions to last
 		// (these can't both be present)
 		if (staminaExp != null) {
@@ -649,7 +649,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 					return;
 				}
 			}
-			
+
 			getAdventurer().adjustAbility(abilityAffected, -(getAttributeValue(amount)+getAdjustment()), fatal);
 			// which will handle the case where this loss is fatal
 		}
@@ -662,7 +662,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 		super.actionPerformed(evt);
 		
 		if (callContinue)
-			findExecutableGrouper().continueExecution(this, false);
+			continueNodeExecution(this, false);
 	}
 
 	@Override
@@ -831,11 +831,11 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			getFlags().setState(flag, false);
 		if (price != null)
 			getFlags().setState(price, true);
-		
+
 		super.actionPerformed(null);
-		
+
 		if (callContinue)
-			findExecutableGrouper().continueExecution(this, true);
+			continueNodeExecution(this, true);
 	}
 
 	@Override
@@ -854,7 +854,7 @@ public class LoseNode extends ActionNode implements Executable, Roller.Listener,
 			staminaExp.addAdjustment(-lastAdjustment);
 			lastAdjustment = 0;
 		}
-		execute(findExecutableGrouper());
+		findExecutableGrouper().ifPresent(this::execute);
 	}
 
 	@Override

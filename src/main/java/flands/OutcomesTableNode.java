@@ -23,7 +23,7 @@ public class OutcomesTableNode extends TableNode implements Executable {
 	@Override
 	public void init(Attributes atts) {
 		var = atts.getValue("var");
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	/**

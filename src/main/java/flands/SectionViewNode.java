@@ -23,7 +23,7 @@ public class SectionViewNode extends ActionNode implements Executable {
 	SectionViewNode(Node parent) {
 		super(ElementName, parent);
 		setEnabled(false);
-		findExecutableGrouper().addExecutable(this);
+		addExecutableNode(this);
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class SectionViewNode extends ActionNode implements Executable {
 		SectionBrowser browser = new SectionBrowser("5", false, random);
 		browser.createDialog(FLApp.getSingle(), title).setVisible(true);
 		setEnabled(false);
-		findExecutableGrouper().continueExecution(this, false);
+		continueNodeExecution(this, false);
 	}
 
 	@Override

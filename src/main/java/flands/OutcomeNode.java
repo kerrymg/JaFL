@@ -36,7 +36,7 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 	}
 
 	@Override
-	public ExecutableGrouper getExecutableGrouper() {
+	public ExecutableRunner getExecutableGrouper() {
 		if (runner == null)
 			runner = new ExecutableRunner("outcome", this);
 		return runner;
@@ -263,12 +263,12 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 			descriptionBox.handleEndTag();
 			descriptionBox.setEnabled(false);
 		}
-		
+
 		if (gotoParagraph != null) {
 			gotoNode.handleEndTag();
 			gotoParagraph.handleEndTag();
 			super.addChild(gotoParagraph);
-			
+
 			if (runner != null) {
 				// Add gotoNode as final executable child, to be executed after
 				// all other children
@@ -277,8 +277,8 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 		}
 
 		System.out.println("Adding OutcomeNode(" + getRange() + ") as child executable");
-		findExecutableGrouper().addExecutable(this);
-		
+		addExecutableNode(this);
+
 		return (descriptionNode != null || gotoNode != null);
 	}
 
@@ -388,7 +388,10 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 				System.out.println("OutcomeNode: flag is now true - resetting");
 				resetExecute();
 				if (!hasRange() && codewords == null)
-					execute(grouper == null ? findExecutableGrouper() : grouper);
+					if (grouper != null)
+						execute(grouper);
+					else
+						findExecutableGrouper().ifPresent(this::execute);
 			}
 		}
 	}
@@ -404,6 +407,6 @@ public class OutcomeNode extends ActionNode implements Executable, Flag.Listener
 	public void loadProperties(Attributes atts) {
 		super.loadProperties(atts);
 		if (getBooleanValue(atts, "continue", false))
-			((ExecutableRunner)getExecutableGrouper()).setCallback(findExecutableGrouper());
+			findExecutableGrouper().ifPresent(e -> getExecutableGrouper().setCallback(e));
 	}
 }
