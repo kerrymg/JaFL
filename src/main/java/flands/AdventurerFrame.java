@@ -83,16 +83,16 @@ public class AdventurerFrame extends JDialog implements ItemListener, MouseListe
 			setEditorKit(new BookEditorKit());
 			ToolTipManager.sharedInstance().registerComponent(this);
 		}
-		
+
 		public String getToolTipText(MouseEvent evt) {
-			int pos = viewToModel(evt.getPoint());
+			int pos = viewToModel2D(evt.getPoint());
 			int ability = adv.posToAbility(pos);
 			if (ability >= 0)
 				return adv.getAbilityTooltip(ability);
 			else
 				return null;
 		}
-		
+
 		public JToolTip createToolTip() {
 			System.out.println("AbilityPane.createToolTip called");
 			JToolTip tip = super.createToolTip();

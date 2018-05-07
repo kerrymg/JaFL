@@ -703,14 +703,14 @@ public class FLApp extends JFrame implements MouseListener,
 		mouseAtY = pt.y;
 		toolTipContext = textPane;
 
-		int pos = textPane.viewToModel(pt);
+		int pos = textPane.viewToModel2D(pt);
 		Element currentElement = null;
 		if (pos >= 0) {
 			try {
-				java.awt.Rectangle r = textPane.modelToView(pos);
+				java.awt.geom.Rectangle2D r = textPane.modelToView2D(pos);
 				//System.out.println("Mouse at " + pt + "; rectangle of reported position: " + r);
-				if (r.x - pt.x < 21 && pt.x - r.x < r.width + 21 &&
-					pt.y >= r.y	&& pt.y < r.y + r.height)
+				if (r.getX() - pt.x < 21 && pt.x - r.getX() < r.getWidth() + 21 &&
+					pt.y >= r.getY() && pt.y < r.getY() + r.getHeight())
 					// The hotzone gets ridiculously big, especially at the end
 					// of the document
 					currentElement = document.getCharacterElement(pos);
@@ -765,7 +765,7 @@ public class FLApp extends JFrame implements MouseListener,
 		}
 
 		Point pt = evt.getPoint();
-		int pos = textPane.viewToModel(pt);
+		int pos = textPane.viewToModel2D(pt);
 		if (pos < 0)
 			return;
 
