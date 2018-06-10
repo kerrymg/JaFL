@@ -142,7 +142,7 @@ public class FontChooser extends JDialog
 	}
 
 	private void changeFont() {
-		currentFont = new Font(fontList.getSelectedValue().toString(), Font.PLAIN, 
+		currentFont = new Font(fontList.getSelectedValue(), Font.PLAIN,
 			sizeModel.getNumber().intValue());
 		displayPane.setDocument(createDisplayDocument());
 	}

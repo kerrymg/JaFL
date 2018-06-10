@@ -86,10 +86,10 @@ public class Item implements XMLOutput {
 	 */
 	public static Item createItem(Attributes xmlAtts) {
 		Item item = null;
-		for (int type = 0; type < ItemTypeNames.length; type++) {
-			String val = xmlAtts.getValue(ItemTypeNames[type]);
+		for (String ItemTypeName : ItemTypeNames) {
+			String val = xmlAtts.getValue(ItemTypeName);
 			if (val != null) {
-				item = createItem(ItemTypeNames[type], val);
+				item = createItem(ItemTypeName, val);
 				break;
 			}
 		}
@@ -218,8 +218,7 @@ public class Item implements XMLOutput {
 		if (bonusStr != null) { // ie. a bonus was specified
 			if (bonus >= 0) {
 				// An exact bonus value was specified
-				if (i.getBonus() != bonus)
-					return false;
+				return i.getBonus() == bonus;
 			}
 			else {
 				// Look for a '+'
@@ -241,8 +240,7 @@ public class Item implements XMLOutput {
 							}
 							e = e.nextEffect();
 						}
-						if (!foundBonus)
-							return false;
+						return foundBonus;
 					}
 				}
 			}

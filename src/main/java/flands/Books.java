@@ -28,7 +28,7 @@ import javax.swing.AbstractListModel;
  * @author Jonathan Mann
  */
 public class Books {
-	public static class BookDetails implements Comparable {
+	public static class BookDetails implements Comparable<BookDetails> {
 		private static final int ERROR_TYPE = -2;
 		private static final int MISSING_TYPE = -1;
 		private static final int DIR_TYPE = 0;
@@ -133,7 +133,7 @@ public class Books {
 			for (int p = 0; p < paths.length; p++) {
 				switch (pathTypes[p]) {
 				case DIR_TYPE:
-					if (new File(paths[p] + "/" + name).exists())
+					if (new File(paths[p], name).exists())
 						return true;
 					continue;
 					//return new File(path + "/" + name).exists();
@@ -160,7 +160,7 @@ public class Books {
 				switch (pathTypes[p]) {
 				case DIR_TYPE:
 					try {
-						return new FileInputStream(paths[p] + "/" + name);
+						return new FileInputStream(new File(paths[p], name));
 					}
 					catch (FileNotFoundException e) {
 						//e.printStackTrace();
@@ -304,22 +304,16 @@ public class Books {
 		}
 
 		@Override
-		public int compareTo(Object o) {
-			try {
-				BookDetails bd = (BookDetails)o;
-				int bookNumber = getKeyNumber(), otherBookNumber = bd.getKeyNumber();
-				if (bookNumber != -1 && otherBookNumber != -1)
-					return bookNumber - otherBookNumber;
-				else if (bookNumber != -1)
-					return -1;
-				else if (otherBookNumber != -1)
-					return 1;
-				else
-					return getKey().compareTo(bd.getKey());
-			}
-			catch (ClassCastException cce) {
+		public int compareTo(BookDetails bd) {
+			int bookNumber = getKeyNumber(), otherBookNumber = bd.getKeyNumber();
+			if (bookNumber != -1 && otherBookNumber != -1)
+				return bookNumber - otherBookNumber;
+			else if (bookNumber != -1)
 				return -1;
-			}
+			else if (otherBookNumber != -1)
+				return 1;
+			else
+				return getKey().compareTo(bd.getKey());
 		}
 
 		public String toString() {

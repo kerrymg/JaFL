@@ -30,8 +30,6 @@ public class TradeNode extends Node implements Executable {
 	private int buy, sell;
 	private ParagraphNode paraNode = null;
 	private Attributes atts = null;
-	private BuyNode buyNode = null;
-	private SellNode sellNode = null;
 	private Item item;
 	private TradeEventNode tradeEvent = null;
 
@@ -91,7 +89,7 @@ public class TradeNode extends Node implements Executable {
 	 * The 'buy' attribute value will be passed in as the price.
 	 */
 	private void createBuyNode(Attributes atts) {
-		buyNode = new BuyNode(this, buy);
+		BuyNode buyNode = new BuyNode(this, buy);
 		addChild(buyNode);
 		if (item != null)
 			buyNode.setItem(item);
@@ -106,7 +104,7 @@ public class TradeNode extends Node implements Executable {
 	 * The 'sell' attribute value will be passed in as the price.
 	 */
 	private void createSellNode(Attributes atts) {
-		sellNode = new SellNode(this, sell);
+		SellNode sellNode = new SellNode(this, sell);
 		addChild(sellNode);
 		if (item != null)
 			sellNode.setItem(item);

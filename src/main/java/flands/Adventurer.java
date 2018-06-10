@@ -1341,39 +1341,43 @@ public class Adventurer implements Loadable {
 
 			String tagName = qName.toLowerCase();
 			try {
-				if (tagName.equals("header")) {
+				switch (tagName) {
+				case "header":
 					if (!getCurrentTag().equals("abilities"))
 						System.out.println("Got <header> when parent is not <abilities>");
-				}
-				else if (tagName.equals("profession")) {
+					break;
+				case "profession":
 					if (getCurrentTag().equals("abilities"))
 						currentProf = getProfessionType(atts.getValue("name"));
 					else
 						System.out.println("Got <profession> when parent is not <abilities>");
-				}
-				else if (tagName.equals("stamina")) {
+					break;
+				case "stamina": {
 					int amount = Integer.parseInt(atts.getValue("amount"));
 					for (Adventurer adv : advs) {
 						adv.stamina.natural = amount;
 						adv.stamina.current = amount;
 					}
+					break;
 				}
-				else if (tagName.equals("rank")) {
+				case "rank": {
 					int amount = Integer.parseInt(atts.getValue("amount"));
 					for (Adventurer adv : advs)
 						adv.rank.natural = amount;
+					break;
 				}
-				else if (tagName.equals("gold")) {
+				case "gold": {
 					int amount = Integer.parseInt(atts.getValue("amount"));
 					for (Adventurer adv : advs)
 						adv.shards = amount;
+					break;
 				}
-				else if (tagName.equals("items")) {
+				case "items":
 					System.out.println("Items element: throw to item parsing code");
-				}
-				else if (tagName.equals("starting")) {
-				}
-				else if (tagName.equals("adventurer")) {
+					break;
+				case "starting":
+					break;
+				case "adventurer":
 					if (!getCurrentTag().equals("starting"))
 						System.out.println("Hey, this tag should be inside the <starting> element!  grumble...");
 					currentProf = getProfessionType(atts.getValue("profession"));
@@ -1383,23 +1387,28 @@ public class Adventurer implements Loadable {
 						currentDocument = new DefaultStyledDocument();
 					}
 					currentStyle = 0;
-				}
-				else if (tagName.equals("i"))
+					break;
+				case "i":
 					currentStyle |= Font.ITALIC;
-				else if (tagName.equals("b"))
+					break;
+				case "b":
 					currentStyle |= Font.BOLD;
-				else if (getCurrentTag().equals("items")) {
-					Item currentItem = Item.createItem(tagName);
-					if (currentItem != null) {
-						currentItem.init(atts);
-						if (currentItem.isProfessionSpecific())
-							advs[currentItem.getProfession()].getItems().addItem(currentItem);
-						else {
-							// Owned by all professions
-							for (Adventurer adv : advs)
-								adv.getItems().addItem(currentItem);
+					break;
+				default:
+					if (getCurrentTag().equals("items")) {
+						Item currentItem = Item.createItem(tagName);
+						if (currentItem != null) {
+							currentItem.init(atts);
+							if (currentItem.isProfessionSpecific())
+								advs[currentItem.getProfession()].getItems().addItem(currentItem);
+							else {
+								// Owned by all professions
+								for (Adventurer adv : advs)
+									adv.getItems().addItem(currentItem);
+							}
 						}
 					}
+					break;
 				}
 			}
 			catch (NumberFormatException ignored) {

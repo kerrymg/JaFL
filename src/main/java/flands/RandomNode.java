@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
@@ -20,7 +19,6 @@ import org.xml.sax.Attributes;
  * @author Jonathan Mann
  */
 public class RandomNode extends ActionNode implements Executable, Roller.Listener, UndoManager.Creator, Flag.Listener {
-	public static Random randomGen = new Random();
 	public static final String ElementName = "random";
 	private int dice;
 	private String var;

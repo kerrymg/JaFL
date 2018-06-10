@@ -125,14 +125,7 @@ public class SectionDocument extends AbstractDocument implements StyledDocument 
 			Font f = getPreferredFont();
 			StyleConstants.setFontFamily(rootStyle, f.getFamily());
 			StyleConstants.setFontSize(rootStyle, f.getSize());
-			rootStyle.addChangeListener(new javax.swing.event.ChangeListener() 
-			{
-				@Override
-				public void stateChanged(javax.swing.event.ChangeEvent evt)
-				{
-					System.out.println("Root style changed: " + evt);
-				}
-			});
+			rootStyle.addChangeListener(evt -> System.out.println("Root style changed: " + evt));
 		}
 	}
 

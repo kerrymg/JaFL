@@ -27,10 +27,7 @@ public class UndoManager {
 	}
 	public static UndoManager getCurrent() {
 		if (single == null)
-			return createNew(new Creator() {
-				@Override
-				public void undoOccurred(UndoManager undo) {}
-			});
+			return createNew(undo -> {});
 		else
 			return single;
 	}

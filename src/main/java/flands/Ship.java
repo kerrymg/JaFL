@@ -241,20 +241,20 @@ public class Ship {
 	}
 	private String getCargoString() {
 		int[] cargoCounts = getCargoCounts();
-		String str = null;
+		StringBuilder sb = new StringBuilder();
 		for (int c = 1; c < cargoCounts.length; c++) {
 			if (cargoCounts[c] > 0) {
 				String cargoName = getCargoName(c);
 				if (cargoCounts[c] > 1)
 					cargoName += " x" + cargoCounts[c];
-				if (str == null)
-					str = cargoName;
+				if (sb.length() == 0)
+					sb.append(cargoName);
 				else
-					str += "/" + cargoName;
+					sb.append("/").append(cargoName);
 			}
 		}
 
-		return (str == null ? "None" : str);
+		return (sb.length() == 0 ? "None" : sb.toString());
 	}
 
 	public String getDocked() { return dock; }

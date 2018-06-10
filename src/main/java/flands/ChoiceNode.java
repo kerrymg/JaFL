@@ -85,7 +85,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 	@Override
 	protected void outit(Properties props) {
 		super.outit(props);
-		
+
 		if (shards != null) saveVarProperty(props, "shards", shards);
 		if (currency != null) props.setProperty("currency", currency);
 		if (item != null) item.saveProperties(props);
@@ -95,7 +95,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 		if (god != null) props.setProperty("god", god);
 		if (boxword != null) props.setProperty("box", boxword);
 		if (emptyvar != null) props.setProperty("emptyvar", emptyvar);
-		if (flee) saveProperty(props, "flee", flee);
+		if (flee) saveProperty(props, "flee", true);
 		if (book != null) props.setProperty("book", book);
 	}
 
@@ -229,7 +229,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 			else
 				getItems().adjustMoney(-getAttributeValue(shards), currency);
 		}
-		
+
 		if (item != null && pay) {
 			// Some problems here, since goto has already been triggered;
 			// there are cases where it would be better if we could veto the goto.
@@ -273,7 +273,7 @@ public class ChoiceNode extends Node implements Executable, ActionListener, Chan
 			else
 				getItems().removeCurrencyListener(this);
 		}
-		
+
 		if (boxword != null) {
 			getCodewords().removeChangeListener(this);
 			if (box != null && box.getParent() != null)

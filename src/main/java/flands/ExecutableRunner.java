@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * (and with support for this).
  * @author Jonathan Mann
  */
-public class ExecutableRunner extends ArrayList<Executable> implements ExecutableGrouper, Executable, Runnable {
+public class ExecutableRunner implements ExecutableGrouper, Executable, Runnable {
 	/**
 	 * Wrapper for Node that will let us treat it as an Executable.
 	 * When called on to execute, it enables the node and returns <code>true</code>.
@@ -33,6 +33,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 		}
 	}
 
+	private ArrayList<Executable> executableList = new ArrayList<>();
 	private String debugName;
 	// The Executable node that should be passed as an argument to parent groupers (in continueExecution())
 	private Executable owner;
@@ -57,7 +58,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	 */
 	@Override
 	public void addExecutable(Executable e) {
-		add(e);
+		executableList.add(e);
 	}
 
 	/**
@@ -77,7 +78,7 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 		System.out.println("continueExecution callback from child " + eDone);
 		int startAtIndex = 0;
 		if (eDone != null)
-			startAtIndex = indexOf(eDone) + 1;
+			startAtIndex = executableList.indexOf(eDone) + 1;
 
 		if (inSeparateThread)
 			thread = Thread.currentThread();
@@ -123,12 +124,13 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	 * <code>false</code> when one is blocked.
 	 */
 	private boolean startExecution(int eIndex) {
-		for (int e = eIndex; e < size(); e++) {
+		for (int e = eIndex; e < executableList.size(); e++) {
+			Executable executable = executableList.get(e);
 			//System.out.println("Will execute child " + e + ": " + get(e));
-			UndoManager.getCurrent().add(get(e));
-			boolean canContinue = get(e).execute(this);
-			if (autoAction && get(e) instanceof ActionNode) {
-				ActionNode n = (ActionNode)get(e);
+			UndoManager.getCurrent().add(executable);
+			boolean canContinue = executable.execute(this);
+			if (autoAction && executable instanceof ActionNode) {
+				ActionNode n = (ActionNode)executable;
 				if (n.isEnabled())
 					n.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, debugName));
 			}
@@ -167,8 +169,9 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	}
 
 	private void resetChildren() {
-		for (int e = 0; e < size(); e++)
-			get(e).resetExecute();
+		for (Executable executable : executableList) {
+			executable.resetExecute();
+		}
 	}
 
 	@Override
@@ -179,6 +182,6 @@ public class ExecutableRunner extends ArrayList<Executable> implements Executabl
 	public String toString() {
 		return "ExecutableRunner("
 			+ (debugName == null ? "" : debugName + ",")
-			+ "childCount=" + size() + ")";
+			+ "childCount=" + executableList.size() + ")";
 	}
 }

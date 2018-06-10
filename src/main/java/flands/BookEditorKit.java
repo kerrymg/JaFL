@@ -31,9 +31,9 @@ public class BookEditorKit extends StyledEditorKit {
 		@Override
 		public View create(Element e) {
 			View nodeView = Node.createViewFor(e);
-			if (nodeView != null)
-				return nodeView;
-			View defaultView = innerFactory.create(e);
+			if (nodeView == null) {
+				nodeView = innerFactory.create(e);
+			}
 			//System.out.println("Wrapped Factory created " + defaultView + " for " + e);
 			/*
 			if (defaultView.getClass().equals(javax.swing.text.BoxView.class)) {
@@ -42,7 +42,7 @@ public class BookEditorKit extends StyledEditorKit {
 				defaultView = new BoxView(e, ((javax.swing.text.BoxView)defaultView).getAxis());
 			}
 			*/
-			return defaultView;
+			return nodeView;
 		}
 	}
 
