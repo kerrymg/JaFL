@@ -1,6 +1,4 @@
-package flands.test;
-
-import flands.ImageWindow;
+package flands;
 
 import java.awt.Image;
 

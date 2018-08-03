@@ -1,7 +1,4 @@
-package flands.test;
-
-import flands.Ship;
-import flands.ShipList;
+package flands;
 
 import javax.swing.JOptionPane;
 import javax.swing.JTable;

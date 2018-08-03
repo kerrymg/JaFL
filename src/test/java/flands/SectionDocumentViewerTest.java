@@ -1,6 +1,4 @@
-package flands.test;
-
-import flands.SectionDocumentViewer;
+package flands;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;

@@ -1,6 +1,4 @@
-package flands.test;
-
-import flands.GBC;
+package flands;
 
 public class GBCTest {
     public static void main(String args[]) {

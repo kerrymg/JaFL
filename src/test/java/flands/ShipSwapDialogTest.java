@@ -1,8 +1,4 @@
-package flands.test;
-
-import flands.Ship;
-import flands.ShipList;
-import flands.ShipSwapDialog;
+package flands;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;

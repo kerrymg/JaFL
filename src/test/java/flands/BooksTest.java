@@ -1,12 +1,8 @@
-package flands.test;
-
-import flands.Books;
-
-import static flands.Books.getCanon;
+package flands;
 
 public class BooksTest {
     public static void main(String args[]) {
-        Books books = getCanon();
+        Books books = Books.getCanon();
         for (String arg : args) {
             Books.BookDetails book = books.getBook(arg);
             if (book.hasBook()) {

@@ -1,8 +1,4 @@
-package flands.test;
-
-import flands.Adventurer;
-import flands.FLApp;
-import flands.SectionBrowser;
+package flands;
 
 import javax.swing.JFrame;
 

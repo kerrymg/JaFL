@@ -1,6 +1,4 @@
-package flands.test;
-
-import flands.Expression;
+package flands;
 
 public class ExpressionTest {
     public static void main(String args[]) {

@@ -1,8 +1,4 @@
-package flands.test;
-
-import flands.Adventurer;
-import flands.AdventurerFrame;
-import flands.Books;
+package flands;
 
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -14,11 +10,9 @@ import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.util.Random;
 
-import static flands.Adventurer.loadStarting;
-
 public class AdventurerTest {
     public static void main(String args[]) {
-        Adventurer[] advs = loadStarting(Books.getCanon().getBook(args.length > 0 ? args[0] : "5"));
+        Adventurer[] advs = Adventurer.loadStarting(Books.getCanon().getBook(args.length > 0 ? args[0] : "5"));
         for (int a = 0; a < advs.length; a++) {
             System.out.println("Adventurer " + (a+1) + ":");
             System.out.println(advs[a].toDebugString());

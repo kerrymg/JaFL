@@ -1,8 +1,4 @@
-package flands.test;
-
-import flands.AbilityEffect;
-import flands.Adventurer;
-import flands.Curse;
+package flands;
 
 public class CurseTest {
     public static void main(String args[]) {

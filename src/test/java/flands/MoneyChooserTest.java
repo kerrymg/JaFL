@@ -1,6 +1,4 @@
-package flands.test;
-
-import flands.MoneyChooser;
+package flands;
 
 import java.awt.Frame;
 

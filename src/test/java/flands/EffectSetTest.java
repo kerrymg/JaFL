@@ -1,10 +1,4 @@
-package flands.test;
-
-import flands.AbilityEffect;
-import flands.Adventurer;
-import flands.Effect;
-import flands.EffectSet;
-import flands.Item;
+package flands;
 
 public class EffectSetTest {
     public static void main(String args[]) {
