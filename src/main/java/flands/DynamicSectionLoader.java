@@ -4,13 +4,13 @@ package flands;
 import java.util.LinkedList;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Handles loading a saved section (and its working state) from XML.
  * @author Jonathan Mann
  */
-public class DynamicSectionLoader implements ContentHandler {
+public class DynamicSectionLoader extends DefaultHandler {
 	private static class StackEntry {
 		private Node n;
 		private int childIndex;

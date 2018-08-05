@@ -2,7 +2,6 @@ package flands;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Iterator;
@@ -10,10 +9,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+
+import javax.xml.parsers.SAXParser;
 
 /**
  * Object that holds other objects that will be saved in XML format. Currently, these
@@ -46,11 +44,10 @@ public class XMLPool implements Loadable, XMLOutput {
 	@Override
 	public boolean loadFrom(InputStream in) throws IOException {
 		try {
-			XMLReader reader = XMLReaderFactory.createXMLReader();
+			SAXParser parser = FLApp.createSAXParser();
 			ParserHandler handler = new ParserHandler();
-			reader.setContentHandler(handler);
-			reader.parse(new InputSource(new InputStreamReader(in)));
-			
+			parser.parse(in, handler);
+
 			return true;
 		}
 		catch (SAXException sax) {

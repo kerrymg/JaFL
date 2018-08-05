@@ -19,12 +19,10 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import javax.xml.parsers.SAXParser;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * The root node, having the section name and parenting all other nodes.
@@ -466,9 +464,8 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 	}
 	public boolean loadFrom(InputStream in) {
 		try {
-			XMLReader reader = XMLReaderFactory.createXMLReader();
-			reader.setContentHandler(new DynamicSectionLoader(this));
-			reader.parse(new InputSource(in));
+			SAXParser parser = FLApp.createSAXParser();
+			parser.parse(in, new DynamicSectionLoader(this));
 			return true;
 		}
 		catch (SAXException e) {
@@ -478,7 +475,7 @@ public class SectionNode extends Node implements ItemListener, Loadable {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return false;
 	}
 

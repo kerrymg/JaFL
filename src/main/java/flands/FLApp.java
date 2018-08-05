@@ -22,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.LinkedList;
@@ -45,10 +44,11 @@ import javax.swing.PopupFactory;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+import org.xml.sax.SAXException;
 
 import flands.resources.Resources;
 
@@ -339,7 +339,7 @@ public class FLApp extends JFrame implements MouseListener,
 		if (wasVisible)
 			setVisible(true);
 	}
-	public void showProfession(int type) {
+	void showProfession(int type) {
 		boolean firstAdventurer = false;
 		if (starting != null && type >= 0) {
 			if (adventurer == null)
@@ -576,9 +576,8 @@ public class FLApp extends JFrame implements MouseListener,
 		try {
 			ParserHandler handler = getHandler();
 			handler.setBook(book);
-			XMLReader reader = XMLReaderFactory.createXMLReader();
-			reader.setContentHandler(handler);
-			reader.parse(new InputSource(new InputStreamReader(in)));
+			SAXParser parser = createSAXParser();
+			parser.parse(in, handler);
 
 			// Parsing is now finished!
 			closeSectionWindows();
@@ -1210,7 +1209,7 @@ public class FLApp extends JFrame implements MouseListener,
 			if (handler.load()) {
 				if (oldAdv == null)
 					restoreMainWindowBounds();
-				
+
 				if (adventureSheet == null) {
 					adventureSheet = new AdventurerFrame();
 					adventureSheet.init(adventurer);
@@ -1367,7 +1366,7 @@ public class FLApp extends JFrame implements MouseListener,
 	private static void blockOutput() {
 		if (defaultOut == null)
 			defaultOut = System.out;
-		
+
 		if (defaultOut == System.out) {
 			standardOut = new OutputStream() {
 				@Override
@@ -1386,6 +1385,27 @@ public class FLApp extends JFrame implements MouseListener,
 	public static void unblockOutput() {
 		if (defaultOut != System.out)
 			System.setOut(defaultOut);
+	}
+
+	private static SAXParserFactory saxParserFactory = null;
+
+	private static SAXParserFactory getSaxParserFactory() {
+		if (saxParserFactory == null) {
+			saxParserFactory = SAXParserFactory.newInstance();
+			saxParserFactory.setNamespaceAware(true);
+		}
+		return saxParserFactory;
+	}
+
+	static SAXParser createSAXParser() throws SAXException {
+		SAXParser saxParser = null;
+		try {
+			saxParser = getSaxParserFactory().newSAXParser();
+		}
+		catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		}
+		return saxParser;
 	}
 
 	public static void main(String args[]) {

@@ -30,13 +30,11 @@ import javax.swing.text.Position;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import javax.xml.parsers.SAXParser;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Handles the character being played: abilities, gods, titles, money and resurrections,
@@ -60,14 +58,14 @@ public class Adventurer implements Loadable {
 	public static final int PROF_TROUBADOUR = 3;
 	public static final int PROF_WARRIOR = 4;
 	public static final int PROF_WAYFARER = 5;
-	public static final int PROF_COUNT = 6;
+	static final int PROF_COUNT = 6;
 	private static final String[] ProfessionNames = new String[] {"Priest", "Mage", "Rogue", "Troubadour", "Warrior", "Wayfarer"};
 
-	public static final int ABILITY_CHARISMA = 0;
-	public static final int ABILITY_COMBAT = 1;
+	static final int ABILITY_CHARISMA = 0;
+	static final int ABILITY_COMBAT = 1;
 	static final int ABILITY_MAGIC = 2;
 	private static final int ABILITY_SANCTITY = 3;
-	public static final int ABILITY_SCOUTING = 4;
+	static final int ABILITY_SCOUTING = 4;
 	static final int ABILITY_THIEVERY = 5;
 	/** The number of basic abilities (not including Rank, Defence & Stamina). */
 	static final int ABILITY_COUNT = 6;
@@ -433,7 +431,7 @@ public class Adventurer implements Loadable {
 		return -1;
 	}
 
-	public Document getHistoryDocument() {
+	Document getHistoryDocument() {
 		return history;
 	}
 
@@ -648,7 +646,7 @@ public class Adventurer implements Loadable {
 		}
 		return false;
 	}
-	public void addTitle(String title) {
+	void addTitle(String title) {
 		if (!hasTitle(title)) {
 			Title t = new Title(title);
 			titles.add(t);
@@ -1277,7 +1275,7 @@ public class Adventurer implements Loadable {
 	}
 
 	public String toString() { return fullName; }
-	public String toDebugString() {
+	String toDebugString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[Name=").append(fullName);
 		sb.append("\n Profession=").append(getProfessionName());
@@ -1291,7 +1289,7 @@ public class Adventurer implements Loadable {
 	}
 
 	private static final String startingAdventurersFileName = "Adventurers.xml";
-	public static Adventurer[] loadStarting(Books.BookDetails book) {
+	static Adventurer[] loadStarting(Books.BookDetails book) {
 		if (book == null || !book.hasBook()) return null;
 
 		try {
@@ -1302,10 +1300,9 @@ public class Adventurer implements Loadable {
 				return null;
 			}
 
-			XMLReader reader = XMLReaderFactory.createXMLReader();
+			SAXParser parser = FLApp.createSAXParser();
 			Adventurer[] result = new Adventurer[PROF_COUNT];
-			reader.setContentHandler(new Handler(result));
-			reader.parse(new InputSource(in));
+			parser.parse(in, new Handler(result));
 			return result;
 		}
 		catch (SAXException se) {
@@ -1317,7 +1314,7 @@ public class Adventurer implements Loadable {
 		return null;
 	}
 
-	private static class Handler implements ContentHandler {
+	private static class Handler extends DefaultHandler {
 		private Adventurer[] advs;
 
 		private Handler(Adventurer[] advs) {

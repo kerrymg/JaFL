@@ -4,13 +4,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
+
+import javax.xml.parsers.SAXParser;
 
 /**
  * Wrapper for SectionNodes, that lets us store and retrieve one from any filename.
@@ -64,9 +62,8 @@ public class LoadableSection implements Loadable {
 		try {
 			ParserHandler handler = getHandler();
 			handler.setBook(book);
-			XMLReader reader = XMLReaderFactory.createXMLReader();
-			reader.setContentHandler(handler);
-			reader.parse(new InputSource(new InputStreamReader(sectionStream)));
+			SAXParser parser = FLApp.createSAXParser();
+			parser.parse(sectionStream, handler);
 		}
 		catch (SAXException e) {
 			e.printStackTrace();

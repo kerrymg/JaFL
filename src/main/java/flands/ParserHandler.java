@@ -1,7 +1,7 @@
 package flands;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
+import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.LinkedList;
 
@@ -9,19 +9,19 @@ import java.util.LinkedList;
  * The standard SAX handler when parsing section XML files.
  * @author Jonathan Mann
  */
-public class ParserHandler implements ContentHandler {
+public class ParserHandler extends DefaultHandler {
 	private Node rootNode;
-	private boolean startExecution;
+	private final boolean startExecution;
 	private String book;
 
 	ParserHandler() {
 		this(false);
 	}
-	
+
 	ParserHandler(boolean startExecution) {
 		this.startExecution = startExecution;
 	}
-	
+
 	public SectionDocument getDocument() { return rootNode.getDocument(); }
 	Node getRootNode() { return rootNode; }
 	/**
@@ -34,29 +34,13 @@ public class ParserHandler implements ContentHandler {
 	 * ContentHandler
 	 ************** */
 	@Override
-	public void setDocumentLocator(org.xml.sax.Locator l) {
-		//System.out.println("setDocumentLocator(" + l + ")");
-	}
-	@Override
 	public void startDocument() {
 		System.out.println("startDocument()");
-		
+
 		// Reset any variables - if there was an error in the last parse,
 		// these may not be in the right state.
 		rootNode = null;
 		nodeStack.clear();
-	}
-	@Override
-	public void endDocument() {
-		//System.out.println("endDocument()");
-	}
-	@Override
-	public void startPrefixMapping(String prefix, String uri) {
-		//System.out.println("startPrefixMapping(" + prefix + "," + uri + ")");
-	}
-	@Override
-	public void endPrefixMapping(String prefix) {
-		//System.out.println("endPrefixMapping(" + prefix + ")");
 	}
 
 	// Tracks whether the current Node contains any textual content - if not, it will have
@@ -108,25 +92,22 @@ public class ParserHandler implements ContentHandler {
 
 		Node newNode = Node.createNode(localName, getCurrentNode());
 		if (newNode != null) {
-			if (nodeStack.size() == 0 && book != null) {
+			if (nodeStack.size() == 0 && book != null && newNode instanceof SectionNode) {
 				// Set the book immediately
-				try {
-					SectionNode root = (SectionNode)newNode;
-					root.setBook(book);
-				}
-				catch (ClassCastException ignored) {}
+				SectionNode root = (SectionNode)newNode;
+				root.setBook(book);
 			}
-			
+
 			pushNode(newNode);
 			newNode.init(atts);
 		}
 
 		StringBuilder sb = new StringBuilder("startElement(");
-		sb.append(uri);
+		sb.append('"').append(uri).append('"');
 		sb.append(',');
-		sb.append(localName);
+		sb.append('"').append(localName).append('"');
 		sb.append(',');
-		sb.append(qName);
+		sb.append('"').append(qName).append('"');
 		sb.append(',');
 		sb.append("attributes[");
 		for (int i = 0; i < atts.getLength(); i++) {
@@ -155,13 +136,8 @@ public class ParserHandler implements ContentHandler {
 		if (!contentAdded) trimContentStart = true;
 		if (nodeStack.size() == 0) {
 			rootNode = n;
-			if (startExecution) {
-				try {
-					((SectionNode)rootNode).startExecution();
-				}
-				catch (ClassCastException cce) {
-					// It might not actually be a SectionNode
-				}
+			if (startExecution && rootNode instanceof SectionNode) {
+				((SectionNode)rootNode).startExecution();
 			}
 		}
 		System.out.println("endElement(" + uri + "," + localName + "," + qName + ")");

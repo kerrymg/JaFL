@@ -28,10 +28,9 @@ import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.xml.parsers.SAXParser;
 
 import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * Pop-up window to display book sections without interaction.
@@ -78,7 +77,7 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 		}
 	}
 
-	public SectionBrowser(String book, boolean sectionChoice, int random) {
+	SectionBrowser(String book, boolean sectionChoice, int random) {
 		this();
 
 		this.random = random;
@@ -148,7 +147,7 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 	private JFrame outerFrame;
 	private JDialog outerDialog;
 	
-	public JFrame createFrame(String title) {
+	JFrame createFrame(String title) {
 		baseTitle = title;
 		outerFrame = new JFrame(title);
 		outerFrame.getContentPane().add(this);
@@ -214,9 +213,8 @@ public class SectionBrowser extends JPanel implements ChangeListener, ActionList
 
 	private boolean showFile(Reader r) {
 		try {
-			XMLReader reader = XMLReaderFactory.createXMLReader();
-			reader.setContentHandler(getHandler());
-			reader.parse(new InputSource(r));
+			SAXParser parser = FLApp.createSAXParser();
+			parser.parse(new InputSource(r), getHandler());
 
 			Node oldRoot = currentRoot;
 			currentRoot = getHandler().getRootNode();
