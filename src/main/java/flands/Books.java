@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -28,7 +28,11 @@ import javax.swing.AbstractListModel;
  * @author Jonathan Mann
  */
 public class Books {
+	private static final String BOOKS_CONFIG_FILE = "books.ini";
+
 	public static class BookDetails implements Comparable<BookDetails> {
+		private static final String BOOK_CONFIG_FILE = "book.ini";
+
 		private static final int ERROR_TYPE = -2;
 		private static final int MISSING_TYPE = -1;
 		private static final int DIR_TYPE = 0;
@@ -36,7 +40,7 @@ public class Books {
 
 		private int[] pathTypes;
 		private String[] paths;
-		
+
 		private String key;
 		private String title;
 		private boolean foundSectionRange = false;
@@ -62,7 +66,7 @@ public class Books {
 			for (int p = 0; p < paths.length; p++) {
 				if (paths[p] == null) {
 					pathTypes[p] = MISSING_TYPE;
-					System.out.println("Book " + toString() + " has no path");
+					System.err.println("Book " + toString() + " has no path");
 				}
 				else {
 					File f = new File(paths[p]);
@@ -72,13 +76,11 @@ public class Books {
 							pathTypes[p] = DIR_TYPE;
 						else
 						{
-							try {
-								ZipFile zf = new ZipFile(paths[p]);
+							try (final var ignored = new ZipFile(paths[p])) {
 								pathTypes[p] = ZIP_TYPE;
-								zf.close();
 							}
 							catch (IOException e) {
-								System.out.println("Couldn't open zip-file " + paths[p]);
+								System.err.println("Couldn't open zip-file " + paths[p]);
 								pathTypes[p] = ERROR_TYPE;
 							}
 						}
@@ -86,14 +88,14 @@ public class Books {
 					else
 						pathTypes[p] = MISSING_TYPE;
 				}
-				
+
 				if (pathTypes[p] >= 0)
 					gotAnyPath = true;
 			}
 
 			if (gotAnyPath) {
-				if (!fileExists("book.ini"))
-					System.out.println("Couldn't find book.ini file for book " + key);
+				if (!fileExists(BOOK_CONFIG_FILE))
+					System.err.println("Couldn't find book.ini file for book " + key);
 			}
 
 			/*
@@ -135,21 +137,18 @@ public class Books {
 				case DIR_TYPE:
 					if (new File(paths[p], name).exists())
 						return true;
-					continue;
-					//return new File(path + "/" + name).exists();
+					break;
+
 				case ZIP_TYPE:
-					try {
-						ZipFile zf = new ZipFile(paths[p]);
-						ZipEntry entry = zf.getEntry(name);
-						zf.close();
-						if (entry != null)
+					try (final var zf = new ZipFile(paths[p])) {
+						if (zf.getEntry(name) != null)
 							return true;
-						//return (entry != null);
 					}
 					catch (IOException ioe) {
-						System.out.println("Error reading zip-file " + paths[p]);
+						System.err.println("Error reading zip-file " + paths[p]);
 						//return false;
 					}
+					break;
 				}
 			}
 			return false;
@@ -184,7 +183,7 @@ public class Books {
 		}
 
 		public boolean hasBook() {
-			return (fileExists("book.ini"));
+			return (fileExists(BOOK_CONFIG_FILE));
 			//return (pathType >= DIR_TYPE);
 		}
 
@@ -212,27 +211,23 @@ public class Books {
 				case DIR_TYPE:
 					File dir = new File(paths[p]);
 					String[] contents = dir.list();
-					allFiles.addAll(Arrays.asList(contents));
+					if (contents != null) {
+						allFiles.addAll(Arrays.asList(contents));
+					}
 					break;
 				case ZIP_TYPE:
-					try {
-						ZipFile zf = new ZipFile(paths[p]);
-						//String[] names = new String[zf.size()];
-						//int i = 0;
-						for (Enumeration<? extends ZipEntry> e = zf.entries(); e.hasMoreElements(); )
+					try (final var zf = new ZipFile(paths[p])) {
+						for (final var e = zf.entries(); e.hasMoreElements(); )
 							allFiles.add(e.nextElement().getName());
-							//names[i++] = e.nextElement().getName();
-						//return names;
-						zf.close();
 					}
 					catch (IOException e) {
-						System.out.println("Error reading zip-file " + paths[p]);
+						System.err.println("Error reading zip-file " + paths[p]);
 					}
 				}
 			}
 			return allFiles.toArray(new String[0]);
 		}
-		
+
 		private void findSectionRange() {
 			if (foundSectionRange) return;
 			foundSectionRange = true;
@@ -256,8 +251,8 @@ public class Books {
 			lowestSection = min;
 			highestSection = max;
 		}
-		
-		public String[] getOfficialCodewords() {
+
+		String[] getOfficialCodewords() {
 			String codewordsStr = getProps().getProperty("Codewords");
 			if (codewordsStr == null)
 				return new String[0];
@@ -329,8 +324,7 @@ public class Books {
 		BookListModel() {
 			SortedSet<BookDetails> sortedBooks = new TreeSet<>();
 			Books canon = getCanon();
-			for (Iterator<BookDetails> i = canon.getAllBooks(); i.hasNext(); ) {
-				BookDetails book = i.next();
+			for (final var book : canon.getAllBooks()) {
 				if (book.hasBook())
 					sortedBooks.add(book);
 			}
@@ -356,6 +350,7 @@ public class Books {
 	}
 
 	private static BookDetails MissingBook = new BookDetails("0", "MISSING") {
+		@Override
 		public boolean hasBook() { return false; }
 	};
 
@@ -375,14 +370,13 @@ public class Books {
 		bookMap.put(book.key, book);
 	}
 
-	private Iterator<BookDetails> getAllBooks() {
-		return bookMap.values().iterator();
+	private Collection<BookDetails> getAllBooks() {
+		return Collections.unmodifiableCollection(bookMap.values());
 	}
 
 	String[] getAvailableKeys() {
 		Set<String> availableBooks = new HashSet<>();
-		for (Iterator<BookDetails> i = getAllBooks(); i.hasNext(); ) {
-			BookDetails b = i.next();
+		for (final var b : canon.getAllBooks()) {
 			if (b.hasBook())
 				availableBooks.add(b.getKey());
 		}
@@ -392,7 +386,7 @@ public class Books {
 	private static Books canon = null;
 	public static Books getCanon() {
 		if (canon == null) {
-			String listingFile = "books.ini";
+			String listingFile = BOOKS_CONFIG_FILE;
 			try {
 				Properties props = new Properties();
 				props.load(new FileInputStream(listingFile));
@@ -405,10 +399,10 @@ public class Books {
 				}
 				canon = books;
 			} catch (FileNotFoundException e) {
-				System.out.println("Couldn't find book listing file '" + listingFile + "'");
+				System.err.println("Couldn't find book listing file '" + listingFile + "'");
 				e.printStackTrace();
 			} catch (IOException e) {
-				System.out.println("Error in reading book listing file '" + listingFile + "'");
+				System.err.println("Error in reading book listing file '" + listingFile + "'");
 				e.printStackTrace();
 			}
 
